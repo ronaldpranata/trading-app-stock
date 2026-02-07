@@ -94,8 +94,24 @@ export function generateTimeframePrediction(
   const maxChange = expectedVolatility * 200;
   expectedChangePercent = Math.max(-maxChange, Math.min(maxChange, expectedChangePercent));
   
+  // Additional cap: prevent extreme predictions
+  // For bearish predictions, cap at -80% (stock can't go below 0)
+  // For bullish predictions, cap at reasonable growth based on timeframe
+  const maxBullishChange = config.days <= 5 ? 20 : config.days <= 22 ? 50 : config.days <= 66 ? 100 : 200;
+  const maxBearishChange = -80; // Stock can't lose more than 100%, cap at 80% for safety
+  
+  expectedChangePercent = Math.max(maxBearishChange, Math.min(maxBullishChange, expectedChangePercent));
+  
   const expectedChange = currentPrice * (expectedChangePercent / 100);
-  const targetPrice = currentPrice + expectedChange;
+  let targetPrice = currentPrice + expectedChange;
+  
+  // Ensure target price is never negative or zero
+  if (targetPrice <= 0) {
+    targetPrice = currentPrice * 0.1; // Minimum 10% of current price
+    // Recalculate expected change based on adjusted target
+    const adjustedExpectedChange = targetPrice - currentPrice;
+    expectedChangePercent = (adjustedExpectedChange / currentPrice) * 100;
+  }
   
   // Calculate stop loss based on ATR and timeframe
   const stopLossDistance = technicalIndicators.atr * config.volatilityMultiplier * 0.75;

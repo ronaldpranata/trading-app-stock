@@ -490,8 +490,54 @@ function detectThreeBlackCrows(candles: HistoricalData[], avgBody: number): Cand
   return null;
 }
 
-// Main analysis function
-export function analyzeCandlestickPatterns(data: HistoricalData[]): CandlestickAnalysis {
+// Timeframe configuration for candlestick analysis
+// Based on best practices: longer prediction timeframes need more historical data
+interface CandlestickTimeframeConfig {
+  analysisWindow: number;      // How many candles to analyze for patterns
+  recentWindow: number;        // How many candles count as "recent" for scoring
+  minReliability: number;      // Minimum reliability threshold for signals
+  patternWeight: number;       // How much weight to give candlestick patterns
+}
+
+const CANDLESTICK_TIMEFRAME_CONFIGS: Record<string, CandlestickTimeframeConfig> = {
+  // Short-term: 1 day to 1 week - focus on recent patterns, single candle patterns more relevant
+  short: {
+    analysisWindow: 10,
+    recentWindow: 3,
+    minReliability: 0.5,
+    patternWeight: 0.8
+  },
+  // Medium-term: 1 week to 1 month - balance of recent and historical patterns
+  medium: {
+    analysisWindow: 20,
+    recentWindow: 5,
+    minReliability: 0.55,
+    patternWeight: 0.7
+  },
+  // Long-term: 1 month to 1 year - multi-candle patterns more reliable, need more data
+  long: {
+    analysisWindow: 40,
+    recentWindow: 10,
+    minReliability: 0.6,
+    patternWeight: 0.6
+  }
+};
+
+// Get timeframe config based on prediction days
+function getTimeframeConfig(predictionDays?: number): CandlestickTimeframeConfig {
+  if (!predictionDays || predictionDays <= 5) {
+    return CANDLESTICK_TIMEFRAME_CONFIGS.short;
+  } else if (predictionDays <= 30) {
+    return CANDLESTICK_TIMEFRAME_CONFIGS.medium;
+  } else {
+    return CANDLESTICK_TIMEFRAME_CONFIGS.long;
+  }
+}
+
+// Main analysis function - now accepts optional prediction timeframe
+export function analyzeCandlestickPatterns(data: HistoricalData[], predictionDays?: number): CandlestickAnalysis {
+  const config = getTimeframeConfig(predictionDays);
+  
   if (data.length < 10) {
     return {
       patterns: [],
@@ -505,8 +551,8 @@ export function analyzeCandlestickPatterns(data: HistoricalData[]): CandlestickA
   const avgBody = getAverageBodySize(data);
   const avgRange = getAverageRange(data);
   
-  // Only analyze last 10 candles for patterns (more focused)
-  const analysisWindow = Math.min(10, data.length);
+  // Analyze based on timeframe configuration
+  const analysisWindow = Math.min(config.analysisWindow, data.length);
   
   for (let i = data.length - analysisWindow; i < data.length; i++) {
     const candle = data[i];
@@ -605,8 +651,8 @@ export function analyzeCandlestickPatterns(data: HistoricalData[]): CandlestickA
     }
   }
   
-  // Calculate overall bias and score - only use recent patterns (last 5 days)
-  const recentPatterns = patterns.filter(p => p.index >= data.length - 5);
+  // Calculate overall bias and score - use recent patterns based on timeframe config
+  const recentPatterns = patterns.filter(p => p.index >= data.length - config.recentWindow);
   
   let bullishScore = 0;
   let bearishScore = 0;
