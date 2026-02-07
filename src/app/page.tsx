@@ -1,46 +1,143 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { useStockData, useMultipleStocks, useAutoRefresh, StockData } from '@/hooks';
-import StockSearch from '@/components/StockSearch';
-import PriceTicker from '@/components/PriceTicker';
-import StockChart from '@/components/StockChart';
-import TechnicalAnalysis from '@/components/TechnicalAnalysis';
-import FundamentalAnalysis from '@/components/FundamentalAnalysis';
-import PredictionDisplay from '@/components/PredictionDisplay';
-import ElliottWaveDisplay from '@/components/ElliottWaveDisplay';
-import CompareView from '@/components/CompareView';
-import { Card, Button, ButtonGroup, ToggleButton, MetricBox, ScoreBar } from '@/components/ui';
-import { RefreshCw, TrendingUp, BarChart3, Brain, Play, Pause, Clock, LayoutGrid, GitCompare, X, Plus } from 'lucide-react';
-import { formatNumber } from '@/lib/formatters';
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import {
+  useStockData,
+  useMultipleStocks,
+  useAutoRefresh,
+  StockData,
+} from "@/hooks";
+import StockSearch from "@/components/StockSearch";
+import PriceTicker from "@/components/PriceTicker";
+import StockChart from "@/components/StockChart";
+import TechnicalAnalysis from "@/components/TechnicalAnalysis";
+import FundamentalAnalysis from "@/components/FundamentalAnalysis";
+import PredictionDisplay from "@/components/PredictionDisplay";
+import ElliottWaveDisplay from "@/components/ElliottWaveDisplay";
+import CompareView from "@/components/CompareView";
+import {
+  Card,
+  Button,
+  ButtonGroup,
+  ToggleButton,
+  MetricBox,
+  ScoreBar,
+} from "@/components/ui";
+import {
+  RefreshCw,
+  TrendingUp,
+  BarChart3,
+  Brain,
+  Play,
+  Pause,
+  Clock,
+  LayoutGrid,
+  GitCompare,
+  X,
+  Plus,
+  LogOut,
+  Lock,
+} from "lucide-react";
+import { formatNumber } from "@/lib/formatters";
 
-type ViewMode = 'single' | 'compare';
-type TabType = 'overview' | 'technical' | 'fundamental' | 'prediction';
+type ViewMode = "single" | "compare";
+type TabType = "overview" | "technical" | "fundamental" | "prediction";
 
 export default function Home() {
-  const [viewMode, setViewMode] = useState<ViewMode>('single');
-  const [activeTab, setActiveTab] = useState<TabType>('overview');
-  
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  const [viewMode, setViewMode] = useState<ViewMode>("single");
+  const [activeTab, setActiveTab] = useState<TabType>("overview");
+
   // Use custom hooks for stock data
-  const { stockData: primaryStock, loadStock, refreshQuote, isLoading } = useStockData('AAPL');
-  const { stocks: compareStocks, addStock, removeStock, canAddMore } = useMultipleStocks(2);
-  
+  const {
+    stockData: primaryStock,
+    loadStock,
+    refreshQuote,
+    isLoading,
+  } = useStockData("AAPL");
+  const {
+    stocks: compareStocks,
+    addStock,
+    removeStock,
+    canAddMore,
+  } = useMultipleStocks(2);
+
   // Auto refresh
   const autoRefresh = useAutoRefresh({
     interval: 10000,
     enabled: false,
-    onRefresh: refreshQuote
+    onRefresh: refreshQuote,
   });
+
+  // Check authentication on mount
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    try {
+      const response = await fetch("/api/auth/check");
+      setIsAuthenticated(response.ok);
+    } catch (error) {
+      setIsAuthenticated(false);
+    } finally {
+      setIsCheckingAuth(false);
+    }
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError("");
+    setIsLoggingIn(true);
+
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setIsAuthenticated(true);
+        setPassword("");
+      } else {
+        setLoginError(data.error || "Invalid password");
+      }
+    } catch (err) {
+      setLoginError("An error occurred. Please try again.");
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      setIsAuthenticated(false);
+      router.refresh();
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
 
   // Initial load
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      loadStock('AAPL');
+    if (typeof window !== "undefined" && isAuthenticated) {
+      loadStock("AAPL");
     }
-  }, [loadStock]);
+  }, [loadStock, isAuthenticated]);
 
   const handleSymbolChange = (symbol: string) => {
-    if (viewMode === 'compare') {
+    if (viewMode === "compare") {
       if (symbol !== primaryStock.symbol && canAddMore) {
         addStock(symbol);
       }
@@ -50,12 +147,82 @@ export default function Home() {
   };
 
   const tabs: { id: TabType; label: string }[] = [
-    { id: 'overview', label: 'Overview' },
-    { id: 'technical', label: 'Technical' },
-    { id: 'fundamental', label: 'Fundamental' },
-    { id: 'prediction', label: 'Prediction' }
+    { id: "overview", label: "Overview" },
+    { id: "technical", label: "Technical" },
+    { id: "fundamental", label: "Fundamental" },
+    { id: "prediction", label: "Prediction" },
   ];
 
+  // Show loading state while checking authentication
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login page if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="bg-gray-900/50 backdrop-blur-xl rounded-2xl border border-gray-800/50 p-8 shadow-2xl">
+            <div className="text-center mb-8">
+              <div className="inline-flex p-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl shadow-lg shadow-blue-500/20 mb-4">
+                <TrendingUp className="w-8 h-8 text-white" />
+              </div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
+                Stock Predictor AI
+              </h1>
+              <p className="text-gray-400 text-sm">Enter password to access</p>
+            </div>
+
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="password"
+                    placeholder="Enter password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    required
+                    autoFocus
+                    disabled={isLoggingIn}
+                  />
+                </div>
+              </div>
+
+              {loginError && (
+                <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+                  <p className="text-red-400 text-sm">{loginError}</p>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={isLoggingIn}
+                className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoggingIn ? "Authenticating..." : "Access Application"}
+              </button>
+            </form>
+
+            <div className="mt-6 text-center">
+              <p className="text-gray-500 text-xs">🔒 Protected access only</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Main authenticated content
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white">
       {/* Header */}
@@ -76,11 +243,17 @@ export default function Home() {
             <div className="flex items-center gap-3">
               {/* View Mode Toggle */}
               <ButtonGroup>
-                <ToggleButton active={viewMode === 'single'} onClick={() => setViewMode('single')}>
+                <ToggleButton
+                  active={viewMode === "single"}
+                  onClick={() => setViewMode("single")}
+                >
                   <LayoutGrid className="w-4 h-4" />
                   Single
                 </ToggleButton>
-                <ToggleButton active={viewMode === 'compare'} onClick={() => setViewMode('compare')}>
+                <ToggleButton
+                  active={viewMode === "compare"}
+                  onClick={() => setViewMode("compare")}
+                >
                   <GitCompare className="w-4 h-4" />
                   Compare
                 </ToggleButton>
@@ -88,19 +261,37 @@ export default function Home() {
 
               {/* Search */}
               <div className="w-56">
-                <StockSearch onSelectStock={handleSymbolChange} currentSymbol={primaryStock.symbol} />
+                <StockSearch
+                  onSelectStock={handleSymbolChange}
+                  currentSymbol={primaryStock.symbol}
+                />
               </div>
 
               {/* Refresh Controls */}
-              <Button onClick={refreshQuote} disabled={isLoading} variant="ghost">
-                <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              <Button
+                onClick={refreshQuote}
+                disabled={isLoading}
+                variant="ghost"
+              >
+                <RefreshCw
+                  className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}
+                />
               </Button>
 
               <Button
                 onClick={autoRefresh.toggle}
-                variant={autoRefresh.isEnabled ? 'success' : 'ghost'}
+                variant={autoRefresh.isEnabled ? "success" : "ghost"}
               >
-                {autoRefresh.isEnabled ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                {autoRefresh.isEnabled ? (
+                  <Pause className="w-4 h-4" />
+                ) : (
+                  <Play className="w-4 h-4" />
+                )}
+              </Button>
+
+              {/* Logout Button */}
+              <Button onClick={handleLogout} variant="ghost" title="Logout">
+                <LogOut className="w-4 h-4" />
               </Button>
             </div>
           </div>
@@ -108,17 +299,17 @@ export default function Home() {
       </header>
 
       {/* Compare Mode: Stock Pills */}
-      {viewMode === 'compare' && (
+      {viewMode === "compare" && (
         <div className="border-b border-gray-800/50 bg-gray-900/50">
           <div className="max-w-7xl mx-auto px-4 py-3">
             <div className="flex items-center gap-3">
               <span className="text-sm text-gray-400">Comparing:</span>
-              
+
               {/* Primary Stock */}
-              <StockPill 
-                symbol={primaryStock.symbol} 
-                change={primaryStock.quote?.changePercent} 
-                color="blue" 
+              <StockPill
+                symbol={primaryStock.symbol}
+                change={primaryStock.quote?.changePercent}
+                color="blue"
               />
 
               {/* Compare Stocks */}
@@ -127,7 +318,7 @@ export default function Home() {
                   key={stock.symbol}
                   symbol={stock.symbol}
                   change={stock.quote?.changePercent}
-                  color={index === 0 ? 'purple' : 'orange'}
+                  color={index === 0 ? "purple" : "orange"}
                   onRemove={() => removeStock(stock.symbol)}
                 />
               ))}
@@ -151,16 +342,25 @@ export default function Home() {
               <div className="flex items-center gap-2">
                 <BarChart3 className="w-3 h-3 text-blue-400" />
                 <span className="text-gray-400">Symbol:</span>
-                <span className="text-white font-bold">{primaryStock.symbol}</span>
+                <span className="text-white font-bold">
+                  {primaryStock.symbol}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <Brain className="w-3 h-3 text-purple-400" />
                 <span className="text-gray-400">Signal:</span>
-                <span className={`font-semibold ${
-                  primaryStock.prediction?.direction === 'BULLISH' ? 'text-green-400' :
-                  primaryStock.prediction?.direction === 'BEARISH' ? 'text-red-400' : 'text-yellow-400'
-                }`}>
-                  {isLoading ? '...' : primaryStock.prediction?.direction || 'N/A'}
+                <span
+                  className={`font-semibold ${
+                    primaryStock.prediction?.direction === "BULLISH"
+                      ? "text-green-400"
+                      : primaryStock.prediction?.direction === "BEARISH"
+                        ? "text-red-400"
+                        : "text-yellow-400"
+                  }`}
+                >
+                  {isLoading
+                    ? "..."
+                    : primaryStock.prediction?.direction || "N/A"}
                 </span>
               </div>
               {autoRefresh.lastRefresh && (
@@ -182,23 +382,23 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-4">
-        {viewMode === 'compare' ? (
-          <CompareView 
-            primaryStock={primaryStock} 
-            compareStocks={compareStocks} 
+        {viewMode === "compare" ? (
+          <CompareView
+            primaryStock={primaryStock}
+            compareStocks={compareStocks}
           />
         ) : (
           <>
             {/* Tabs */}
             <div className="flex gap-1 mb-4 bg-gray-800/30 p-1 rounded-xl w-fit">
-              {tabs.map(tab => (
+              {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                     activeTab === tab.id
-                      ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                      ? "bg-blue-500 text-white shadow-lg shadow-blue-500/20"
+                      : "text-gray-400 hover:text-white hover:bg-gray-700/50"
                   }`}
                 >
                   {tab.label}
@@ -207,11 +407,14 @@ export default function Home() {
             </div>
 
             {/* Tab Content */}
-            {activeTab === 'overview' && (
+            {activeTab === "overview" && (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <div className="lg:col-span-2 space-y-4">
-                  <PriceTicker quote={primaryStock.quote} isLoading={primaryStock.isLoading} />
-                  <StockChart 
+                  <PriceTicker
+                    quote={primaryStock.quote}
+                    isLoading={primaryStock.isLoading}
+                  />
+                  <StockChart
                     data={primaryStock.historicalData}
                     indicators={primaryStock.technicalIndicators}
                     currentPrice={primaryStock.quote?.price || 0}
@@ -220,7 +423,7 @@ export default function Home() {
                   />
                 </div>
                 <div className="space-y-4">
-                  <QuickStats 
+                  <QuickStats
                     quote={primaryStock.quote}
                     fundamentals={primaryStock.fundamentalData}
                     prediction={primaryStock.prediction}
@@ -229,22 +432,22 @@ export default function Home() {
               </div>
             )}
 
-            {activeTab === 'technical' && (
+            {activeTab === "technical" && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <TechnicalAnalysis 
+                <TechnicalAnalysis
                   indicators={primaryStock.technicalIndicators}
                   currentPrice={primaryStock.quote?.price || 0}
                 />
-                <ElliottWaveDisplay 
+                <ElliottWaveDisplay
                   elliottWave={primaryStock.technicalIndicators?.elliottWave}
                   currentPrice={primaryStock.quote?.price || 0}
                 />
               </div>
             )}
 
-            {activeTab === 'fundamental' && (
+            {activeTab === "fundamental" && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <FundamentalAnalysis 
+                <FundamentalAnalysis
                   data={primaryStock.fundamentalData}
                   currentPrice={primaryStock.quote?.price || 0}
                   symbol={primaryStock.symbol}
@@ -253,13 +456,15 @@ export default function Home() {
               </div>
             )}
 
-            {activeTab === 'prediction' && (
+            {activeTab === "prediction" && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <PredictionDisplay 
+                <PredictionDisplay
                   prediction={primaryStock.prediction}
                   currentPrice={primaryStock.quote?.price || 0}
                 />
-                <SignalsSummary signals={primaryStock.prediction?.signals || []} />
+                <SignalsSummary
+                  signals={primaryStock.prediction?.signals || []}
+                />
               </div>
             )}
           </>
@@ -279,29 +484,32 @@ export default function Home() {
 }
 
 // Stock Pill Component
-function StockPill({ 
-  symbol, 
-  change, 
-  color, 
-  onRemove 
-}: { 
-  symbol: string; 
-  change?: number; 
-  color: 'blue' | 'purple' | 'orange';
+function StockPill({
+  symbol,
+  change,
+  color,
+  onRemove,
+}: {
+  symbol: string;
+  change?: number;
+  color: "blue" | "purple" | "orange";
   onRemove?: () => void;
 }) {
   const colorStyles = {
-    blue: 'bg-blue-500/20 border-blue-500/30 text-blue-400',
-    purple: 'bg-purple-500/20 border-purple-500/30 text-purple-400',
-    orange: 'bg-orange-500/20 border-orange-500/30 text-orange-400'
+    blue: "bg-blue-500/20 border-blue-500/30 text-blue-400",
+    purple: "bg-purple-500/20 border-purple-500/30 text-purple-400",
+    orange: "bg-orange-500/20 border-orange-500/30 text-orange-400",
   };
 
   return (
-    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border ${colorStyles[color]}`}>
+    <div
+      className={`flex items-center gap-2 px-3 py-1.5 rounded-full border ${colorStyles[color]}`}
+    >
       <span className="font-bold">{symbol}</span>
       {change !== undefined && (
-        <span className={change >= 0 ? 'text-green-400' : 'text-red-400'}>
-          {change >= 0 ? '+' : ''}{change.toFixed(2)}%
+        <span className={change >= 0 ? "text-green-400" : "text-red-400"}>
+          {change >= 0 ? "+" : ""}
+          {change.toFixed(2)}%
         </span>
       )}
       {onRemove && (
@@ -314,8 +522,12 @@ function StockPill({
 }
 
 // Quick Stats Component
-function QuickStats({ quote, fundamentals, prediction }: { 
-  quote: any; 
+function QuickStats({
+  quote,
+  fundamentals,
+  prediction,
+}: {
+  quote: any;
   fundamentals: any;
   prediction: any;
 }) {
@@ -326,46 +538,75 @@ function QuickStats({ quote, fundamentals, prediction }: {
       <h3 className="text-sm font-semibold text-gray-300 mb-3">Quick Stats</h3>
       <div className="space-y-3">
         {prediction && (
-          <div className={`p-3 rounded-lg ${
-            prediction.direction === 'BULLISH' ? 'bg-green-500/10 border border-green-500/20' :
-            prediction.direction === 'BEARISH' ? 'bg-red-500/10 border border-red-500/20' :
-            'bg-yellow-500/10 border border-yellow-500/20'
-          }`}>
+          <div
+            className={`p-3 rounded-lg ${
+              prediction.direction === "BULLISH"
+                ? "bg-green-500/10 border border-green-500/20"
+                : prediction.direction === "BEARISH"
+                  ? "bg-red-500/10 border border-red-500/20"
+                  : "bg-yellow-500/10 border border-yellow-500/20"
+            }`}
+          >
             <div className="text-xs text-gray-400 mb-1">AI Prediction</div>
-            <div className={`text-lg font-bold ${
-              prediction.direction === 'BULLISH' ? 'text-green-400' :
-              prediction.direction === 'BEARISH' ? 'text-red-400' : 'text-yellow-400'
-            }`}>
+            <div
+              className={`text-lg font-bold ${
+                prediction.direction === "BULLISH"
+                  ? "text-green-400"
+                  : prediction.direction === "BEARISH"
+                    ? "text-red-400"
+                    : "text-yellow-400"
+              }`}
+            >
               {prediction.direction}
             </div>
-            <div className="text-xs text-gray-400">{prediction.confidence.toFixed(0)}% confidence</div>
+            <div className="text-xs text-gray-400">
+              {prediction.confidence.toFixed(0)}% confidence
+            </div>
           </div>
         )}
 
         <div className="grid grid-cols-2 gap-2">
           {fundamentals?.marketCap > 0 && (
-            <MetricBox label="Market Cap" value={fundamentals.marketCap} format={(v) => `$${formatNumber(v as number)}`} />
+            <MetricBox
+              label="Market Cap"
+              value={fundamentals.marketCap}
+              format={(v) => `$${formatNumber(v as number)}`}
+            />
           )}
           {fundamentals?.peRatio > 0 && (
-            <MetricBox label="P/E Ratio" value={fundamentals.peRatio} format={(v) => (v as number).toFixed(1)} />
+            <MetricBox
+              label="P/E Ratio"
+              value={fundamentals.peRatio}
+              format={(v) => (v as number).toFixed(1)}
+            />
           )}
           {fundamentals?.pegRatio > 0 && (
-            <MetricBox 
-              label="PEG Ratio" 
-              value={fundamentals.pegRatio} 
+            <MetricBox
+              label="PEG Ratio"
+              value={fundamentals.pegRatio}
               format={(v) => (v as number).toFixed(2)}
               colorize
               thresholds={{ good: 1, bad: 2, inverse: true }}
             />
           )}
           {prediction?.targetPrice && (
-            <MetricBox label="Target" value={prediction.targetPrice} format={(v) => `$${(v as number).toFixed(2)}`} />
+            <MetricBox
+              label="Target"
+              value={prediction.targetPrice}
+              format={(v) => `$${(v as number).toFixed(2)}`}
+            />
           )}
         </div>
 
         <div className="pt-2 border-t border-gray-800/50 space-y-2">
-          <ScoreBar label="Technical Score" score={prediction?.technicalScore || 50} />
-          <ScoreBar label="Fundamental Score" score={prediction?.fundamentalScore || 50} />
+          <ScoreBar
+            label="Technical Score"
+            score={prediction?.technicalScore || 50}
+          />
+          <ScoreBar
+            label="Fundamental Score"
+            score={prediction?.fundamentalScore || 50}
+          />
         </div>
       </div>
     </Card>
@@ -377,29 +618,59 @@ function KeyMetrics({ fundamentals }: { fundamentals: any }) {
   if (!fundamentals) return null;
 
   const metrics = [
-    { label: 'ROE', value: fundamentals.roe, suffix: '%', thresholds: { good: 15, bad: 5 } },
-    { label: 'Profit Margin', value: fundamentals.profitMargin, suffix: '%', thresholds: { good: 15, bad: 5 } },
-    { label: 'Revenue Growth', value: fundamentals.revenueGrowth, suffix: '%', thresholds: { good: 10, bad: 0 } },
-    { label: 'Debt/Equity', value: fundamentals.debtToEquity, thresholds: { good: 0.5, bad: 2, inverse: true } },
-    { label: 'Beta', value: fundamentals.beta },
-    { label: 'Dividend Yield', value: fundamentals.dividendYield, suffix: '%' },
+    {
+      label: "ROE",
+      value: fundamentals.roe,
+      suffix: "%",
+      thresholds: { good: 15, bad: 5 },
+    },
+    {
+      label: "Profit Margin",
+      value: fundamentals.profitMargin,
+      suffix: "%",
+      thresholds: { good: 15, bad: 5 },
+    },
+    {
+      label: "Revenue Growth",
+      value: fundamentals.revenueGrowth,
+      suffix: "%",
+      thresholds: { good: 10, bad: 0 },
+    },
+    {
+      label: "Debt/Equity",
+      value: fundamentals.debtToEquity,
+      thresholds: { good: 0.5, bad: 2, inverse: true },
+    },
+    { label: "Beta", value: fundamentals.beta },
+    { label: "Dividend Yield", value: fundamentals.dividendYield, suffix: "%" },
   ];
 
   return (
     <Card>
       <h3 className="text-sm font-semibold text-gray-300 mb-3">Key Metrics</h3>
       <div className="space-y-2">
-        {metrics.map(m => (
+        {metrics.map((m) => (
           <div key={m.label} className="flex items-center justify-between py-1">
             <span className="text-xs text-gray-400">{m.label}</span>
-            <span className={`text-sm font-bold ${
-              m.thresholds 
-                ? (m.thresholds.inverse 
-                    ? (m.value < m.thresholds.good ? 'text-green-400' : m.value > m.thresholds.bad ? 'text-red-400' : 'text-white')
-                    : (m.value > m.thresholds.good ? 'text-green-400' : m.value < m.thresholds.bad ? 'text-red-400' : 'text-white'))
-                : 'text-white'
-            }`}>
-              {m.value?.toFixed(2) || 'N/A'}{m.suffix || ''}
+            <span
+              className={`text-sm font-bold ${
+                m.thresholds
+                  ? m.thresholds.inverse
+                    ? m.value < m.thresholds.good
+                      ? "text-green-400"
+                      : m.value > m.thresholds.bad
+                        ? "text-red-400"
+                        : "text-white"
+                    : m.value > m.thresholds.good
+                      ? "text-green-400"
+                      : m.value < m.thresholds.bad
+                        ? "text-red-400"
+                        : "text-white"
+                  : "text-white"
+              }`}
+            >
+              {m.value?.toFixed(2) || "N/A"}
+              {m.suffix || ""}
             </span>
           </div>
         ))}
@@ -409,32 +680,52 @@ function KeyMetrics({ fundamentals }: { fundamentals: any }) {
 }
 
 // Signals Summary Component
-function SignalsSummary({ signals }: { signals: Array<{ name: string; type: string; strength: number; description: string }> }) {
-  const bullish = signals.filter(s => s.type === 'bullish');
-  const bearish = signals.filter(s => s.type === 'bearish');
+function SignalsSummary({
+  signals,
+}: {
+  signals: Array<{
+    name: string;
+    type: string;
+    strength: number;
+    description: string;
+  }>;
+}) {
+  const bullish = signals.filter((s) => s.type === "bullish");
+  const bearish = signals.filter((s) => s.type === "bearish");
 
   return (
     <Card>
-      <h3 className="text-sm font-semibold text-gray-300 mb-3">Signals Summary</h3>
-      
+      <h3 className="text-sm font-semibold text-gray-300 mb-3">
+        Signals Summary
+      </h3>
+
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div className="bg-green-500/10 rounded-lg p-3 border border-green-500/20">
-          <div className="text-2xl font-bold text-green-400">{bullish.length}</div>
+          <div className="text-2xl font-bold text-green-400">
+            {bullish.length}
+          </div>
           <div className="text-xs text-green-400/70">Bullish Signals</div>
         </div>
         <div className="bg-red-500/10 rounded-lg p-3 border border-red-500/20">
-          <div className="text-2xl font-bold text-red-400">{bearish.length}</div>
+          <div className="text-2xl font-bold text-red-400">
+            {bearish.length}
+          </div>
           <div className="text-xs text-red-400/70">Bearish Signals</div>
         </div>
       </div>
 
       <div className="space-y-2 max-h-64 overflow-y-auto">
         {signals.slice(0, 10).map((signal, i) => (
-          <div key={i} className={`text-xs p-2 rounded ${
-            signal.type === 'bullish' ? 'bg-green-500/10 text-green-400' :
-            signal.type === 'bearish' ? 'bg-red-500/10 text-red-400' :
-            'bg-gray-500/10 text-gray-400'
-          }`}>
+          <div
+            key={i}
+            className={`text-xs p-2 rounded ${
+              signal.type === "bullish"
+                ? "bg-green-500/10 text-green-400"
+                : signal.type === "bearish"
+                  ? "bg-red-500/10 text-red-400"
+                  : "bg-gray-500/10 text-gray-400"
+            }`}
+          >
             <div className="font-medium">{signal.name}</div>
             <div className="opacity-70 text-[10px]">{signal.description}</div>
           </div>
