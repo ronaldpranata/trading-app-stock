@@ -24,9 +24,9 @@ export interface HistoricalData {
 
 export interface ElliottWaveAnalysis {
   currentWave: number;
-  waveType: 'impulse' | 'corrective';
-  wavePhase: 'motive' | 'corrective';
-  trendDirection: 'up' | 'down';
+  waveType: "impulse" | "corrective";
+  wavePhase: "motive" | "corrective";
+  trendDirection: "up" | "down";
   waveProgress: number;
   pivotPoints: PivotPoint[];
   fibonacciLevels: FibonacciLevel[];
@@ -37,7 +37,7 @@ export interface ElliottWaveAnalysis {
 }
 
 export interface PivotPoint {
-  type: 'high' | 'low';
+  type: "high" | "low";
   price: number;
   date: string;
   waveLabel: string;
@@ -47,7 +47,7 @@ export interface FibonacciLevel {
   level: number;
   price: number;
   label: string;
-  type: 'retracement' | 'extension';
+  type: "retracement" | "extension";
 }
 
 export interface YearlyMetrics {
@@ -108,11 +108,11 @@ export interface FundamentalData {
   profitMargin: number;
 }
 
-export type PredictionTimeframe = 'day' | 'week' | 'month' | 'quarter' | 'year';
+export type PredictionTimeframe = "day" | "week" | "month" | "quarter" | "year";
 
 export interface TimeframePrediction {
   timeframe: PredictionTimeframe;
-  direction: 'BULLISH' | 'BEARISH' | 'NEUTRAL';
+  direction: "BULLISH" | "BEARISH" | "NEUTRAL";
   confidence: number;
   targetPrice: number;
   expectedChange: number;
@@ -122,7 +122,7 @@ export interface TimeframePrediction {
 }
 
 export interface PredictionResult {
-  direction: 'BULLISH' | 'BEARISH' | 'NEUTRAL';
+  direction: "BULLISH" | "BEARISH" | "NEUTRAL";
   confidence: number;
   targetPrice: number;
   stopLoss: number;
@@ -135,7 +135,7 @@ export interface PredictionResult {
 
 export interface Signal {
   name: string;
-  type: 'bullish' | 'bearish' | 'neutral';
+  type: "bullish" | "bearish" | "neutral";
   strength: number;
   description: string;
 }
