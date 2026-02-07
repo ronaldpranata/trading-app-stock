@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { FundamentalData } from '@/types/stock';
 import YahooFinance from 'yahoo-finance2';
 
 const yahooFinance = new YahooFinance();
@@ -7,6 +8,46 @@ const yahooFinance = new YahooFinance();
 const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY || 'demo';
 const FINNHUB_PROFILE_API = 'https://finnhub.io/api/v1/stock/profile2';
 const FINNHUB_METRICS_API = 'https://finnhub.io/api/v1/stock/metric';
+
+interface YahooQuoteSummary {
+  price?: {
+      marketCap?: number;
+      regularMarketPrice?: number;
+  };
+  summaryDetail?: {
+      trailingPE?: number;
+      priceToSales?: number;
+      previousClose?: number;
+      dividendYield?: number;
+      beta?: number;
+      fiftyTwoWeekHigh?: number;
+      fiftyTwoWeekLow?: number;
+      averageDailyVolume10Day?: number;
+  };
+  financialData?: {
+      epsForward?: number;
+      epsTrailingTwelveMonths?: number;
+      freeCashflow?: number;
+      growth?: number;
+      targetHighPrice?: number;
+      targetMeanPrice?: number;
+      targetLowPrice?: number;
+      debtToEquity?: number;
+      returnOnEquity?: number;
+      revenueGrowth?: number;
+  };
+  defaultKeyStatistics?: {
+      pegRatio?: number;
+      sharesOutstanding?: number;
+      priceToBook?: number;
+      enterpriseToEbitda?: number;
+      profitMargins?: number;
+      trailingEps?: number;
+  };
+  summaryProfile?: {
+      industry?: string;
+  };
+}
 
 // Check if symbol is cryptocurrency
 function isCrypto(symbol: string): boolean {
@@ -71,6 +112,7 @@ async function fetchFundamentals(symbol: string): Promise<import('@/types/stock'
       marketCap: 0, peRatio: 0, pbRatio: 0, psRatio: 0, pegRatio: 0, eps: 0, epsGrowth: 0,
       dividendYield: 0, beta: 1.5, fiftyTwoWeekHigh: 0, fiftyTwoWeekLow: 0,
       avgVolume: 0, debtToEquity: 0, roe: 0, revenueGrowth: 0, profitMargin: 0,
+      evToEbitda: 0,
       dcf: { source: 'analyst', bull: 0, base: 0, bear: 0 }
     };
   }
@@ -88,7 +130,7 @@ async function fetchFundamentals(symbol: string): Promise<import('@/types/stock'
     const finnhubProfile = finnhubProfileData as { marketCapitalization?: number };
     const metrics = (finnhubMetricsData as { metric?: Record<string, number> }).metric || {};
     
-    const summary = yahooData || {};
+    const summary: YahooQuoteSummary = yahooData || {};
     const price = summary.price || {};
     const summaryDetail = summary.summaryDetail || {};
     const financialData = summary.financialData || {};
