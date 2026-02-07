@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // Yahoo Finance API for quotes and historical data
 const YAHOO_CHART_API = 'https://query1.finance.yahoo.com/v8/finance/chart';
+const YAHOO_QUOTE_API = 'https://query1.finance.yahoo.com/v7/finance/quote';
 
 // Finnhub API for fundamentals (free tier)
 const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY || 'demo';
@@ -134,8 +135,64 @@ async function fetchYahooHistorical(symbol: string) {
   }
 }
 
-// Fetch fundamentals from Finnhub
-async function fetchFinnhubFundamentals(symbol: string) {
+// Fetch fundamentals from Yahoo Finance (more accurate for PEG ratio)
+async function fetchYahooFundamentals(symbol: string) {
+  try {
+    const url = `${YAHOO_QUOTE_API}?symbols=${symbol}`;
+    console.log('Fetching Yahoo fundamentals from:', url);
+    
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      },
+      cache: 'no-store'
+    });
+
+    if (!response.ok) {
+      console.error(`Yahoo Finance fundamentals error: ${response.status}`);
+      return null;
+    }
+
+    const data = await response.json();
+    const quote = data.quoteResponse?.result?.[0];
+    
+    if (!quote) {
+      console.error('No quote data in Yahoo fundamentals response');
+      return null;
+    }
+
+    console.log('Yahoo Finance fundamentals for', symbol, ':', JSON.stringify({
+      trailingPE: quote.trailingPE,
+      forwardPE: quote.forwardPE,
+      pegRatio: quote.pegRatio,
+      priceToBook: quote.priceToBook,
+      epsTrailingTwelveMonths: quote.epsTrailingTwelveMonths,
+      epsForward: quote.epsForward,
+      marketCap: quote.marketCap,
+    }));
+
+    return {
+      marketCap: quote.marketCap || 0,
+      peRatio: quote.trailingPE || 0,
+      forwardPE: quote.forwardPE || 0,
+      pbRatio: quote.priceToBook || 0,
+      pegRatio: quote.pegRatio || 0, // Yahoo provides PEG directly!
+      eps: quote.epsTrailingTwelveMonths || 0,
+      epsForward: quote.epsForward || 0,
+      dividendYield: (quote.dividendYield || 0) * 100, // Yahoo returns as decimal
+      beta: quote.beta || 1,
+      fiftyTwoWeekHigh: quote.fiftyTwoWeekHigh || 0,
+      fiftyTwoWeekLow: quote.fiftyTwoWeekLow || 0,
+      avgVolume: quote.averageDailyVolume10Day || quote.averageVolume || 0,
+    };
+  } catch (error) {
+    console.error('Yahoo Finance fundamentals error:', error);
+    return null;
+  }
+}
+
+// Fetch fundamentals - combine Yahoo and Finnhub for best data
+async function fetchFundamentals(symbol: string) {
   const isCryptoSymbol = isCrypto(symbol);
   
   // For crypto, return basic data
@@ -172,44 +229,144 @@ async function fetchFinnhubFundamentals(symbol: string) {
   try {
     console.log('Fetching fundamentals for:', symbol);
     
-    // Fetch both profile and metrics
-    const [profileRes, metricsRes] = await Promise.all([
-      fetch(`${FINNHUB_PROFILE_API}?symbol=${symbol}&token=${FINNHUB_API_KEY}`, {
-        cache: 'no-store'
-      }),
-      fetch(`${FINNHUB_METRICS_API}?symbol=${symbol}&metric=all&token=${FINNHUB_API_KEY}`, {
-        cache: 'no-store'
-      })
+    // Fetch from both Yahoo and Finnhub in parallel
+    const [yahooData, finnhubProfileData, finnhubMetricsData] = await Promise.all([
+      fetchYahooFundamentals(symbol),
+      fetch(`${FINNHUB_PROFILE_API}?symbol=${symbol}&token=${FINNHUB_API_KEY}`, { cache: 'no-store' })
+        .then(res => res.ok ? res.json() : {})
+        .catch(() => ({})),
+      fetch(`${FINNHUB_METRICS_API}?symbol=${symbol}&metric=all&token=${FINNHUB_API_KEY}`, { cache: 'no-store' })
+        .then(res => res.ok ? res.json() : { metric: {} })
+        .catch(() => ({ metric: {} }))
     ]);
 
-    const profile = profileRes.ok ? await profileRes.json() : {};
-    const metricsData = metricsRes.ok ? await metricsRes.json() : {};
-    const metrics = metricsData.metric || {};
+    const finnhubProfile = finnhubProfileData as { marketCapitalization?: number };
+    const metrics = (finnhubMetricsData as { metric?: Record<string, number> }).metric || {};
 
-    // Calculate PEG ratio
-    const peRatio = metrics.peBasicExclExtraTTM || metrics.peNormalizedAnnual || 0;
-    const epsGrowth = metrics.epsGrowth5Y || metrics.epsGrowthTTMYoy || 15;
-    const pegRatio = peRatio > 0 && epsGrowth > 0 ? peRatio / epsGrowth : 0;
+    // Use Yahoo data as primary source (more accurate for PEG)
+    // Fall back to Finnhub for missing data
+    
+    // P/E Ratio - prefer Yahoo's trailing P/E
+    const peRatio = yahooData?.peRatio || metrics.peTTM || metrics.peBasicExclExtraTTM || 0;
+    const forwardPE = yahooData?.forwardPE || metrics.peNormalizedAnnual || 0;
+    
+    // PEG Ratio - Yahoo provides this directly and it's usually accurate
+    // Yahoo calculates PEG using: P/E ratio / 5-year expected EPS growth rate
+    // This is the standard industry calculation
+    let pegRatio = yahooData?.pegRatio || 0;
+    let pegSource = yahooData?.pegRatio ? 'Yahoo Finance (direct)' : '';
+    
+    // EPS Growth Rate for PEG calculation
+    // For established companies: use 5-year or 3-year historical growth
+    // For young companies: use forward estimates or revenue growth as proxy
+    let epsGrowthAnnual = 0;
+    let growthSource = '';
+    
+    // Priority 1: 5-year EPS growth (most reliable for established companies)
+    if (metrics.epsGrowth5Y && metrics.epsGrowth5Y !== 0) {
+      epsGrowthAnnual = metrics.epsGrowth5Y;
+      growthSource = '5-year EPS growth';
+    }
+    // Priority 2: 3-year EPS growth (good for moderately established companies)
+    else if (metrics.epsGrowth3Y && metrics.epsGrowth3Y !== 0) {
+      epsGrowthAnnual = metrics.epsGrowth3Y;
+      growthSource = '3-year EPS growth';
+    }
+    // Priority 3: Forward EPS growth (analyst estimates - good for young companies)
+    else if (yahooData?.eps && yahooData?.epsForward && yahooData.eps !== 0) {
+      // Forward EPS is typically 1-year forward estimate from analysts
+      epsGrowthAnnual = ((yahooData.epsForward - yahooData.eps) / Math.abs(yahooData.eps)) * 100;
+      growthSource = 'Forward EPS estimate';
+    }
+    // Priority 4: TTM YoY growth (recent but can be volatile)
+    else if (metrics.epsGrowthTTMYoy && metrics.epsGrowthTTMYoy > 0) {
+      epsGrowthAnnual = metrics.epsGrowthTTMYoy;
+      growthSource = 'TTM YoY growth';
+    }
+    // Priority 5: Revenue growth as proxy (for pre-profit or young companies)
+    else if (metrics.revenueGrowth5Y && metrics.revenueGrowth5Y > 0) {
+      // Use revenue growth as a proxy for earnings growth potential
+      // This is common for young/growth companies that aren't yet profitable
+      epsGrowthAnnual = metrics.revenueGrowth5Y;
+      growthSource = '5-year revenue growth (proxy)';
+    }
+    else if (metrics.revenueGrowth3Y && metrics.revenueGrowth3Y > 0) {
+      epsGrowthAnnual = metrics.revenueGrowth3Y;
+      growthSource = '3-year revenue growth (proxy)';
+    }
+    else if (metrics.revenueGrowthTTMYoy && metrics.revenueGrowthTTMYoy > 0) {
+      epsGrowthAnnual = metrics.revenueGrowthTTMYoy;
+      growthSource = 'TTM revenue growth (proxy)';
+    }
+    
+    // Calculate PEG if Yahoo doesn't provide it directly
+    if (pegRatio === 0 && peRatio > 0 && epsGrowthAnnual > 0) {
+      // PEG = P/E Ratio / Annual Growth Rate (in percentage)
+      // Example: P/E of 30 with 15% annual growth = 30/15 = 2.0 PEG
+      pegRatio = peRatio / epsGrowthAnnual;
+      pegSource = `Calculated from ${growthSource}`;
+    }
+    
+    // Alternative: Forward PEG for young companies
+    // Uses forward P/E and forward growth estimates
+    if (pegRatio === 0 && forwardPE > 0 && epsGrowthAnnual > 0) {
+      pegRatio = forwardPE / epsGrowthAnnual;
+      pegSource = `Forward PEG (${growthSource})`;
+    }
+    
+    // Handle edge cases for PEG
+    if (pegRatio < 0 || !isFinite(pegRatio)) {
+      pegRatio = 0; // Negative or invalid PEG doesn't make sense
+      pegSource = 'N/A (negative growth or no data)';
+    } else if (pegRatio > 10) {
+      pegRatio = 10; // Cap extremely high values (indicates very low/negative growth)
+      pegSource += ' (capped at 10)';
+    }
+
+    // For display purposes, also get TTM growth (more recent but volatile)
+    const epsGrowthTTM = metrics.epsGrowthTTMYoy || 0;
+    
+    // Use the best available growth for the main epsGrowth field
+    const epsGrowth = epsGrowthAnnual || epsGrowthTTM;
+    
+    // Log for debugging
+    console.log('PEG calculation for', symbol, ':', JSON.stringify({
+      yahooPEG: yahooData?.pegRatio,
+      calculatedPEG: pegRatio,
+      pegSource,
+      peRatio,
+      forwardPE,
+      epsGrowth5Y: metrics.epsGrowth5Y,
+      epsGrowth3Y: metrics.epsGrowth3Y,
+      epsGrowthTTMYoy: metrics.epsGrowthTTMYoy,
+      revenueGrowth5Y: metrics.revenueGrowth5Y,
+      revenueGrowth3Y: metrics.revenueGrowth3Y,
+      revenueGrowthTTMYoy: metrics.revenueGrowthTTMYoy,
+      epsGrowthAnnual,
+      growthSource,
+      forwardEPS: yahooData?.epsForward,
+      trailingEPS: yahooData?.eps,
+    }));
 
     return {
-      marketCap: profile.marketCapitalization ? profile.marketCapitalization * 1000000 : 0,
-      peRatio: peRatio,
-      pbRatio: metrics.pbAnnual || metrics.pbQuarterly || 0,
-      pegRatio: pegRatio,
-      eps: metrics.epsBasicExclExtraItemsTTM || metrics.epsInclExtraItemsTTM || 0,
-      epsGrowth: epsGrowth,
-      dividendYield: metrics.dividendYieldIndicatedAnnual || 0,
-      beta: metrics.beta || 1,
-      fiftyTwoWeekHigh: metrics['52WeekHigh'] || 0,
-      fiftyTwoWeekLow: metrics['52WeekLow'] || 0,
-      avgVolume: metrics['10DayAverageTradingVolume'] ? metrics['10DayAverageTradingVolume'] * 1000000 : 0,
-      debtToEquity: metrics.totalDebtToEquityQuarterly || metrics.totalDebtToEquityAnnual || 0,
-      roe: metrics.roeRfy || metrics.roeTTM || 0,
-      revenueGrowth: metrics.revenueGrowth5Y || metrics.revenueGrowthTTMYoy || 0,
-      profitMargin: metrics.netProfitMarginTTM || metrics.netProfitMarginAnnual || 0
+      marketCap: yahooData?.marketCap || (finnhubProfile.marketCapitalization ? finnhubProfile.marketCapitalization * 1000000 : 0),
+      peRatio: parseFloat(peRatio.toFixed(2)),
+      pbRatio: parseFloat((yahooData?.pbRatio || metrics.pbAnnual || 0).toFixed(2)),
+      pegRatio: parseFloat(pegRatio.toFixed(2)),
+      eps: parseFloat((yahooData?.eps || metrics.epsBasicExclExtraItemsTTM || 0).toFixed(2)),
+      epsGrowth: parseFloat(epsGrowth.toFixed(2)),
+      dividendYield: parseFloat((yahooData?.dividendYield || metrics.dividendYieldIndicatedAnnual || 0).toFixed(2)),
+      beta: parseFloat((yahooData?.beta || metrics.beta || 1).toFixed(2)),
+      fiftyTwoWeekHigh: parseFloat((yahooData?.fiftyTwoWeekHigh || metrics['52WeekHigh'] || 0).toFixed(2)),
+      fiftyTwoWeekLow: parseFloat((yahooData?.fiftyTwoWeekLow || metrics['52WeekLow'] || 0).toFixed(2)),
+      avgVolume: yahooData?.avgVolume || (metrics['10DayAverageTradingVolume'] ? Math.round(metrics['10DayAverageTradingVolume'] * 1000000) : 0),
+      debtToEquity: parseFloat((metrics.totalDebtToEquityQuarterly || metrics.totalDebtToEquityAnnual || 0).toFixed(2)),
+      roe: parseFloat((metrics.roeRfy || metrics.roeTTM || 0).toFixed(2)),
+      revenueGrowth: parseFloat((metrics.revenueGrowth5Y || metrics.revenueGrowthTTMYoy || 0).toFixed(2)),
+      profitMargin: parseFloat((metrics.netProfitMarginTTM || metrics.netProfitMarginAnnual || 0).toFixed(2))
     };
   } catch (error) {
-    console.error('Finnhub fundamentals error:', error);
+    console.error('Fundamentals fetch error:', error);
     return generateSimulatedFundamentals(symbol);
   }
 }
@@ -318,7 +475,7 @@ export async function GET(request: NextRequest) {
       }
 
       case 'fundamental': {
-        const fundamentals = await fetchFinnhubFundamentals(symbol);
+        const fundamentals = await fetchFundamentals(symbol);
         return NextResponse.json(fundamentals);
       }
 
