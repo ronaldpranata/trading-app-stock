@@ -58,6 +58,22 @@ export interface YearlyMetrics {
   winRate: number;
 }
 
+export interface CandlestickPattern {
+  type: string;
+  name: string;
+  direction: 'bullish' | 'bearish' | 'neutral';
+  reliability: number;
+  description: string;
+  index: number;
+}
+
+export interface CandlestickAnalysis {
+  patterns: CandlestickPattern[];
+  overallBias: 'bullish' | 'bearish' | 'neutral';
+  score: number;
+  recentPatterns: CandlestickPattern[];
+}
+
 export interface TechnicalIndicators {
   sma20: number;
   sma50: number;
@@ -82,6 +98,7 @@ export interface TechnicalIndicators {
   atr: number;
   obv: number;
   elliottWave?: ElliottWaveAnalysis;
+  candlestickAnalysis?: CandlestickAnalysis;
   // Extended indicators using full year data
   adx?: number;
   williamsR?: number;
@@ -94,9 +111,9 @@ export interface FundamentalData {
   marketCap: number;
   peRatio: number;
   pbRatio: number;
-  pegRatio: number; // Added PEG ratio
+  pegRatio: number;
   eps: number;
-  epsGrowth: number; // Added EPS growth rate
+  epsGrowth: number;
   dividendYield: number;
   beta: number;
   fiftyTwoWeekHigh: number;
@@ -138,4 +155,16 @@ export interface Signal {
   type: "bullish" | "bearish" | "neutral";
   strength: number;
   description: string;
+}
+
+// Stock data aggregate type
+export interface StockData {
+  symbol: string;
+  quote: StockQuote | null;
+  historicalData: HistoricalData[];
+  fundamentalData: FundamentalData | null;
+  technicalIndicators: TechnicalIndicators | null;
+  prediction: PredictionResult | null;
+  isLoading: boolean;
+  error: string | null;
 }

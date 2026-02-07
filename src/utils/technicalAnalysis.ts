@@ -1,5 +1,6 @@
 import { HistoricalData, TechnicalIndicators, Signal } from '@/types/stock';
 import { analyzeElliottWave, generateElliottWaveSignals } from './elliottWave';
+import { analyzeCandlestickPatterns, generateCandlestickSignals } from './candlestickPatterns';
 
 // Simple Moving Average
 export function calculateSMA(data: number[], period: number): number {
@@ -273,7 +274,7 @@ export function calculateYearlyMetrics(historicalData: HistoricalData[]): {
   };
 }
 
-// Calculate all technical indicators including Elliott Wave
+// Calculate all technical indicators including Elliott Wave and Candlestick Patterns
 export function calculateAllIndicators(historicalData: HistoricalData[]): TechnicalIndicators {
   const closes = historicalData.map(d => d.close);
   const highs = historicalData.map(d => d.high);
@@ -282,6 +283,9 @@ export function calculateAllIndicators(historicalData: HistoricalData[]): Techni
   
   // Calculate Elliott Wave analysis
   const elliottWave = analyzeElliottWave(historicalData);
+  
+  // Calculate Candlestick Pattern analysis
+  const candlestickAnalysis = analyzeCandlestickPatterns(historicalData);
   
   // Calculate yearly metrics for enhanced analysis
   const yearlyMetrics = calculateYearlyMetrics(historicalData);
@@ -299,6 +303,7 @@ export function calculateAllIndicators(historicalData: HistoricalData[]): Techni
     atr: calculateATR(highs, lows, closes),
     obv: calculateOBV(closes, volumes),
     elliottWave,
+    candlestickAnalysis,
     // Extended indicators using full year data
     adx: calculateADX(highs, lows, closes),
     williamsR: calculateWilliamsR(highs, lows, closes),
@@ -541,6 +546,12 @@ export function generateTechnicalSignals(indicators: TechnicalIndicators, curren
   if (indicators.elliottWave) {
     const elliottSignals = generateElliottWaveSignals(indicators.elliottWave, currentPrice);
     signals.push(...elliottSignals);
+  }
+  
+  // Candlestick Pattern Signals
+  if (indicators.candlestickAnalysis) {
+    const candlestickSignals = generateCandlestickSignals(indicators.candlestickAnalysis);
+    signals.push(...candlestickSignals);
   }
   
   return signals;

@@ -1,13 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import {
-  useStockData,
-  useMultipleStocks,
-  useAutoRefresh,
-  StockData,
-} from "@/hooks";
+import { useEffect, useState, useCallback } from "react";
 import StockSearch from "@/components/StockSearch";
 import PriceTicker from "@/components/PriceTicker";
 import StockChart from "@/components/StockChart";
@@ -15,6 +8,7 @@ import TechnicalAnalysis from "@/components/TechnicalAnalysis";
 import FundamentalAnalysis from "@/components/FundamentalAnalysis";
 import PredictionDisplay from "@/components/PredictionDisplay";
 import ElliottWaveDisplay from "@/components/ElliottWaveDisplay";
+import CandlestickPatternsDisplay from "@/components/CandlestickPatternsDisplay";
 import CompareView from "@/components/CompareView";
 import {
   Card,
@@ -40,121 +34,70 @@ import {
   Lock,
 } from "lucide-react";
 import { formatNumber } from "@/lib/formatters";
-
-type ViewMode = "single" | "compare";
-type TabType = "overview" | "technical" | "fundamental" | "prediction";
+import { useAuth, useStock, useUI, useAutoRefresh } from "@/hooks";
+import type { ActiveTab } from "@/store";
 
 export default function Home() {
-  const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  // Custom hooks
+  const auth = useAuth();
+  const stock = useStock();
+  const ui = useUI();
+
+  // Local state for login form
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  const [viewMode, setViewMode] = useState<ViewMode>("single");
-  const [activeTab, setActiveTab] = useState<TabType>("overview");
+  // Auto refresh setup
+  const handleRefresh = useCallback(() => {
+    stock.refresh();
+  }, [stock]);
 
-  // Use custom hooks for stock data
-  const {
-    stockData: primaryStock,
-    loadStock,
-    refreshQuote,
-    isLoading,
-  } = useStockData("AAPL");
-  const {
-    stocks: compareStocks,
-    addStock,
-    removeStock,
-    canAddMore,
-  } = useMultipleStocks(2);
-
-  // Auto refresh
-  const autoRefresh = useAutoRefresh({
+  useAutoRefresh({
+    symbol: stock.symbol,
+    onRefresh: handleRefresh,
     interval: 10000,
-    enabled: false,
-    onRefresh: refreshQuote,
   });
 
-  // Check authentication on mount
+  // Initial stock load
   useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const response = await fetch("/api/auth/check");
-      setIsAuthenticated(response.ok);
-    } catch (error) {
-      setIsAuthenticated(false);
-    } finally {
-      setIsCheckingAuth(false);
+    if (auth.isAuthenticated && !stock.primaryStock) {
+      stock.load("AAPL");
     }
-  };
+  }, [auth.isAuthenticated, stock.primaryStock, stock]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError("");
     setIsLoggingIn(true);
-
-    try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setIsAuthenticated(true);
-        setPassword("");
-      } else {
-        setLoginError(data.error || "Invalid password");
-      }
-    } catch (err) {
-      setLoginError("An error occurred. Please try again.");
-    } finally {
-      setIsLoggingIn(false);
+    
+    const success = await auth.login(password);
+    setIsLoggingIn(false);
+    
+    if (!success) {
+      setLoginError(auth.error || "Invalid password");
+    } else {
+      setPassword("");
     }
   };
-
-  const handleLogout = async () => {
-    try {
-      await fetch("/api/auth/logout", { method: "POST" });
-      setIsAuthenticated(false);
-      router.refresh();
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  };
-
-  // Initial load
-  useEffect(() => {
-    if (typeof window !== "undefined" && isAuthenticated) {
-      loadStock("AAPL");
-    }
-  }, [loadStock, isAuthenticated]);
 
   const handleSymbolChange = (symbol: string) => {
-    if (viewMode === "compare") {
-      if (symbol !== primaryStock.symbol && canAddMore) {
-        addStock(symbol);
-      }
+    if (ui.isCompareMode) {
+      stock.addComparison(symbol);
     } else {
-      loadStock(symbol);
+      stock.load(symbol);
     }
   };
 
-  const tabs: { id: TabType; label: string }[] = [
+  const tabs: { id: ActiveTab; label: string }[] = [
     { id: "overview", label: "Overview" },
     { id: "technical", label: "Technical" },
     { id: "fundamental", label: "Fundamental" },
     { id: "prediction", label: "Prediction" },
   ];
 
-  // Show loading state while checking authentication
-  if (isCheckingAuth) {
+  // Loading state
+  if (auth.isChecking) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 flex items-center justify-center">
         <div className="text-center">
@@ -165,8 +108,8 @@ export default function Home() {
     );
   }
 
-  // Show login page if not authenticated
-  if (!isAuthenticated) {
+  // Login screen
+  if (!auth.isAuthenticated) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
@@ -222,7 +165,9 @@ export default function Home() {
     );
   }
 
-  // Main authenticated content
+  const predictionDirection = stock.primaryStock?.prediction?.direction || "NEUTRAL";
+
+  // Main app
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white">
       {/* Header */}
@@ -244,15 +189,15 @@ export default function Home() {
               {/* View Mode Toggle */}
               <ButtonGroup>
                 <ToggleButton
-                  active={viewMode === "single"}
-                  onClick={() => setViewMode("single")}
+                  active={ui.viewMode === "single"}
+                  onClick={() => ui.setViewMode("single")}
                 >
                   <LayoutGrid className="w-4 h-4" />
                   Single
                 </ToggleButton>
                 <ToggleButton
-                  active={viewMode === "compare"}
-                  onClick={() => setViewMode("compare")}
+                  active={ui.viewMode === "compare"}
+                  onClick={() => ui.setViewMode("compare")}
                 >
                   <GitCompare className="w-4 h-4" />
                   Compare
@@ -263,26 +208,26 @@ export default function Home() {
               <div className="w-56">
                 <StockSearch
                   onSelectStock={handleSymbolChange}
-                  currentSymbol={primaryStock.symbol}
+                  currentSymbol={stock.symbol}
                 />
               </div>
 
               {/* Refresh Controls */}
               <Button
-                onClick={refreshQuote}
-                disabled={isLoading}
+                onClick={stock.refresh}
+                disabled={stock.isLoading}
                 variant="ghost"
               >
                 <RefreshCw
-                  className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}
+                  className={`w-4 h-4 ${stock.isLoading ? "animate-spin" : ""}`}
                 />
               </Button>
 
               <Button
-                onClick={autoRefresh.toggle}
-                variant={autoRefresh.isEnabled ? "success" : "ghost"}
+                onClick={ui.toggleAutoRefresh}
+                variant={ui.autoRefreshEnabled ? "success" : "ghost"}
               >
-                {autoRefresh.isEnabled ? (
+                {ui.autoRefreshEnabled ? (
                   <Pause className="w-4 h-4" />
                 ) : (
                   <Play className="w-4 h-4" />
@@ -290,7 +235,7 @@ export default function Home() {
               </Button>
 
               {/* Logout Button */}
-              <Button onClick={handleLogout} variant="ghost" title="Logout">
+              <Button onClick={auth.logout} variant="ghost" title="Logout">
                 <LogOut className="w-4 h-4" />
               </Button>
             </div>
@@ -299,7 +244,7 @@ export default function Home() {
       </header>
 
       {/* Compare Mode: Stock Pills */}
-      {viewMode === "compare" && (
+      {ui.isCompareMode && (
         <div className="border-b border-gray-800/50 bg-gray-900/50">
           <div className="max-w-7xl mx-auto px-4 py-3">
             <div className="flex items-center gap-3">
@@ -307,23 +252,23 @@ export default function Home() {
 
               {/* Primary Stock */}
               <StockPill
-                symbol={primaryStock.symbol}
-                change={primaryStock.quote?.changePercent}
+                symbol={stock.symbol}
+                change={stock.primaryStock?.quote?.changePercent}
                 color="blue"
               />
 
               {/* Compare Stocks */}
-              {compareStocks.map((stock, index) => (
+              {stock.compareStocks.map((s, index) => (
                 <StockPill
-                  key={stock.symbol}
-                  symbol={stock.symbol}
-                  change={stock.quote?.changePercent}
+                  key={s.symbol}
+                  symbol={s.symbol}
+                  change={s.quote?.changePercent}
                   color={index === 0 ? "purple" : "orange"}
-                  onRemove={() => removeStock(stock.symbol)}
+                  onRemove={() => stock.removeCompare(s.symbol)}
                 />
               ))}
 
-              {canAddMore && (
+              {stock.canAddMoreComparisons && (
                 <button className="flex items-center gap-1 px-3 py-1.5 border border-dashed border-gray-600 rounded-full text-gray-400 hover:border-gray-400 hover:text-gray-300 transition-colors">
                   <Plus className="w-3 h-3" />
                   <span className="text-sm">Add Stock</span>
@@ -342,35 +287,31 @@ export default function Home() {
               <div className="flex items-center gap-2">
                 <BarChart3 className="w-3 h-3 text-blue-400" />
                 <span className="text-gray-400">Symbol:</span>
-                <span className="text-white font-bold">
-                  {primaryStock.symbol}
-                </span>
+                <span className="text-white font-bold">{stock.symbol}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Brain className="w-3 h-3 text-purple-400" />
                 <span className="text-gray-400">Signal:</span>
                 <span
                   className={`font-semibold ${
-                    primaryStock.prediction?.direction === "BULLISH"
+                    predictionDirection === "BULLISH"
                       ? "text-green-400"
-                      : primaryStock.prediction?.direction === "BEARISH"
+                      : predictionDirection === "BEARISH"
                         ? "text-red-400"
                         : "text-yellow-400"
                   }`}
                 >
-                  {isLoading
-                    ? "..."
-                    : primaryStock.prediction?.direction || "N/A"}
+                  {stock.isLoading ? "..." : predictionDirection}
                 </span>
               </div>
-              {autoRefresh.lastRefresh && (
+              {ui.lastRefreshFormatted && (
                 <div className="flex items-center gap-2 text-gray-500">
                   <Clock className="w-3 h-3" />
-                  {autoRefresh.lastRefresh.toLocaleTimeString()}
+                  {ui.lastRefreshFormatted}
                 </div>
               )}
             </div>
-            {autoRefresh.isEnabled && (
+            {ui.autoRefreshEnabled && (
               <span className="flex items-center gap-1 text-green-400">
                 <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
                 Auto-refresh ON
@@ -382,10 +323,10 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-4">
-        {viewMode === "compare" ? (
+        {ui.isCompareMode ? (
           <CompareView
-            primaryStock={primaryStock}
-            compareStocks={compareStocks}
+            primaryStock={stock.primaryStock || { symbol: "", isLoading: false, error: null, quote: null, historicalData: [], fundamentalData: null, technicalIndicators: null, prediction: null }}
+            compareStocks={stock.compareStocks}
           />
         ) : (
           <>
@@ -394,9 +335,9 @@ export default function Home() {
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => ui.setActiveTab(tab.id)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    activeTab === tab.id
+                    ui.activeTab === tab.id
                       ? "bg-blue-500 text-white shadow-lg shadow-blue-500/20"
                       : "text-gray-400 hover:text-white hover:bg-gray-700/50"
                   }`}
@@ -407,63 +348,70 @@ export default function Home() {
             </div>
 
             {/* Tab Content */}
-            {activeTab === "overview" && (
+            {ui.activeTab === "overview" && (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <div className="lg:col-span-2 space-y-4">
                   <PriceTicker
-                    quote={primaryStock.quote}
-                    isLoading={primaryStock.isLoading}
+                    quote={stock.primaryStock?.quote || null}
+                    isLoading={stock.isLoading}
                   />
                   <StockChart
-                    data={primaryStock.historicalData}
-                    indicators={primaryStock.technicalIndicators}
-                    currentPrice={primaryStock.quote?.price || 0}
-                    symbol={primaryStock.symbol}
-                    isLoading={primaryStock.isLoading}
+                    data={stock.primaryStock?.historicalData || []}
+                    indicators={stock.primaryStock?.technicalIndicators || null}
+                    currentPrice={stock.currentPrice}
+                    symbol={stock.symbol}
+                    isLoading={stock.isLoading}
                   />
                 </div>
                 <div className="space-y-4">
                   <QuickStats
-                    quote={primaryStock.quote}
-                    fundamentals={primaryStock.fundamentalData}
-                    prediction={primaryStock.prediction}
+                    quote={stock.primaryStock?.quote || null}
+                    fundamentals={stock.primaryStock?.fundamentalData || null}
+                    prediction={stock.primaryStock?.prediction || null}
                   />
                 </div>
               </div>
             )}
 
-            {activeTab === "technical" && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <TechnicalAnalysis
-                  indicators={primaryStock.technicalIndicators}
-                  currentPrice={primaryStock.quote?.price || 0}
-                />
-                <ElliottWaveDisplay
-                  elliottWave={primaryStock.technicalIndicators?.elliottWave}
-                  currentPrice={primaryStock.quote?.price || 0}
-                />
+            {ui.activeTab === "technical" && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <TechnicalAnalysis
+                    indicators={stock.primaryStock?.technicalIndicators || null}
+                    currentPrice={stock.currentPrice}
+                  />
+                  <ElliottWaveDisplay
+                    elliottWave={stock.primaryStock?.technicalIndicators?.elliottWave}
+                    currentPrice={stock.currentPrice}
+                  />
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <CandlestickPatternsDisplay
+                    analysis={stock.primaryStock?.technicalIndicators?.candlestickAnalysis}
+                  />
+                </div>
               </div>
             )}
 
-            {activeTab === "fundamental" && (
+            {ui.activeTab === "fundamental" && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <FundamentalAnalysis
-                  data={primaryStock.fundamentalData}
-                  currentPrice={primaryStock.quote?.price || 0}
-                  symbol={primaryStock.symbol}
+                  data={stock.primaryStock?.fundamentalData || null}
+                  currentPrice={stock.currentPrice}
+                  symbol={stock.symbol}
                 />
-                <KeyMetrics fundamentals={primaryStock.fundamentalData} />
+                <KeyMetrics fundamentals={stock.primaryStock?.fundamentalData || null} />
               </div>
             )}
 
-            {activeTab === "prediction" && (
+            {ui.activeTab === "prediction" && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <PredictionDisplay
-                  prediction={primaryStock.prediction}
-                  currentPrice={primaryStock.quote?.price || 0}
+                  prediction={stock.primaryStock?.prediction || null}
+                  currentPrice={stock.currentPrice}
                 />
                 <SignalsSummary
-                  signals={primaryStock.prediction?.signals || []}
+                  signals={stock.primaryStock?.prediction?.signals || []}
                 />
               </div>
             )}
