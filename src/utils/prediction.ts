@@ -8,41 +8,47 @@ const TIMEFRAME_CONFIG: Record<PredictionTimeframe, {
   days: number;
   technicalWeight: number;
   fundamentalWeight: number;
+  dcfWeight: number;
   volatilityMultiplier: number;
 }> = {
   day: {
     label: '1 Day',
     days: 1,
-    technicalWeight: 0.85,
-    fundamentalWeight: 0.15,
+    technicalWeight: 0.90,
+    fundamentalWeight: 0.10,
+    dcfWeight: 0.0,
     volatilityMultiplier: 0.5
   },
   week: {
     label: '1 Week',
     days: 5,
-    technicalWeight: 0.75,
+    technicalWeight: 0.70,
     fundamentalWeight: 0.25,
+    dcfWeight: 0.05,
     volatilityMultiplier: 1.2
   },
   month: {
     label: '1 Month',
     days: 22,
-    technicalWeight: 0.60,
-    fundamentalWeight: 0.40,
+    technicalWeight: 0.50,
+    fundamentalWeight: 0.35,
+    dcfWeight: 0.15,
     volatilityMultiplier: 2.5
   },
   quarter: {
     label: '3 Months',
     days: 66,
-    technicalWeight: 0.45,
-    fundamentalWeight: 0.55,
+    technicalWeight: 0.35,
+    fundamentalWeight: 0.40,
+    dcfWeight: 0.25,
     volatilityMultiplier: 4.0
   },
   year: {
     label: '1 Year',
     days: 252,
-    technicalWeight: 0.30,
-    fundamentalWeight: 0.70,
+    technicalWeight: 0.20,
+    fundamentalWeight: 0.45,
+    dcfWeight: 0.35,
     volatilityMultiplier: 8.0
   }
 };
@@ -53,12 +59,16 @@ export function generateTimeframePrediction(
   fundamentalData: FundamentalData,
   technicalScore: number,
   fundamentalScore: number,
+  dcfScore: number, // New parameter
   timeframe: PredictionTimeframe
 ): TimeframePrediction {
   const config = TIMEFRAME_CONFIG[timeframe];
   
   // Calculate weighted score based on timeframe
-  const weightedScore = (technicalScore * config.technicalWeight) + (fundamentalScore * config.fundamentalWeight);
+  const weightedScore = 
+    (technicalScore * config.technicalWeight) + 
+    (fundamentalScore * config.fundamentalWeight) +
+    (dcfScore * config.dcfWeight);
   
   // Determine direction
   let direction: 'BULLISH' | 'BEARISH' | 'NEUTRAL';
@@ -136,6 +146,19 @@ export function generateTimeframePrediction(
   };
 }
 
+function calculateDcfScore(dcf: FundamentalData['dcf'], currentPrice: number): number {
+  if (!dcf || dcf.base <= 0 || currentPrice <= 0) {
+    return 50; // Neutral score if no valid dcf/analyst target or price
+  }
+
+  const dcfRatio = dcf.base / currentPrice;
+  // Map ratio to a score from 0-100.
+  // Using a logarithmic scale to temper the effect of extreme valuations.
+  const score = 50 + 25 * Math.log2(dcfRatio);
+
+  return Math.max(0, Math.min(100, score)); // Clamp between 0 and 100
+}
+
 export function generatePrediction(
   currentPrice: number,
   technicalIndicators: TechnicalIndicators,
@@ -148,6 +171,7 @@ export function generatePrediction(
   // Calculate scores
   const technicalScore = calculateTechnicalScore(technicalSignals);
   const fundamentalScore = calculateFundamentalScore(fundamentalSignals);
+  const dcfScore = calculateDcfScore(fundamentalData.dcf, currentPrice);
   
   // Generate predictions for all timeframes
   const timeframes: PredictionTimeframe[] = ['day', 'week', 'month', 'quarter', 'year'];
@@ -158,6 +182,7 @@ export function generatePrediction(
       fundamentalData,
       technicalScore,
       fundamentalScore,
+      dcfScore,
       tf
     )
   );
@@ -171,6 +196,7 @@ export function generatePrediction(
     mainPrediction.confidence, 
     technicalScore, 
     fundamentalScore,
+    dcfScore,
     timeframePredictions
   );
   
@@ -192,6 +218,7 @@ function generateRecommendation(
   confidence: number,
   technicalScore: number,
   fundamentalScore: number,
+  dcfScore: number,
   timeframePredictions: TimeframePrediction[]
 ): string {
   const recommendations: string[] = [];
@@ -250,6 +277,16 @@ function generateRecommendation(
     recommendations.push('Both technical and fundamental analysis show weakness.');
   } else if (Math.abs(technicalScore - fundamentalScore) > 30) {
     recommendations.push('Divergence between technical and fundamental analysis - exercise caution.');
+  }
+  
+  if (dcfScore > 75) {
+    recommendations.push('DCF valuation suggests the stock is significantly undervalued.');
+  } else if (dcfScore > 60) {
+    recommendations.push('DCF valuation indicates potential undervaluation.');
+  } else if (dcfScore < 25) {
+    recommendations.push('DCF valuation suggests the stock is significantly overvalued.');
+  } else if (dcfScore < 40) {
+    recommendations.push('DCF valuation indicates potential overvaluation.');
   }
   
   return recommendations.join(' ');

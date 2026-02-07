@@ -111,6 +111,7 @@ export interface FundamentalData {
   marketCap: number;
   peRatio: number;
   pbRatio: number;
+  psRatio: number;
   pegRatio: number;
   eps: number;
   epsGrowth: number;
@@ -123,6 +124,13 @@ export interface FundamentalData {
   roe: number;
   revenueGrowth: number;
   profitMargin: number;
+  evToEbitda: number;
+  dcf: {
+    source: 'calculated' | 'analyst';
+    bull: number;
+    base: number;
+    bear: number;
+  };
 }
 
 export type PredictionTimeframe = "day" | "week" | "month" | "quarter" | "year";

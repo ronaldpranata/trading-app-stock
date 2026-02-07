@@ -96,6 +96,40 @@ export default function FundamentalAnalysis({ data, currentPrice, symbol = '' }:
           </div>
         </div>
 
+        {/* Intrinsic Value */}
+        {data.dcf && data.dcf.base > 0 && (
+          <div className={`rounded-lg p-3 border ${
+            data.dcf.base > currentPrice ? 'bg-green-500/10 border-green-500/30' : 'bg-red-500/10 border-red-500/30'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex-col">
+                <span className="text-xs font-medium text-gray-300">Intrinsic Value</span>
+                <span className="text-[10px] text-gray-500">
+                  ({data.dcf.source === 'calculated' ? 'DCF Model' : 'Analyst Targets'})
+                </span>
+              </div>
+              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                data.dcf.base > currentPrice ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'
+              }`}>
+                {data.dcf.base > currentPrice ? 'Undervalued' : 'Overvalued'}
+              </span>
+            </div>
+            
+            <div className="space-y-2">
+              <ValuationCaseRow label="Bull Case" value={data.dcf.bull} currentPrice={currentPrice} />
+              <ValuationCaseRow label="Base Case" value={data.dcf.base} currentPrice={currentPrice} />
+              <ValuationCaseRow label="Bear Case" value={data.dcf.bear} currentPrice={currentPrice} />
+            </div>
+
+            <div className="text-center text-xs text-gray-400 mt-2">
+              {data.dcf.base > currentPrice
+                ? `The base case suggests a potential upside of ${(((data.dcf.base - currentPrice) / currentPrice) * 100).toFixed(0)}%`
+                : `The base case suggests a potential downside of ${(((currentPrice - data.dcf.base) / data.dcf.base) * 100).toFixed(0)}%`
+              }
+            </div>
+          </div>
+        )}
+
         {/* PEG Ratio - Featured */}
         <div className={`rounded-lg p-3 border ${
           data.pegRatio > 0 && data.pegRatio < 1 ? 'bg-green-500/10 border-green-500/30' :
@@ -130,6 +164,13 @@ export default function FundamentalAnalysis({ data, currentPrice, symbol = '' }:
             good={10} bad={0} />
         </div>
 
+        {/* Valuation */}
+        <div className="grid grid-cols-3 gap-2">
+          <MetricBox label="P/S Ratio" value={data.psRatio} format={(v) => v.toFixed(2)} good={1} bad={2} inverse small />
+          <MetricBox label="EV/EBITDA" value={data.evToEbitda} format={(v) => v.toFixed(1)} good={10} bad={20} inverse small />
+          <MetricBox label="Debt/Equity" value={data.debtToEquity} format={(v) => v.toFixed(2)} good={0.5} bad={2} inverse small />
+        </div>
+
         {/* Profitability */}
         <div className="grid grid-cols-2 gap-2">
           <MetricBox label="ROE" value={data.roe} format={(v) => `${v.toFixed(1)}%`} good={15} bad={5} />
@@ -140,15 +181,13 @@ export default function FundamentalAnalysis({ data, currentPrice, symbol = '' }:
         <div className="grid grid-cols-2 gap-2">
           <MetricBox label="Revenue Growth" value={data.revenueGrowth} 
             format={(v) => `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`} good={10} bad={0} />
-          <MetricBox label="Debt/Equity" value={data.debtToEquity} format={(v) => v.toFixed(2)} 
-            good={0.5} bad={2} inverse />
+          <MetricBox label="Beta" value={data.beta} format={(v) => v.toFixed(2)} />
         </div>
 
         {/* Other */}
-        <div className="grid grid-cols-3 gap-2">
-          <MetricBox label="Beta" value={data.beta} format={(v) => v.toFixed(2)} small />
-          <MetricBox label="Div Yield" value={data.dividendYield} format={(v) => `${v.toFixed(2)}%`} small />
-          <MetricBox label="Avg Vol" value={data.avgVolume} format={(v) => formatNumber(v)} small />
+        <div className="grid grid-cols-2 gap-2">
+          <MetricBox label="Div Yield" value={data.dividendYield} format={(v) => `${v.toFixed(2)}%`} />
+          <MetricBox label="Avg Vol" value={data.avgVolume} format={(v) => formatNumber(v)} />
         </div>
 
         {/* 52-Week Range */}
@@ -168,6 +207,30 @@ export default function FundamentalAnalysis({ data, currentPrice, symbol = '' }:
             </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function ValuationCaseRow({ label, value, currentPrice }: { label: string; value: number; currentPrice: number }) {
+  const isUndervalued = value > currentPrice;
+  const position = Math.min(100, Math.max(0, (currentPrice / value) * 100));
+
+  return (
+    <div className="flex items-center gap-2">
+      <div className="w-12 text-[10px] text-gray-500">{label}</div>
+      <div className="flex-grow bg-gray-800/50 rounded-full h-2.5 relative">
+        <div 
+          className={`h-full rounded-full ${isUndervalued ? 'bg-green-500/50' : 'bg-red-500/50'}`} 
+          style={{ width: '100%' }} 
+        />
+        <div 
+          className="absolute top-0 h-full w-0.5 bg-white"
+          style={{ left: `${position}%` }}
+        />
+      </div>
+      <div className={`w-16 text-sm text-right font-bold ${isUndervalued ? 'text-green-400' : 'text-red-400'}`}>
+        ${value.toFixed(2)}
       </div>
     </div>
   );

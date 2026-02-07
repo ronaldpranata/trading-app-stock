@@ -118,6 +118,7 @@ function generateSimulatedFundamentals(symbol: string): FundamentalData {
       marketCap: 100000000000 + Math.random() * 500000000000,
       peRatio: 0,
       pbRatio: 0,
+      psRatio: 0,
       pegRatio: 0,
       eps: 0,
       epsGrowth: 0,
@@ -129,28 +130,44 @@ function generateSimulatedFundamentals(symbol: string): FundamentalData {
       debtToEquity: 0,
       roe: 0,
       revenueGrowth: 0,
-      profitMargin: 0
+      profitMargin: 0,
+      evToEbitda: 0,
+      dcf: {
+        source: 'analyst',
+        bull: 0,
+        base: 0,
+        bear: 0,
+      },
     };
   }
   
   const peRatio = 15 + Math.random() * 25;
   const epsGrowth = 5 + Math.random() * 20;
+  const baseDcf = 180 + Math.random() * 100;
   
   return {
     marketCap: 10000000000 + Math.random() * 500000000000,
     peRatio,
     pbRatio: 1 + Math.random() * 8,
+    psRatio: 1 + Math.random() * 4,
     pegRatio: peRatio / epsGrowth,
     eps: 2 + Math.random() * 10,
     epsGrowth,
     dividendYield: Math.random() * 3,
     beta: 0.7 + Math.random() * 1,
-    fiftyTwoWeekHigh: 0,
-    fiftyTwoWeekLow: 0,
+    fiftyTwoWeekHigh: 150 + Math.random() * 50,
+    fiftyTwoWeekLow: 80 + Math.random() * 20,
     avgVolume: 5000000 + Math.random() * 30000000,
     debtToEquity: Math.random() * 1.5,
     roe: 8 + Math.random() * 25,
     revenueGrowth: -5 + Math.random() * 25,
-    profitMargin: 5 + Math.random() * 25
+    profitMargin: 5 + Math.random() * 25,
+    evToEbitda: 8 + Math.random() * 12,
+    dcf: {
+      source: 'analyst',
+      bull: baseDcf * 1.2,
+      base: baseDcf,
+      bear: baseDcf * 0.8,
+    },
   };
 }
