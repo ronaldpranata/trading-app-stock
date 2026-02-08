@@ -173,7 +173,7 @@ export default function Home() {
       {/* Header */}
       <header className="border-b border-gray-800/50 bg-gray-900/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg shadow-blue-500/20">
                 <TrendingUp className="w-5 h-5 text-white" />
@@ -185,59 +185,79 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               {/* View Mode Toggle */}
-              <ButtonGroup>
-                <ToggleButton
-                  active={ui.viewMode === "single"}
-                  onClick={() => ui.setViewMode("single")}
-                >
-                  <LayoutGrid className="w-4 h-4" />
-                  Single
-                </ToggleButton>
-                <ToggleButton
-                  active={ui.viewMode === "compare"}
-                  onClick={() => ui.setViewMode("compare")}
-                >
-                  <GitCompare className="w-4 h-4" />
-                  Compare
-                </ToggleButton>
-              </ButtonGroup>
+              <div className="hidden md:block">
+                <ButtonGroup>
+                  <ToggleButton
+                    active={ui.viewMode === "single"}
+                    onClick={() => ui.setViewMode("single")}
+                  >
+                    <LayoutGrid className="w-4 h-4" />
+                    Single
+                  </ToggleButton>
+                  <ToggleButton
+                    active={ui.viewMode === "compare"}
+                    onClick={() => ui.setViewMode("compare")}
+                  >
+                    <GitCompare className="w-4 h-4" />
+                    Compare
+                  </ToggleButton>
+                </ButtonGroup>
+              </div>
 
               {/* Search */}
-              <div className="w-56">
+              <div className="w-full md:w-56 order-first md:order-none">
                 <StockSearch
                   onSelectStock={handleSymbolChange}
                   currentSymbol={stock.symbol}
                 />
               </div>
 
-              {/* Refresh Controls */}
-              <Button
-                onClick={stock.refresh}
-                disabled={stock.isLoading}
-                variant="ghost"
-              >
-                <RefreshCw
-                  className={`w-4 h-4 ${stock.isLoading ? "animate-spin" : ""}`}
-                />
-              </Button>
+              {/* Mobile View Mode Toggle (visible only on mobile) */}
+              <div className="md:hidden flex gap-2 w-full">
+                 <button 
+                    onClick={() => ui.setViewMode("single")}
+                    className={`flex-1 py-2 rounded-lg text-sm font-medium border ${ui.viewMode === "single" ? 'bg-blue-500/20 border-blue-500 text-blue-400' : 'border-gray-700 text-gray-400'}`}
+                 >
+                    Single
+                 </button>
+                 <button 
+                    onClick={() => ui.setViewMode("compare")}
+                    className={`flex-1 py-2 rounded-lg text-sm font-medium border ${ui.viewMode === "compare" ? 'bg-blue-500/20 border-blue-500 text-blue-400' : 'border-gray-700 text-gray-400'}`}
+                 >
+                    Compare
+                 </button>
+              </div>
 
-              <Button
-                onClick={ui.toggleAutoRefresh}
-                variant={ui.autoRefreshEnabled ? "success" : "ghost"}
-              >
-                {ui.autoRefreshEnabled ? (
-                  <Pause className="w-4 h-4" />
-                ) : (
-                  <Play className="w-4 h-4" />
-                )}
-              </Button>
+              <div className="flex items-center gap-2 ml-auto md:ml-0">
+                  {/* Refresh Controls */}
+                  <Button
+                    onClick={stock.refresh}
+                    disabled={stock.isLoading}
+                    variant="ghost"
+                  >
+                    <RefreshCw
+                      className={`w-4 h-4 ${stock.isLoading ? "animate-spin" : ""}`}
+                    />
+                  </Button>
 
-              {/* Logout Button */}
-              <Button onClick={auth.logout} variant="ghost" title="Logout">
-                <LogOut className="w-4 h-4" />
-              </Button>
+                  <Button
+                    onClick={ui.toggleAutoRefresh}
+                    variant={ui.autoRefreshEnabled ? "success" : "ghost"}
+                  >
+                    {ui.autoRefreshEnabled ? (
+                      <Pause className="w-4 h-4" />
+                    ) : (
+                      <Play className="w-4 h-4" />
+                    )}
+                  </Button>
+
+                  {/* Logout Button */}
+                  <Button onClick={auth.logout} variant="ghost" title="Logout">
+                    <LogOut className="w-4 h-4" />
+                  </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -247,8 +267,8 @@ export default function Home() {
       {ui.isCompareMode && (
         <div className="border-b border-gray-800/50 bg-gray-900/50">
           <div className="max-w-7xl mx-auto px-4 py-3">
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-400">Comparing:</span>
+            <div className="flex items-center gap-3 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+              <span className="text-sm text-gray-400 whitespace-nowrap">Comparing:</span>
 
               {/* Primary Stock */}
               <StockPill
@@ -259,17 +279,18 @@ export default function Home() {
 
               {/* Compare Stocks */}
               {stock.compareStocks.map((s, index) => (
-                <StockPill
-                  key={s.symbol}
-                  symbol={s.symbol}
-                  change={s.quote?.changePercent}
-                  color={index === 0 ? "purple" : "orange"}
-                  onRemove={() => stock.removeCompare(s.symbol)}
-                />
+                <div key={s.symbol} className="shrink-0">
+                  <StockPill
+                    symbol={s.symbol}
+                    change={s.quote?.changePercent}
+                    color={index === 0 ? "purple" : "orange"}
+                    onRemove={() => stock.removeCompare(s.symbol)}
+                  />
+                </div>
               ))}
 
               {stock.canAddMoreComparisons && (
-                <button className="flex items-center gap-1 px-3 py-1.5 border border-dashed border-gray-600 rounded-full text-gray-400 hover:border-gray-400 hover:text-gray-300 transition-colors">
+                <button className="flex items-center gap-1 px-3 py-1.5 border border-dashed border-gray-600 rounded-full text-gray-400 hover:border-gray-400 hover:text-gray-300 transition-colors whitespace-nowrap">
                   <Plus className="w-3 h-3" />
                   <span className="text-sm">Add Stock</span>
                 </button>
@@ -282,8 +303,8 @@ export default function Home() {
       {/* Status Bar */}
       <div className="border-b border-gray-800/30 bg-gray-900/30">
         <div className="max-w-7xl mx-auto px-4 py-2">
-          <div className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-y-2 text-xs">
+            <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-2">
                 <BarChart3 className="w-3 h-3 text-blue-400" />
                 <span className="text-gray-400">Symbol:</span>
@@ -312,7 +333,7 @@ export default function Home() {
               )}
             </div>
             {ui.autoRefreshEnabled && (
-              <span className="flex items-center gap-1 text-green-400">
+              <span className="flex items-center gap-1 text-green-400 ml-auto">
                 <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
                 Auto-refresh ON
               </span>
@@ -331,12 +352,12 @@ export default function Home() {
         ) : (
           <>
             {/* Tabs */}
-            <div className="flex gap-1 mb-4 bg-gray-800/30 p-1 rounded-xl w-fit">
+            <div className="flex gap-1 mb-4 bg-gray-800/30 p-1 rounded-xl w-full md:w-fit overflow-x-auto no-scrollbar">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => ui.setActiveTab(tab.id)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex-1 md:flex-none ${
                     ui.activeTab === tab.id
                       ? "bg-blue-500 text-white shadow-lg shadow-blue-500/20"
                       : "text-gray-400 hover:text-white hover:bg-gray-700/50"
