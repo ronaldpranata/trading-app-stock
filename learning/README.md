@@ -7,6 +7,11 @@ Follow this path step-by-step.
 ## Phase 1: The Foundation (Bridging the Gap)
 *Start here to map your existing Vue knowledge to React.*
 
+### 0. [Getting Started From Zero](./getting-started-from-scratch.md)
+   - **Goal:** Setup guide for building this exact project from scratch.
+   - **Key Concepts:** Next.js + Redux Toolkit + TypeScript setup.
+   - **Practical:** Follow this if you want to rebuild the app yourself.
+
 ### 1. [React for Vue Developers](./react-vs-vue-concepts.md)
    - **Goal:** Understand how `page.tsx` works compared to a Vue component.
    - **Key Concepts:** JSX vs Templates, `useState` vs `data`, `useEffect` vs Lifecycle.
@@ -29,40 +34,50 @@ Follow this path step-by-step.
 
 ---
 
-## Phase 3: Senior Engineering (Performance & Scale)
-*How to write code that scales to 100+ developers and thousands of rows of data.*
+## Phase 3: Senior Engineering (Architecture & Patterns)
+*How to write code that scales to 100+ developers.*
 
-### 4. [TypeScript for Seniors](./typescript-for-seniors.md)
+### 4. [Project Structure & Best Practices](./project-structure.md)
+   - **Goal:** Organize your code using the "Feature-First" Screaming Architecture.
+   - **Key Concepts:** Colocation, Barrel Files, Feature Folders.
+   - **Practical:** Refactor your `src` folder to match the recommended structure.
+
+### 5. [React Design Patterns](./react-patterns.md)
+   - **Goal:** Master established patterns for reusable UI.
+   - **Key Concepts:** Container/Presentational, Custom Hooks, Compound Components.
+   - **Practical:** Review `src/features/stock/StockChart.tsx` for separation of concerns.
+
+### 6. [TypeScript for Seniors](./typescript-for-seniors.md)
    - **Goal:** Use TypeScript for safety, not just autocomplete.
    - **Key Concepts:** Discriminated Unions (Status states), Generics, Utility Types.
    - **Practical:** Look at `src/types/stock.ts` to see how we define data structures.
 
-### 5. [Advanced Performance](./advanced-performance.md)
+### 7. [Advanced Performance](./advanced-performance.md)
    - **Goal:**  Understand the "Render Cycle" and stop accidental re-renders.
    - **Key Concepts:** Referential Identity, `useMemo`, `useCallback`, Virtualization.
    - **Practical:** Understand why we use `useCallback` inside `useStock.ts`.
 
-### 6. [Enterprise Patterns](./enterprise-patterns.md)
-   - **Goal:** Architect components that are flexible and maintainable.
-   - **Key Concepts:** Compound Components, Render Props, Barrel Files.
-   - **Practical:** Think about how you would refactor `StockChart` components to be more composable.
+### 8. [Enterprise Patterns](./enterprise-patterns.md)
+   - **Goal:** Additional patterns for complex widgets.
+   - **Key Concepts:** Render Props, Slot Pattern.
+   - **Practical:** Compare with the patterns learned in Module 5.
 
 ---
 
 ## Phase 4: Quality Assurance
 *Professionalize your workflow with automated testing.*
 
-### 7. [Unit Testing Guide](./unit-testing-guide.md)
+### 9. [Unit Testing Guide](./unit-testing-guide.md)
    - **Goal:** Write tests for Logic, State, and UI using Vitest.
    - **Key Concepts:** Testing Pyramid, Jest/Vitest, React Testing Library.
    - **Practical:** Run `npm test` to see the examples in `src/utils`, `src/store`, and `src/components`.
 
-### 8. [Integration Testing Guide](./integration-testing-guide.md)
+### 10. [Integration Testing Guide](./integration-testing-guide.md)
    - **Goal:** Test Hooks with Redux and Components with dynamic props.
    - **Key Concepts:** Mocking Modules, Provider Wrapping, RenderProps.
    - **Practical:** See `src/hooks/__tests__/useStock.test.tsx`.
 
-### 9. [Senior Testing Strategy](./testing-strategy-senior.md)
+### 11. [Senior Testing Strategy](./testing-strategy-senior.md)
    - **Goal:** Understand the "Why" behind E2E, Visual Regression, and A11y.
    - **Key Concepts:** The Testing Trophy, CI/CD Pipelines, Accessibility Standards.
    - **Practical:** Run `npx playwright test` to see the full E2E suite in action.
@@ -72,17 +87,17 @@ Follow this path step-by-step.
 ## Phase 5: Advanced Optimization & Features
 *Pushing the boundaries of performance and reliability.*
 
-### 10. [Web Workers & Off-Main-Thread Architecture](./senior/1-web-workers.md)
+### 12. [Web Workers & Performance](./senior/1-web-workers.md)
    - **Goal:** Keep the UI silky smooth (60fps) even during heavy data processing.
    - **Key Concepts:** Parallelism, Thread Safety, Serialization.
    - **Practical:** See `src/workers/analysis.worker.ts` and how `useStock` delegates heavy lifting.
 
-### 11. [Error Boundaries & Resilience](./senior/2-error-boundaries.md)
+### 13. [Error Boundaries & Resilience](./senior/2-error-boundaries.md)
    - **Goal:** Prevent the "White Screen of Death" when a component crashes.
    - **Key Concepts:** React Lifecycle (`componentDidCatch`), Fallback UI, Isolation.
    - **Practical:** Check `src/components/ErrorBoundary.tsx` and how it wraps complex widgets.
 
-### 12. [React Server Components (RSC)](./senior/3-server-components.md)
+### 14. [React Server Components (RSC)](./senior/3-server-components.md)
    - **Goal:** Understand the future of React architecture (Next.js App Router).
    - **Key Concepts:** Server-side Execution, Zero-Bundle-Size Components, Streaming.
    - **Practical:** Review `src/app/page.tsx` (a Server Component) vs `src/components/StockChart.tsx` ('use client').
