@@ -24,7 +24,7 @@ const stockSlice = createSlice({
     },
     addComparisonSymbol: (state, action: PayloadAction<string>) => {
       if (
-        state.comparisonSymbols.length < 2 &&
+        state.comparisonSymbols.length < 5 &&
         !state.comparisonSymbols.includes(action.payload) &&
         action.payload !== state.primarySymbol
       ) {

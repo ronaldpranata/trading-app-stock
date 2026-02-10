@@ -13,6 +13,7 @@ export interface ReferenceData {
 }
 
 export interface AnalysisResult {
+  symbol: string;
   technicalIndicators: TechnicalIndicators;
   prediction: PredictionResult;
 }
@@ -22,7 +23,7 @@ const ctx = self as unknown as Worker;
 
 ctx.onmessage = (event: MessageEvent<ReferenceData>) => {
   try {
-    const { historicalData, fundamentalData, currentPrice } = event.data;
+    const { historicalData, fundamentalData, currentPrice, symbol } = event.data;
     
     // 1. Heavy Calculation: Technical Indicators (SMA, MACD, Elliott Wave, etc.)
     // This can take 50-200ms for large datasets with complex patterns
@@ -57,6 +58,7 @@ ctx.onmessage = (event: MessageEvent<ReferenceData>) => {
     );
 
     const result: AnalysisResult = {
+      symbol, // Added symbol to identify result
       technicalIndicators,
       prediction
     };

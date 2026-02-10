@@ -47,7 +47,7 @@ export const selectCompareStockCount = createSelector(
 
 export const selectCanAddMoreComparisons = createSelector(
   selectCompareStockCount,
-  (count) => count < 2
+  (count) => count < 5
 );
 
 // ============================================

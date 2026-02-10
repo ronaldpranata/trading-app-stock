@@ -29,12 +29,28 @@ const TIME_RANGES: { id: TimeRange; label: string; days: number }[] = [
   { id: '1Y', label: '1Y', days: 252 },
 ];
 
-const COLORS = ['#3b82f6', '#a855f7', '#f97316'];
+const COLORS = [
+  '#3b82f6', // Blue
+  '#a855f7', // Purple
+  '#f97316', // Orange
+  '#10b981', // Emerald
+  '#ec4899', // Pink
+  '#eab308', // Yellow
+];
 
 export default function CompareView({ primaryStock, compareStocks }: CompareViewProps) {
   const [timeRange, setTimeRange] = useState<TimeRange>('3M');
   const allStocks = [primaryStock, ...compareStocks];
   
+  // Calculate grid columns based on number of stocks
+  const gridCols = allStocks.length <= 2 ? 'md:grid-cols-2' : 
+                   allStocks.length <= 3 ? 'md:grid-cols-3' : 
+                   'md:grid-cols-3 lg:grid-cols-3'; // Keep 3 cols max for readability
+
+  // ... (useMemo logic remains the same)
+
+  // ...
+
   // Prepare chart data with time range
   const { chartData, performanceData } = useMemo(() => {
     const range = TIME_RANGES.find(r => r.id === timeRange);
@@ -100,7 +116,7 @@ export default function CompareView({ primaryStock, compareStocks }: CompareView
 
       return {
         symbol: stock.symbol,
-        color: COLORS[index],
+        color: COLORS[index % COLORS.length],
         change,
         maxDrawdown: maxDrawdown * 100,
         maxGain: maxGain * 100,
@@ -161,7 +177,7 @@ export default function CompareView({ primaryStock, compareStocks }: CompareView
         </div>
 
         {/* Performance Summary Cards */}
-        <div className="grid grid-cols-3 gap-3 mb-4">
+        <div className={`grid grid-cols-1 ${gridCols} gap-3 mb-4`}>
           {performanceData.map((perf: any) => (
             <div 
               key={perf.symbol} 
@@ -216,7 +232,7 @@ export default function CompareView({ primaryStock, compareStocks }: CompareView
                   key={stock.symbol}
                   type="monotone"
                   dataKey={stock.symbol}
-                  stroke={COLORS[index]}
+                  stroke={COLORS[index % COLORS.length]}
                   strokeWidth={2}
                   dot={false}
                   name={stock.symbol}
@@ -234,7 +250,7 @@ export default function CompareView({ primaryStock, compareStocks }: CompareView
             <tr className="border-b border-gray-800/50">
               <th className="text-left text-xs font-medium text-gray-400 p-3">Metric</th>
               {allStocks.map((stock, index) => (
-                <th key={stock.symbol} className="text-right text-xs font-medium p-3" style={{ color: COLORS[index] }}>
+                <th key={stock.symbol} className="text-right text-xs font-medium p-3" style={{ color: COLORS[index % COLORS.length] }}>
                   {stock.symbol}
                 </th>
               ))}
@@ -335,9 +351,9 @@ export default function CompareView({ primaryStock, compareStocks }: CompareView
       </div>
 
       {/* Prediction Comparison */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className={`grid grid-cols-1 ${gridCols} gap-4`}>
         {allStocks.map((stock, index) => (
-          <PredictionCard key={stock.symbol} stock={stock} color={COLORS[index]} />
+          <PredictionCard key={stock.symbol} stock={stock} color={COLORS[index % COLORS.length]} />
         ))}
       </div>
     </div>

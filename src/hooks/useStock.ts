@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
   setPrimarySymbol,
@@ -12,9 +12,9 @@ import {
   selectComparisonSymbols,
   selectCanAddMoreComparisons
 } from '@/store/selectors';
-import { useGetStockDataQuery } from '@/store/api/stockApi';
+import { useGetStockDataQuery, stockApi } from '@/store/api/stockApi';
 import { StockData } from '@/types/stock';
-import { useAnalysisWorker } from './useAnalysisWorker';
+import { useBatchAnalysisWorker } from './useBatchAnalysisWorker';
 
 /**
  * Custom hook for stock-related operations
@@ -28,7 +28,7 @@ export function useStock() {
   const comparisonSymbols = useAppSelector(selectComparisonSymbols);
   const canAddMoreComparisons = useAppSelector(selectCanAddMoreComparisons);
 
-  // RTK Query for Primary Stock
+  // 1. RTK Query for Primary Stock
   const { 
     data: primaryStock, 
     isLoading: isPrimaryLoading, 
@@ -38,45 +38,96 @@ export function useStock() {
     skip: !symbol 
   });
 
-  // RTK Query for Comparison Stocks
-  // We handle up to 2 comparisons
-  const comp1 = comparisonSymbols[0];
-  const comp2 = comparisonSymbols[1];
+  // 2. Dynamic RTK Query for Comparison Stocks
+  // We manually initiate queries for all comparison symbols
+  useEffect(() => {
+    comparisonSymbols.forEach(sym => {
+      if (sym) {
+        dispatch(stockApi.endpoints.getStockData.initiate(sym));
+      }
+    });
+  }, [comparisonSymbols, dispatch]);
 
-  const {
-    data: comp1Data,
-    isLoading: isComp1Loading,
-  } = useGetStockDataQuery(comp1 || '', { skip: !comp1 });
+  // Select results from store
+  const selectComparisonData = useCallback((state: any) => 
+    comparisonSymbols.map(sym => ({
+      symbol: sym,
+      ...stockApi.endpoints.getStockData.select(sym)(state)
+    })), [comparisonSymbols]);
 
-  const {
-    data: comp2Data,
-    isLoading: isComp2Loading,
-  } = useGetStockDataQuery(comp2 || '', { skip: !comp2 });
+  const comparisonResults = useAppSelector(selectComparisonData);
 
-  const compareStocks = [comp1Data, comp2Data].filter(Boolean) as StockData[];
+  // 3. Batch Worker Analysis
+  // Single worker instance handles all predictions
+  const { analyze, results: workerResults, processingStatus } = useBatchAnalysisWorker();
+  const workerResultsRef = useRef<Record<string, number>>({}); // Track last processed price to avoid loops
 
-  // Worker Analysis for Primary Stock
-  const { 
-    analysisResult, 
-    isCalculating 
-  } = useAnalysisWorker({
-    symbol: symbol || null,
-    historicalData: primaryStock?.historicalData || null,
-    fundamentalData: primaryStock?.fundamentalData || null,
-    currentPrice: primaryStock?.quote?.price || null,
-    enabled: !!primaryStock
-  });
-  
-  // Merge Worker Results
+  // Trigger analysis for Primary Stock
+  useEffect(() => {
+    if (!primaryStock || !symbol) return;
+    
+    // Safety check for historicalData
+    if (!primaryStock.historicalData || primaryStock.historicalData.length === 0) return;
+    
+    // Only analyze if price changed or we haven't analyzed yet
+    const lastPrice = workerResultsRef.current[symbol];
+    const currentPrice = primaryStock.quote?.price || 0;
+    const hasResult = !!workerResults[symbol];
+
+    if (currentPrice !== lastPrice || !hasResult) {
+      workerResultsRef.current[symbol] = currentPrice;
+      analyze({
+        symbol,
+        historicalData: primaryStock.historicalData,
+        fundamentalData: primaryStock.fundamentalData || null,
+        currentPrice
+      });
+    }
+  }, [primaryStock, symbol, analyze, workerResults]);
+
+  // Trigger analysis for Comparison Stocks
+  useEffect(() => {
+    comparisonResults.forEach(({ symbol: compSymbol, data }) => {
+      if (!data || !compSymbol) return;
+
+      const lastPrice = workerResultsRef.current[compSymbol];
+      const currentPrice = data.quote?.price || 0;
+      const hasResult = !!workerResults[compSymbol];
+
+      if ((currentPrice !== lastPrice || !hasResult) && data.historicalData.length > 0) {
+        workerResultsRef.current[compSymbol] = currentPrice;
+        analyze({
+          symbol: compSymbol,
+          historicalData: data.historicalData,
+          fundamentalData: data.fundamentalData || null,
+          currentPrice
+        });
+      }
+    });
+  }, [comparisonResults, analyze, workerResults]);
+
+  // 4. Merge Data for Output
   const finalPrimaryStock: StockData | null = primaryStock ? {
     ...primaryStock,
-    technicalIndicators: analysisResult?.technicalIndicators || null,
-    prediction: analysisResult?.prediction || null
+    technicalIndicators: workerResults[symbol || '']?.technicalIndicators || primaryStock.technicalIndicators || null,
+    prediction: workerResults[symbol || '']?.prediction || primaryStock.prediction || null
   } : null;
 
+  const compareStocks = comparisonResults.map(({ symbol: compSymbol, data, isLoading, error }) => {
+    if (!data) return null;
+    return {
+      ...data,
+      technicalIndicators: workerResults[compSymbol]?.technicalIndicators || null,
+      prediction: workerResults[compSymbol]?.prediction || null,
+      isLoading,
+      error: error ? String(error) : null
+    };
+  }).filter(Boolean) as StockData[];
+
   // Aggregated Loading & Error
-  // We consider it loading if API is fetching OR worker is crunching
-  const isLoading = isPrimaryLoading || isComp1Loading || isComp2Loading || isCalculating;
+  const isCompLoading = comparisonResults.some(r => r.isLoading);
+  const isAnalyzing = Object.values(processingStatus).some(status => status);
+  const isLoading = isPrimaryLoading || isCompLoading || isAnalyzing;
   
   // For error, we return the primary error string if present
   let error: string | null = null;
@@ -105,7 +156,10 @@ export function useStock() {
     if (symbol) {
       refetchPrimary();
     }
-  }, [symbol, refetchPrimary]);
+    comparisonSymbols.forEach(sym => {
+      dispatch(stockApi.util.invalidateTags([{ type: 'Stock', id: sym }]));
+    });
+  }, [symbol, comparisonSymbols, refetchPrimary, dispatch]);
 
   const addComparison = useCallback(
     (stockSymbol: string) => {
