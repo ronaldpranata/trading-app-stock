@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { StockQuote, HistoricalData, FundamentalData, TechnicalIndicators, PredictionResult } from '@/types/stock';
-import { TrendingUp, TrendingDown, Minus, Target, Brain, BarChart3, ArrowUp, ArrowDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, Brain, BarChart3 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 interface StockData {
@@ -40,7 +40,7 @@ const COLORS = [
 
 export default function CompareView({ primaryStock, compareStocks }: CompareViewProps) {
   const [timeRange, setTimeRange] = useState<TimeRange>('3M');
-  const allStocks = [primaryStock, ...compareStocks];
+  const allStocks = useMemo(() => [primaryStock, ...compareStocks], [primaryStock, compareStocks]);
   
   // Calculate grid columns based on number of stocks
   const gridCols = allStocks.length <= 2 ? 'md:grid-cols-2' : 
