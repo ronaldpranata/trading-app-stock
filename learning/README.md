@@ -49,6 +49,26 @@ Follow this path step-by-step.
 
 ---
 
+## Phase 4: Quality Assurance
+*Professionalize your workflow with automated testing.*
+
+### 7. [Unit Testing Guide](./unit-testing-guide.md)
+   - **Goal:** Write tests for Logic, State, and UI using Vitest.
+   - **Key Concepts:** Testing Pyramid, Jest/Vitest, React Testing Library.
+   - **Practical:** Run `npm test` to see the examples in `src/utils`, `src/store`, and `src/components`.
+
+### 8. [Integration Testing Guide](./integration-testing-guide.md)
+   - **Goal:** Test Hooks with Redux and Components with dynamic props.
+   - **Key Concepts:** Mocking Modules, Provider Wrapping, RenderProps.
+   - **Practical:** See `src/hooks/__tests__/useStock.test.tsx`.
+
+### 9. [Senior Testing Strategy](./testing-strategy-senior.md)
+   - **Goal:** Understand the "Why" behind E2E, Visual Regression, and A11y.
+   - **Key Concepts:** The Testing Trophy, CI/CD Pipelines, Accessibility Standards.
+   - **Practical:** Run `npx playwright test` to see the full E2E suite in action.
+
+---
+
 ## How to Use This
 1. Read the guide.
 2. Open the referenced file in the codebase.

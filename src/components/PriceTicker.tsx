@@ -13,9 +13,10 @@ function isCrypto(symbol: string): boolean {
 }
 
 function formatPrice(price: number): string {
-  if (price < 0.01) return price.toFixed(8);
-  if (price < 1) return price.toFixed(4);
-  if (price < 100) return price.toFixed(2);
+  const absPrice = Math.abs(price);
+  if (absPrice < 0.01 && absPrice > 0) return price.toFixed(8);
+  if (absPrice < 1) return price.toFixed(4);
+  if (absPrice < 100) return price.toFixed(2);
   return price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
