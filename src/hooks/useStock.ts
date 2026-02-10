@@ -1,21 +1,19 @@
 "use client";
 
-import { useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
-  loadStock,
-  refreshQuote,
-  addCompareStock,
-  removeComparison,
-  selectPrimaryStock,
-  selectCompareStocks,
-  selectStockLoading,
-  selectStockError,
+  setPrimarySymbol,
+  addComparisonSymbol,
+  removeComparisonSymbol,
+} from '@/store/slices/stockSlice';
+import {
   selectPrimarySymbol,
-  selectCurrentPrice,
-  selectPriceChange,
-  selectCanAddMoreComparisons,
-} from '@/store';
+  selectComparisonSymbols,
+  selectCanAddMoreComparisons
+} from '@/store/selectors';
+import { useGetStockDataQuery, useGetQuoteQuery } from '@/store/api/stockApi';
+import { StockData } from '@/types/stock';
 
 /**
  * Custom hook for stock-related operations
@@ -24,34 +22,76 @@ import {
 export function useStock() {
   const dispatch = useAppDispatch();
   
-  // Selectors
-  const primaryStock = useAppSelector(selectPrimaryStock);
-  const compareStocks = useAppSelector(selectCompareStocks);
-  const isLoading = useAppSelector(selectStockLoading);
-  const error = useAppSelector(selectStockError);
+  // Selectors for symbols
   const symbol = useAppSelector(selectPrimarySymbol);
-  const currentPrice = useAppSelector(selectCurrentPrice);
-  const priceChange = useAppSelector(selectPriceChange);
+  const comparisonSymbols = useAppSelector(selectComparisonSymbols);
   const canAddMoreComparisons = useAppSelector(selectCanAddMoreComparisons);
+
+  // RTK Query for Primary Stock
+  const { 
+    data: primaryStock, 
+    isLoading: isPrimaryLoading, 
+    error: primaryError,
+    refetch: refetchPrimary
+  } = useGetStockDataQuery(symbol || '', { 
+    skip: !symbol 
+  });
+
+  // RTK Query for Comparison Stocks
+  // We handle up to 2 comparisons
+  const comp1 = comparisonSymbols[0];
+  const comp2 = comparisonSymbols[1];
+
+  const {
+    data: comp1Data,
+    isLoading: isComp1Loading,
+    error: comp1Error,
+  } = useGetStockDataQuery(comp1 || '', { skip: !comp1 });
+
+  const {
+    data: comp2Data,
+    isLoading: isComp2Loading,
+    error: comp2Error,
+  } = useGetStockDataQuery(comp2 || '', { skip: !comp2 });
+
+  const compareStocks = [comp1Data, comp2Data].filter(Boolean) as StockData[];
+
+  // Aggregated Loading & Error
+  const isLoading = isPrimaryLoading || isComp1Loading || isComp2Loading;
+  
+  // For error, we return the primary error string if present
+  let error: string | null = null;
+  if (primaryError) {
+      if ('status' in primaryError) error = `Error ${primaryError.status}`;
+      else error = primaryError.message || 'An error occurred';
+  }
+
+  // Derived Values
+  const currentPrice = primaryStock?.quote?.price || 0;
+  const priceChange = {
+    change: primaryStock?.quote?.change || 0,
+    changePercent: primaryStock?.quote?.changePercent || 0,
+    isPositive: (primaryStock?.quote?.change || 0) >= 0,
+  };
 
   // Actions
   const load = useCallback(
     (stockSymbol: string) => {
-      dispatch(loadStock(stockSymbol));
+      dispatch(setPrimarySymbol(stockSymbol));
     },
     [dispatch]
   );
 
   const refresh = useCallback(() => {
     if (symbol) {
-      dispatch(refreshQuote(symbol));
+      refetchPrimary();
     }
-  }, [dispatch, symbol]);
+  }, [symbol, refetchPrimary]);
 
   const addComparison = useCallback(
     (stockSymbol: string) => {
       if (canAddMoreComparisons && stockSymbol !== symbol) {
-        dispatch(addCompareStock(stockSymbol));
+        dispatch(addComparisonSymbol(stockSymbol));
       }
     },
     [dispatch, canAddMoreComparisons, symbol]
@@ -59,14 +99,14 @@ export function useStock() {
 
   const removeCompare = useCallback(
     (stockSymbol: string) => {
-      dispatch(removeComparison(stockSymbol));
+      dispatch(removeComparisonSymbol(stockSymbol));
     },
     [dispatch]
   );
 
   return {
     // State
-    primaryStock,
+    primaryStock: primaryStock || null,
     compareStocks,
     isLoading,
     error,

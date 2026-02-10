@@ -54,7 +54,7 @@ export default function Home() {
   }, [stock]);
 
   useAutoRefresh({
-    symbol: stock.symbol,
+    symbol: stock.symbol || undefined,
     onRefresh: handleRefresh,
     interval: 10000,
   });
@@ -210,7 +210,7 @@ export default function Home() {
               <div className="w-full md:w-56 order-first md:order-none">
                 <StockSearch
                   onSelectStock={handleSymbolChange}
-                  currentSymbol={stock.symbol}
+                  currentSymbol={stock.symbol || ''}
                 />
               </div>
 
@@ -272,7 +272,7 @@ export default function Home() {
 
               {/* Primary Stock */}
               <StockPill
-                symbol={stock.symbol}
+                symbol={stock.symbol || ''}
                 change={stock.primaryStock?.quote?.changePercent}
                 color="blue"
               />
@@ -380,7 +380,7 @@ export default function Home() {
                     data={stock.primaryStock?.historicalData || []}
                     indicators={stock.primaryStock?.technicalIndicators || null}
                     currentPrice={stock.currentPrice}
-                    symbol={stock.symbol}
+                    symbol={stock.symbol || ''}
                     isLoading={stock.isLoading}
                   />
                 </div>
@@ -419,7 +419,7 @@ export default function Home() {
                 <FundamentalAnalysis
                   data={stock.primaryStock?.fundamentalData || null}
                   currentPrice={stock.currentPrice}
-                  symbol={stock.symbol}
+                  symbol={stock.symbol || ''}
                 />
                 <KeyMetrics fundamentals={stock.primaryStock?.fundamentalData || null} />
               </div>

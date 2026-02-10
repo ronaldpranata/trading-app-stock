@@ -4,12 +4,14 @@ import { configureStore } from '@reduxjs/toolkit';
 import { authReducer } from './slices/authSlice';
 import { stockReducer } from './slices/stockSlice';
 import { uiReducer } from './slices/uiSlice';
+import { stockApi } from './api/stockApi';
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     stock: stockReducer,
     ui: uiReducer,
+    [stockApi.reducerPath]: stockApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -21,7 +23,7 @@ export const store = configureStore({
         // Ignore these paths in the state
         ignoredPaths: ['ui.lastRefresh'],
       },
-    }),
+    }).concat(stockApi.middleware),
   devTools: process.env.NODE_ENV !== 'production',
 });
 
