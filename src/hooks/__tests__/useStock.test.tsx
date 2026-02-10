@@ -11,12 +11,12 @@ const mockUseGetStockDataQuery = vi.fn();
 const mockUseGetQuoteQuery = vi.fn();
 
 vi.mock('@/store/api/stockApi', () => ({
-  useGetStockDataQuery: (...args: any[]) => mockUseGetStockDataQuery(...args),
-  useGetQuoteQuery: (...args: any[]) => mockUseGetQuoteQuery(...args),
+  useGetStockDataQuery: (...args: unknown[]) => mockUseGetStockDataQuery(...args),
+  useGetQuoteQuery: (...args: unknown[]) => mockUseGetQuoteQuery(...args),
   stockApi: {
       reducerPath: 'stockApi',
-      reducer: (state = {}, action: any) => state,
-      middleware: (getDefaultMiddleware: any) => getDefaultMiddleware(),
+      reducer: (state = {}) => state,
+      middleware: (getDefaultMiddleware: () => unknown) => getDefaultMiddleware(),
   } 
 }));
 
@@ -25,12 +25,12 @@ const createTestStore = () => configureStore({
   reducer: {
     stock: stockReducer,
     // We don't need the real API reducer for this test since we mocked the hook
-    stockApi: (state = {}, action: any) => state, 
-  } as any, // Cast to any to avoid complex typing for test store
+    stockApi: (state = {}) => state, 
+  }, 
 });
 
 describe('useStock Hook', () => {
-    let store: any;
+    let store: ReturnType<typeof createTestStore>;
 
     beforeEach(() => {
         store = createTestStore();
@@ -102,7 +102,11 @@ describe('useStock Hook', () => {
         const { result } = renderHook(() => useStock(), { wrapper });
         act(() => { result.current.load('AAPL'); });
 
-        expect(result.current.primaryStock).toEqual(mockData);
+        expect(result.current.primaryStock).toEqual({
+            ...mockData,
+            technicalIndicators: null,
+            prediction: null
+        });
         expect(result.current.currentPrice).toBe(150);
         expect(result.current.priceChange.isPositive).toBe(true);
     });

@@ -10,6 +10,7 @@ import PredictionDisplay from "@/components/PredictionDisplay";
 import ElliottWaveDisplay from "@/components/ElliottWaveDisplay";
 import CandlestickPatternsDisplay from "@/components/CandlestickPatternsDisplay";
 import CompareView from "@/components/CompareView";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import {
   Card,
   Button,
@@ -376,13 +377,15 @@ export default function Home() {
                     quote={stock.primaryStock?.quote || null}
                     isLoading={stock.isLoading}
                   />
-                  <StockChart
-                    data={stock.primaryStock?.historicalData || []}
-                    indicators={stock.primaryStock?.technicalIndicators || null}
-                    currentPrice={stock.currentPrice}
-                    symbol={stock.symbol || ''}
-                    isLoading={stock.isLoading}
-                  />
+                  <ErrorBoundary>
+                    <StockChart
+                        data={stock.primaryStock?.historicalData || []}
+                        indicators={stock.primaryStock?.technicalIndicators || null}
+                        currentPrice={stock.currentPrice}
+                        symbol={stock.symbol || ''}
+                        isLoading={stock.isLoading}
+                    />
+                  </ErrorBoundary>
                 </div>
                 <div className="space-y-4">
                   <QuickStats
@@ -397,19 +400,25 @@ export default function Home() {
             {ui.activeTab === "technical" && (
               <div className="space-y-4">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <TechnicalAnalysis
-                    indicators={stock.primaryStock?.technicalIndicators || null}
-                    currentPrice={stock.currentPrice}
-                  />
-                  <ElliottWaveDisplay
-                    elliottWave={stock.primaryStock?.technicalIndicators?.elliottWave}
-                    currentPrice={stock.currentPrice}
-                  />
+                  <ErrorBoundary>
+                      <TechnicalAnalysis
+                        indicators={stock.primaryStock?.technicalIndicators || null}
+                        currentPrice={stock.currentPrice}
+                      />
+                  </ErrorBoundary>
+                  <ErrorBoundary>
+                      <ElliottWaveDisplay
+                        elliottWave={stock.primaryStock?.technicalIndicators?.elliottWave}
+                        currentPrice={stock.currentPrice}
+                      />
+                  </ErrorBoundary>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <CandlestickPatternsDisplay
-                    analysis={stock.primaryStock?.technicalIndicators?.candlestickAnalysis}
-                  />
+                  <ErrorBoundary>
+                      <CandlestickPatternsDisplay
+                        analysis={stock.primaryStock?.technicalIndicators?.candlestickAnalysis}
+                      />
+                  </ErrorBoundary>
                 </div>
               </div>
             )}

@@ -12,8 +12,9 @@ import {
   selectComparisonSymbols,
   selectCanAddMoreComparisons
 } from '@/store/selectors';
-import { useGetStockDataQuery, useGetQuoteQuery } from '@/store/api/stockApi';
+import { useGetStockDataQuery } from '@/store/api/stockApi';
 import { StockData } from '@/types/stock';
+import { useAnalysisWorker } from './useAnalysisWorker';
 
 /**
  * Custom hook for stock-related operations
@@ -45,19 +46,37 @@ export function useStock() {
   const {
     data: comp1Data,
     isLoading: isComp1Loading,
-    error: comp1Error,
   } = useGetStockDataQuery(comp1 || '', { skip: !comp1 });
 
   const {
     data: comp2Data,
     isLoading: isComp2Loading,
-    error: comp2Error,
   } = useGetStockDataQuery(comp2 || '', { skip: !comp2 });
 
   const compareStocks = [comp1Data, comp2Data].filter(Boolean) as StockData[];
 
+  // Worker Analysis for Primary Stock
+  const { 
+    analysisResult, 
+    isCalculating 
+  } = useAnalysisWorker({
+    symbol: symbol || null,
+    historicalData: primaryStock?.historicalData || null,
+    fundamentalData: primaryStock?.fundamentalData || null,
+    currentPrice: primaryStock?.quote?.price || null,
+    enabled: !!primaryStock
+  });
+  
+  // Merge Worker Results
+  const finalPrimaryStock: StockData | null = primaryStock ? {
+    ...primaryStock,
+    technicalIndicators: analysisResult?.technicalIndicators || null,
+    prediction: analysisResult?.prediction || null
+  } : null;
+
   // Aggregated Loading & Error
-  const isLoading = isPrimaryLoading || isComp1Loading || isComp2Loading;
+  // We consider it loading if API is fetching OR worker is crunching
+  const isLoading = isPrimaryLoading || isComp1Loading || isComp2Loading || isCalculating;
   
   // For error, we return the primary error string if present
   let error: string | null = null;
@@ -106,7 +125,7 @@ export function useStock() {
 
   return {
     // State
-    primaryStock: primaryStock || null,
+    primaryStock: finalPrimaryStock,
     compareStocks,
     isLoading,
     error,

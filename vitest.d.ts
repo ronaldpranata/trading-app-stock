@@ -1,7 +1,14 @@
 import 'vitest';
-import { AxeMatchers } from 'vitest-axe';
+
+export interface CustomMatchers<R = unknown> {
+    toBeAccessible(): R;
+}
+
+export interface AxeMatchers<R = unknown> {
+    toHaveNoViolations(): R;
+}
 
 declare module 'vitest' {
-  export interface Assertion extends AxeMatchers {}
-  export interface AsymmetricMatchersContaining extends AxeMatchers {}
+    interface Assertion<T = unknown> extends CustomMatchers<T>, AxeMatchers<T> {}
+    interface AsymmetricMatchersContaining extends CustomMatchers, AxeMatchers {}
 }

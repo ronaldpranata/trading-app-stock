@@ -1,7 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { StockData, StockQuote, HistoricalData, FundamentalData, TechnicalIndicators, PredictionResult } from '@/types/stock';
-import { calculateAllIndicators } from '@/utils/technicalAnalysis';
-import { generatePrediction } from '@/utils/prediction';
 
 interface StockApiResponse {
   quote: StockQuote;
@@ -37,10 +35,9 @@ export const stockApi = createApi({
         let prediction: PredictionResult | null = null;
 
         if (Array.isArray(historical) && historical.length > 0) {
-          indicators = calculateAllIndicators(historical);
-          if (indicators && fundamental && quote) {
-            prediction = generatePrediction(quote.price, indicators, fundamental);
-          }
+          // Worker will handle calculations
+          indicators = null; 
+          prediction = null;
         }
 
         const stockData: StockData = {
