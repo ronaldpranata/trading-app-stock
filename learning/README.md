@@ -69,6 +69,26 @@ Follow this path step-by-step.
 
 ---
 
+## Phase 5: Advanced Optimization & Features
+*Pushing the boundaries of performance and reliability.*
+
+### 10. [Web Workers & Off-Main-Thread Architecture](./senior/1-web-workers.md)
+   - **Goal:** Keep the UI silky smooth (60fps) even during heavy data processing.
+   - **Key Concepts:** Parallelism, Thread Safety, Serialization.
+   - **Practical:** See `src/workers/analysis.worker.ts` and how `useStock` delegates heavy lifting.
+
+### 11. [Error Boundaries & Resilience](./senior/2-error-boundaries.md)
+   - **Goal:** Prevent the "White Screen of Death" when a component crashes.
+   - **Key Concepts:** React Lifecycle (`componentDidCatch`), Fallback UI, Isolation.
+   - **Practical:** Check `src/components/ErrorBoundary.tsx` and how it wraps complex widgets.
+
+### 12. [React Server Components (RSC)](./senior/3-server-components.md)
+   - **Goal:** Understand the future of React architecture (Next.js App Router).
+   - **Key Concepts:** Server-side Execution, Zero-Bundle-Size Components, Streaming.
+   - **Practical:** Review `src/app/page.tsx` (a Server Component) vs `src/components/StockChart.tsx` ('use client').
+
+---
+
 ## How to Use This
 1. Read the guide.
 2. Open the referenced file in the codebase.
