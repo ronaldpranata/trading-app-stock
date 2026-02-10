@@ -146,6 +146,13 @@ export interface TimeframePrediction {
   riskRewardRatio: number;
 }
 
+export interface SentimentData {
+  score: number; // 0 to 100
+  sentiment: 'positive' | 'negative' | 'neutral';
+  headlines: string[];
+  keywordMatches?: { word: string; impact: 'positive' | 'negative' }[];
+}
+
 export interface PredictionResult {
   direction: "BULLISH" | "BEARISH" | "NEUTRAL";
   confidence: number;
@@ -153,6 +160,7 @@ export interface PredictionResult {
   stopLoss: number;
   technicalScore: number;
   fundamentalScore: number;
+  sentimentScore?: number; // Added sentiment score
   signals: Signal[];
   recommendation: string;
   timeframePredictions: TimeframePrediction[];
@@ -173,6 +181,7 @@ export interface StockData {
   fundamentalData: FundamentalData | null;
   technicalIndicators: TechnicalIndicators | null;
   prediction: PredictionResult | null;
+  sentimentData?: SentimentData; // Added sentiment data
   isLoading: boolean;
   error: string | null;
 }

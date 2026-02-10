@@ -4,18 +4,22 @@ import {
 } from '../utils/technicalAnalysis';
 import { generatePrediction } from '../utils/prediction';
 
+import { calculateSentiment } from '../utils/sentiment';
+
 // Define input and output types for type safety
 export interface ReferenceData {
   historicalData: HistoricalData[];
   fundamentalData: FundamentalData | null;
   currentPrice: number;
   symbol: string;
+  headlines?: string[]; // Added headlines
 }
 
 export interface AnalysisResult {
   symbol: string;
   technicalIndicators: TechnicalIndicators;
   prediction: PredictionResult;
+  sentimentData?: any; // To pass back calculated sentiment
 }
 
 // Global context for the worker
@@ -23,14 +27,15 @@ const ctx = self as unknown as Worker;
 
 ctx.onmessage = (event: MessageEvent<ReferenceData>) => {
   try {
-    const { historicalData, fundamentalData, currentPrice, symbol } = event.data;
+    const { historicalData, fundamentalData, currentPrice, symbol, headlines } = event.data;
     
     // 1. Heavy Calculation: Technical Indicators (SMA, MACD, Elliott Wave, etc.)
-    // This can take 50-200ms for large datasets with complex patterns
     const technicalIndicators = calculateAllIndicators(historicalData);
+
+    // 2. Calculate Sentiment
+    const sentimentResult = calculateSentiment(headlines || []);
     
-    // 2. Generate Prediction using shared utility
-    // This ensures consistency with the previous logic and includes all timeframes
+    // 3. Generate Prediction using shared utility
     const prediction = generatePrediction(
       currentPrice,
       technicalIndicators,
@@ -54,13 +59,15 @@ ctx.onmessage = (event: MessageEvent<ReferenceData>) => {
         profitMargin: 0,
         evToEbitda: 0,
         dcf: { source: 'calculated', bull: 0, base: 0, bear: 0 }
-      }
+      },
+      sentimentResult.score // Pass sentiment score
     );
 
     const result: AnalysisResult = {
-      symbol, // Added symbol to identify result
+      symbol, 
       technicalIndicators,
-      prediction
+      prediction,
+      sentimentData: sentimentResult
     };
 
     // Send results back to main thread

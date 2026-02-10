@@ -59,16 +59,28 @@ export function generateTimeframePrediction(
   fundamentalData: FundamentalData,
   technicalScore: number,
   fundamentalScore: number,
-  dcfScore: number, // New parameter
+  dcfScore: number,
+  sentimentScore: number, // New parameter
   timeframe: PredictionTimeframe
 ): TimeframePrediction {
   const config = TIMEFRAME_CONFIG[timeframe];
   
   // Calculate weighted score based on timeframe
+  // Add sentiment weight (impacts short term more)
+  let sentimentWeight = 0;
+  if (timeframe === 'day') sentimentWeight = 0.40;     // High impact on daily
+  else if (timeframe === 'week') sentimentWeight = 0.25; // Moderate impact on weekly
+  else if (timeframe === 'month') sentimentWeight = 0.10; // Low impact on monthly
+  
+  // Re-normalize weights to sum to 1
+  const existingWeightSum = config.technicalWeight + config.fundamentalWeight + config.dcfWeight;
+  const normalizationFactor = 1 - sentimentWeight;
+
   const weightedScore = 
-    (technicalScore * config.technicalWeight) + 
-    (fundamentalScore * config.fundamentalWeight) +
-    (dcfScore * config.dcfWeight);
+    (technicalScore * config.technicalWeight * normalizationFactor) + 
+    (fundamentalScore * config.fundamentalWeight * normalizationFactor) +
+    (dcfScore * config.dcfWeight * normalizationFactor) +
+    (sentimentScore * sentimentWeight);
   
   // Determine direction
   let direction: 'BULLISH' | 'BEARISH' | 'NEUTRAL';
@@ -82,54 +94,57 @@ export function generateTimeframePrediction(
   
   // Calculate confidence - longer timeframes have lower confidence
   const baseConfidence = Math.abs(weightedScore - 50) * 1.5 + 35;
-  const timeframeConfidencePenalty = Math.log(config.days + 1) * 5;
-  const confidence = Math.min(95, Math.max(25, baseConfidence - timeframeConfidencePenalty));
   
-  // Calculate expected price movement based on ATR and timeframe
+  // Boost confidence if sentiment confirms direction
+  let sentimentBoost = 0;
+  if (direction === 'BULLISH' && sentimentScore > 60) sentimentBoost = 10;
+  if (direction === 'BEARISH' && sentimentScore < 40) sentimentBoost = 10;
+
+  const timeframeConfidencePenalty = Math.log(config.days + 1) * 5;
+  const confidence = Math.min(95, Math.max(25, baseConfidence + sentimentBoost - timeframeConfidencePenalty));
+  
+  // ... rest of logic ...
   const dailyVolatility = technicalIndicators.atr / currentPrice;
   const expectedVolatility = dailyVolatility * Math.sqrt(config.days) * config.volatilityMultiplier;
   
-  // Adjust expected change based on direction and score strength
-  const scoreStrength = (weightedScore - 50) / 50; // -1 to 1
+  const scoreStrength = (weightedScore - 50) / 50; 
   let expectedChangePercent = expectedVolatility * 100 * scoreStrength;
-  
-  // Add fundamental growth factor for longer timeframes
+
+  // Sentiment Momentum Bonus for short term
+  if (timeframe === 'day' || timeframe === 'week') {
+    const sentimentImpact = (sentimentScore - 50) / 50; // -1 to 1
+    expectedChangePercent += sentimentImpact * expectedVolatility * 50; // Up to 50% extra volatility from sentiment
+  }
+
+  // ... (rest is same)
   if (config.days >= 22) {
     const annualGrowthFactor = fundamentalData.revenueGrowth / 100;
     const periodGrowthFactor = annualGrowthFactor * (config.days / 252);
     expectedChangePercent += periodGrowthFactor * 100 * config.fundamentalWeight;
   }
   
-  // Cap the expected change based on historical volatility
   const maxChange = expectedVolatility * 200;
   expectedChangePercent = Math.max(-maxChange, Math.min(maxChange, expectedChangePercent));
   
-  // Additional cap: prevent extreme predictions
-  // For bearish predictions, cap at -80% (stock can't go below 0)
-  // For bullish predictions, cap at reasonable growth based on timeframe
   const maxBullishChange = config.days <= 5 ? 20 : config.days <= 22 ? 50 : config.days <= 66 ? 100 : 200;
-  const maxBearishChange = -80; // Stock can't lose more than 100%, cap at 80% for safety
+  const maxBearishChange = -80;
   
   expectedChangePercent = Math.max(maxBearishChange, Math.min(maxBullishChange, expectedChangePercent));
   
   const expectedChange = currentPrice * (expectedChangePercent / 100);
   let targetPrice = currentPrice + expectedChange;
   
-  // Ensure target price is never negative or zero
   if (targetPrice <= 0) {
-    targetPrice = currentPrice * 0.1; // Minimum 10% of current price
-    // Recalculate expected change based on adjusted target
+    targetPrice = currentPrice * 0.1;
     const adjustedExpectedChange = targetPrice - currentPrice;
     expectedChangePercent = (adjustedExpectedChange / currentPrice) * 100;
   }
   
-  // Calculate stop loss based on ATR and timeframe
   const stopLossDistance = technicalIndicators.atr * config.volatilityMultiplier * 0.75;
   const stopLoss = direction === 'BULLISH' 
     ? currentPrice - stopLossDistance 
     : currentPrice + stopLossDistance;
   
-  // Calculate risk/reward ratio
   const potentialReward = Math.abs(targetPrice - currentPrice);
   const potentialRisk = Math.abs(currentPrice - stopLoss);
   const riskRewardRatio = potentialRisk > 0 ? potentialReward / potentialRisk : 0;
@@ -146,6 +161,7 @@ export function generateTimeframePrediction(
   };
 }
 
+// ... calculateDcfScore ...
 function calculateDcfScore(dcf: FundamentalData['dcf'], currentPrice: number): number {
   if (!dcf || dcf.base <= 0 || currentPrice <= 0) {
     return 50; // Neutral score if no valid dcf/analyst target or price
@@ -162,18 +178,16 @@ function calculateDcfScore(dcf: FundamentalData['dcf'], currentPrice: number): n
 export function generatePrediction(
   currentPrice: number,
   technicalIndicators: TechnicalIndicators,
-  fundamentalData: FundamentalData
+  fundamentalData: FundamentalData,
+  sentimentScore: number = 50 // Default neutral
 ): PredictionResult {
-  // Generate signals
   const technicalSignals = generateTechnicalSignals(technicalIndicators, currentPrice);
   const fundamentalSignals = generateFundamentalSignals(fundamentalData);
   
-  // Calculate scores
   const technicalScore = calculateTechnicalScore(technicalSignals);
   const fundamentalScore = calculateFundamentalScore(fundamentalSignals);
   const dcfScore = calculateDcfScore(fundamentalData.dcf, currentPrice);
   
-  // Generate predictions for all timeframes
   const timeframes: PredictionTimeframe[] = ['day', 'week', 'month', 'quarter', 'year'];
   const timeframePredictions = timeframes.map(tf => 
     generateTimeframePrediction(
@@ -183,20 +197,20 @@ export function generatePrediction(
       technicalScore,
       fundamentalScore,
       dcfScore,
+      sentimentScore,
       tf
     )
   );
   
-  // Use week prediction as the default/main prediction
   const mainPrediction = timeframePredictions.find(p => p.timeframe === 'week') || timeframePredictions[0];
   
-  // Generate recommendation
   const recommendation = generateRecommendation(
     mainPrediction.direction, 
     mainPrediction.confidence, 
     technicalScore, 
     fundamentalScore,
     dcfScore,
+    sentimentScore,
     timeframePredictions
   );
   
@@ -207,6 +221,7 @@ export function generatePrediction(
     stopLoss: mainPrediction.stopLoss,
     technicalScore,
     fundamentalScore,
+    sentimentScore,
     signals: [...technicalSignals, ...fundamentalSignals],
     recommendation,
     timeframePredictions
@@ -219,48 +234,41 @@ function generateRecommendation(
   technicalScore: number,
   fundamentalScore: number,
   dcfScore: number,
+  sentimentScore: number,
   timeframePredictions: TimeframePrediction[]
 ): string {
   const recommendations: string[] = [];
   
-  // Check if all timeframes agree
   const allBullish = timeframePredictions.every(p => p.direction === 'BULLISH');
   const allBearish = timeframePredictions.every(p => p.direction === 'BEARISH');
   const shortTermDirection = timeframePredictions[0]?.direction;
   const longTermDirection = timeframePredictions[timeframePredictions.length - 1]?.direction;
   
   if (direction === 'BULLISH') {
-    if (confidence >= 70) {
-      recommendations.push('Strong buy signal detected.');
-    } else if (confidence >= 50) {
-      recommendations.push('Moderate buy signal detected.');
-    } else {
-      recommendations.push('Weak buy signal - consider waiting for confirmation.');
-    }
+    if (confidence >= 70) recommendations.push('Strong buy signal detected.');
+    else if (confidence >= 50) recommendations.push('Moderate buy signal detected.');
+    else recommendations.push('Weak buy signal - consider waiting for confirmation.');
     
-    if (technicalScore > fundamentalScore) {
-      recommendations.push('Technical momentum is driving the bullish outlook.');
-    } else {
-      recommendations.push('Strong fundamentals support the bullish case.');
-    }
+    if (technicalScore > fundamentalScore) recommendations.push('Technical momentum is driving the bullish outlook.');
+    else recommendations.push('Strong fundamentals support the bullish case.');
   } else if (direction === 'BEARISH') {
-    if (confidence >= 70) {
-      recommendations.push('Strong sell signal detected.');
-    } else if (confidence >= 50) {
-      recommendations.push('Moderate sell signal detected.');
-    } else {
-      recommendations.push('Weak sell signal - monitor closely.');
-    }
+    if (confidence >= 70) recommendations.push('Strong sell signal detected.');
+    else if (confidence >= 50) recommendations.push('Moderate sell signal detected.');
+    else recommendations.push('Weak sell signal - monitor closely.');
     
-    if (technicalScore < fundamentalScore) {
-      recommendations.push('Technical weakness is driving the bearish outlook.');
-    } else {
-      recommendations.push('Fundamental concerns support the bearish case.');
-    }
+    if (technicalScore < fundamentalScore) recommendations.push('Technical weakness is driving the bearish outlook.');
+    else recommendations.push('Fundamental concerns support the bearish case.');
   } else {
     recommendations.push('Mixed signals - no clear direction.');
     recommendations.push('Consider waiting for a clearer trend before taking action.');
   }
+
+  // Sentiment Analysis Commentary
+  if (sentimentScore >= 70) recommendations.push('Recent news sentiment is very positive, potentially boosting short-term price.');
+  else if (sentimentScore >= 60) recommendations.push('Positive news sentiment is supportive.');
+  else if (sentimentScore <= 30) recommendations.push('Negative news sentiment is creating headwinds.');
+  else if (sentimentScore <= 40) recommendations.push('Cautious sentiment around recent news.');
+
   
   // Add timeframe alignment analysis
   if (allBullish) {

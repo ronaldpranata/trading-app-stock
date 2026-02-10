@@ -347,6 +347,18 @@ function generateSimulatedFundamentals(symbol: string): import('@/types/stock').
   };
 }
 
+// Fetch news from Yahoo Finance
+async function fetchNews(symbol: string) {
+  try {
+    console.log(`Fetching news for ${symbol}`);
+    const result = await yahooFinance.search(symbol, { newsCount: 5 });
+    return result.news || [];
+  } catch (error) {
+    console.error(`Yahoo Finance news error for ${symbol}:`, error);
+    return [];
+  }
+}
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const symbol = searchParams.get('symbol')?.toUpperCase() || 'AAPL';
@@ -392,6 +404,11 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(fundamentals);
       }
 
+      case 'news': {
+        const news = await fetchNews(symbol);
+        return NextResponse.json(news);
+      }
+
       default:
         return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
     }
@@ -405,8 +422,10 @@ export async function GET(request: NextRequest) {
       case 'historical':
         return NextResponse.json(generateSimulatedHistorical(symbol));
       case 'fundamental':
-        // @ts-ignore
+         // @ts-ignore
         return NextResponse.json(generateSimulatedFundamentals(symbol));
+      case 'news':
+        return NextResponse.json([]); // Return empty array for news error
       default:
         return NextResponse.json({ error: 'Server error' }, { status: 500 });
     }

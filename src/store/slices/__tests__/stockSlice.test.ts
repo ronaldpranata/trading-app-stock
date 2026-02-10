@@ -21,13 +21,16 @@ describe('stockSlice', () => {
     expect(actual.comparisonSymbols).toContain('GOOGL');
   });
 
-  it('should adhere to max 2 comparisons', () => {
+  it('should adhere to max 5 comparisons', () => {
     let state = stockReducer(initialState, addComparisonSymbol('GOOGL'));
     state = stockReducer(state, addComparisonSymbol('MSFT'));
-    state = stockReducer(state, addComparisonSymbol('AMZN')); // Should be ignored
+    state = stockReducer(state, addComparisonSymbol('AMZN'));
+    state = stockReducer(state, addComparisonSymbol('TSLA'));
+    state = stockReducer(state, addComparisonSymbol('NFLX'));
+    state = stockReducer(state, addComparisonSymbol('NVDA')); // Should be ignored
 
-    expect(state.comparisonSymbols.length).toBe(2);
-    expect(state.comparisonSymbols).toEqual(['GOOGL', 'MSFT']);
+    expect(state.comparisonSymbols.length).toBe(5);
+    expect(state.comparisonSymbols).toEqual(['GOOGL', 'MSFT', 'AMZN', 'TSLA', 'NFLX']);
   });
 
   it('should not add duplicate comparison symbols', () => {

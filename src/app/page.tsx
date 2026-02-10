@@ -438,6 +438,7 @@ export default function Home() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <PredictionDisplay
                   prediction={stock.primaryStock?.prediction || null}
+                  sentimentData={stock.primaryStock?.sentimentData}
                   currentPrice={stock.currentPrice}
                 />
                 <SignalsSummary

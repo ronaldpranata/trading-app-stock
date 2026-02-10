@@ -1,11 +1,10 @@
-'use client';
-
-import { PredictionResult, PredictionTimeframe } from '@/types/stock';
+import { PredictionResult, PredictionTimeframe, SentimentData } from '@/types/stock';
 import { useState } from 'react';
-import { Brain, Target, Shield, TrendingUp, TrendingDown, Minus, Clock } from 'lucide-react';
+import { Brain, Target, Shield, TrendingUp, TrendingDown, Minus, Clock, FileText } from 'lucide-react';
 
 interface PredictionDisplayProps {
   prediction: PredictionResult | null;
+  sentimentData?: SentimentData;
   currentPrice: number;
 }
 
@@ -17,7 +16,7 @@ const TIMEFRAME_LABELS: Record<PredictionTimeframe, string> = {
   year: '1Y'
 };
 
-export default function PredictionDisplay({ prediction, currentPrice }: PredictionDisplayProps) {
+export default function PredictionDisplay({ prediction, sentimentData, currentPrice }: PredictionDisplayProps) {
   const [selectedTimeframe, setSelectedTimeframe] = useState<PredictionTimeframe>('week');
 
   if (!prediction) {
@@ -130,10 +129,39 @@ export default function PredictionDisplay({ prediction, currentPrice }: Predicti
       </div>
 
       {/* Scores */}
-      <div className="grid grid-cols-2 gap-3 mb-4">
+      <div className="grid grid-cols-3 gap-3 mb-4">
         <ScoreBar label="Technical" score={prediction.technicalScore} />
         <ScoreBar label="Fundamental" score={prediction.fundamentalScore} />
+        <ScoreBar label="Sentiment" score={prediction.sentimentScore || 50} />
       </div>
+
+      {/* Sentiment Text Display */}
+      {sentimentData && (
+          <div className="mb-4 p-3 bg-gray-800/30 rounded-lg border border-gray-700/50">
+             <div className="flex items-center justify-between mb-2">
+                 <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                     <FileText className="w-3 h-3" />
+                     News Sentiment
+                 </div>
+                 <div className={`text-xs font-bold px-2 py-0.5 rounded ${
+                     sentimentData.sentiment === 'positive' ? 'bg-green-500/20 text-green-400' :
+                     sentimentData.sentiment === 'negative' ? 'bg-red-500/20 text-red-400' :
+                     'bg-yellow-500/20 text-yellow-400'
+                 }`}>
+                     {sentimentData.sentiment.toUpperCase()}
+                 </div>
+             </div>
+             {sentimentData.keywordMatches && sentimentData.keywordMatches.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-1">
+                    {sentimentData.keywordMatches.slice(0, 3).map((match, idx) => (
+                        <span key={idx} className="text-[10px] px-1.5 py-0.5 bg-gray-700/50 rounded text-gray-300">
+                            {match.word}
+                        </span>
+                    ))}
+                </div>
+             )}
+          </div>
+      )}
 
       {/* All Timeframes Overview */}
       <div className="bg-gray-800/30 rounded-lg p-3">

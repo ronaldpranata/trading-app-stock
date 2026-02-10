@@ -80,7 +80,8 @@ export function useStock() {
         symbol,
         historicalData: primaryStock.historicalData,
         fundamentalData: primaryStock.fundamentalData || null,
-        currentPrice
+        currentPrice,
+        headlines: primaryStock.sentimentData?.headlines
       });
     }
   }, [primaryStock, symbol, analyze, workerResults]);
@@ -100,7 +101,8 @@ export function useStock() {
           symbol: compSymbol,
           historicalData: data.historicalData,
           fundamentalData: data.fundamentalData || null,
-          currentPrice
+          currentPrice,
+          headlines: data.sentimentData?.headlines
         });
       }
     });
@@ -110,7 +112,8 @@ export function useStock() {
   const finalPrimaryStock: StockData | null = primaryStock ? {
     ...primaryStock,
     technicalIndicators: workerResults[symbol || '']?.technicalIndicators || primaryStock.technicalIndicators || null,
-    prediction: workerResults[symbol || '']?.prediction || primaryStock.prediction || null
+    prediction: workerResults[symbol || '']?.prediction || primaryStock.prediction || null,
+    sentimentData: workerResults[symbol || '']?.sentimentData || primaryStock.sentimentData || undefined
   } : null;
 
   const compareStocks = comparisonResults.map(({ symbol: compSymbol, data, isLoading, error }) => {
@@ -119,6 +122,7 @@ export function useStock() {
       ...data,
       technicalIndicators: workerResults[compSymbol]?.technicalIndicators || null,
       prediction: workerResults[compSymbol]?.prediction || null,
+      sentimentData: workerResults[compSymbol]?.sentimentData || data.sentimentData || undefined,
       isLoading,
       error: error ? String(error) : null
     };
