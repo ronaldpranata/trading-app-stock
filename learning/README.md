@@ -57,7 +57,12 @@ Follow this path step-by-step.
    - **Key Concepts:** Referential Identity, `useMemo`, `useCallback`, Virtualization.
    - **Practical:** Understand why we use `useCallback` inside `useStock.ts`.
 
-### 8. [Enterprise Patterns](./enterprise-patterns.md)
+### 8. [Memoization Deep Dive](./memoization-deep-dive.md)
+   - **Goal:** Master the "Memoization Chain" (Memo + UseCallback + UseMemo).
+   - **Key Concepts:** Referential Stability, `React.memo`, Shallow Comparison.
+   - **Practical:** Review the optimizations in `src/app/page.tsx` and `Header.tsx`.
+
+### 9. [Enterprise Patterns](./enterprise-patterns.md)
    - **Goal:** Additional patterns for complex widgets.
    - **Key Concepts:** Render Props, Slot Pattern.
    - **Practical:** Compare with the patterns learned in Module 5.

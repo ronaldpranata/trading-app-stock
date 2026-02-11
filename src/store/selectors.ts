@@ -2,6 +2,8 @@
 
 import { createSelector } from '@reduxjs/toolkit';
 import type { RootState } from './index';
+import { stockApi } from './api/stockApi';
+import { StockData } from '@/types/stock';
 
 // ============================================
 // Auth Selectors
@@ -88,4 +90,28 @@ export const selectLastRefreshFormatted = createSelector(
 export const selectIsCompareMode = createSelector(
   selectViewMode,
   (viewMode) => viewMode === 'compare'
+);
+
+
+
+// Helper to select API state
+const selectStockApiState = (state: RootState) => state[stockApi.reducerPath];
+
+export const selectComparisonData = createSelector(
+  [selectComparisonSymbols, selectStockApiState],
+  (symbols, apiState) => {
+    return symbols.map(sym => {
+      const cacheKey = `getStockData("${sym}")`;
+      const queryResult = apiState.queries[cacheKey];
+      
+      return {
+        symbol: sym,
+        data: (queryResult?.data as StockData | undefined) ?? null,
+        isLoading: queryResult?.status === 'pending',
+        error: queryResult?.error ?? null,
+        isSuccess: queryResult?.status === 'fulfilled',
+        isUninitialized: queryResult?.status === 'uninitialized',
+      };
+    });
+  }
 );

@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import { TrendingUp, Lock } from 'lucide-react';
 
-interface BoxLoginProps {
+interface LoginFormProps {
    handleLogin: (e: React.FormEvent) => void;
    password: string;
    setPassword: (password: string) => void;
@@ -21,7 +21,7 @@ interface BoxLoginProps {
    loginError: string;
 }
 
-export default function BoxLogin({ handleLogin, password, setPassword, isLoggingIn, loginError }: BoxLoginProps){   
+export default function LoginForm({ handleLogin, password, setPassword, isLoggingIn, loginError }: LoginFormProps){   
    const theme = useTheme();
    return (
       <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'background.default', p: 2 }}>

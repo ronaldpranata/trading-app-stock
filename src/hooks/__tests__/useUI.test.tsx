@@ -3,7 +3,7 @@ import { renderHook, act } from '@testing-library/react';
 import { useUI } from '../useUI';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import { uiReducer } from '../../store/slices/uiSlice';
+import { uiReducer } from '../../features/ui/uiSlice';
 
 const createTestStore = () => configureStore({
   reducer: {

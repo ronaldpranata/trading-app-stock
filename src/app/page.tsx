@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import CompareView from "@/components/features/CompareView";
-import CompareStockSelector from "@/components/features/CompareStockSelector";
-import BoxLogin from "@/components/features/BoxLogin";
-import StatusBar from "@/components/features/StatusBar";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import CompareView from "@/features/stock/components/CompareView";
+import CompareStockSelector from "@/features/stock/components/CompareStockSelector";
+import LoginForm from "@/features/auth/components/LoginForm";
+import StatusBar from "@/components/layout/StatusBar";
 import AppLayout from "@/components/layout/AppLayout";
-import SingleStockView from "@/components/features/SingleStockView";
+import SingleStockView from "@/features/stock/components/SingleStockView";
 
 import { useAuth, useStock, useUI, useAutoRefresh } from "@/hooks";
 import { 
@@ -61,13 +61,36 @@ export default function Home() {
     }
   };
 
-  const handleSymbolChange = (symbol: string) => {
+  const handleSymbolChange = useCallback((symbol: string) => {
     if (ui.isCompareMode) {
       stock.addComparison(symbol);
     } else {
       stock.load(symbol);
     }
-  };
+  }, [ui.isCompareMode, stock]);
+
+  // Header Props
+  const headerProps = useMemo(() => ({
+    viewMode: ui.viewMode,
+    setViewMode: ui.setViewMode,
+    currentSymbol: stock.symbol || '',
+    onSelectStock: handleSymbolChange,
+    onRefresh: stock.refresh,
+    isLoading: stock.isLoading,
+    autoRefreshEnabled: ui.autoRefreshEnabled,
+    toggleAutoRefresh: ui.toggleAutoRefresh,
+    onLogout: auth.logout
+  }), [
+    ui.viewMode, 
+    ui.setViewMode, 
+    stock.symbol, 
+    handleSymbolChange, 
+    stock.refresh, 
+    stock.isLoading, 
+    ui.autoRefreshEnabled, 
+    ui.toggleAutoRefresh, 
+    auth.logout
+  ]);
 
   // Loading state
   if (auth.isChecking) {
@@ -83,7 +106,7 @@ export default function Home() {
 
   // Login screen
   if (!auth.isAuthenticated) {
-    return <BoxLogin handleLogin={handleLogin} 
+    return <LoginForm handleLogin={handleLogin} 
               password={password} 
               setPassword={setPassword} 
               isLoggingIn={isLoggingIn} 
@@ -92,18 +115,7 @@ export default function Home() {
 
   const predictionDirection = stock.primaryStock?.prediction?.direction || "NEUTRAL";
 
-  // Header Props
-  const headerProps = {
-    viewMode: ui.viewMode,
-    setViewMode: ui.setViewMode,
-    currentSymbol: stock.symbol || '',
-    onSelectStock: handleSymbolChange,
-    onRefresh: () => stock.refresh(),
-    isLoading: stock.isLoading,
-    autoRefreshEnabled: ui.autoRefreshEnabled,
-    toggleAutoRefresh: ui.toggleAutoRefresh,
-    onLogout: auth.logout
-  };
+
 
   // Main app
   return (

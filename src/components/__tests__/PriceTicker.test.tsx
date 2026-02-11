@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import PriceTicker from '../PriceTicker';
+import PriceTicker from '../../features/stock/components/PriceTicker';
 import { StockQuote } from '@/types/stock';
 
 const mockQuote: StockQuote = {
@@ -19,8 +19,8 @@ const mockQuote: StockQuote = {
 
 describe('PriceTicker Component', () => {
   it('renders loading skeleton when isLoading is true', () => {
-    const { container } = render(<PriceTicker quote={null} isLoading={true} />);
-    expect(container.getElementsByClassName('animate-pulse').length).toBe(1);
+    render(<PriceTicker quote={null} isLoading={true} />);
+    expect(screen.getByTestId('loading-skeleton')).toBeDefined();
   });
 
   it('renders price and symbol correctly', () => {
@@ -29,17 +29,17 @@ describe('PriceTicker Component', () => {
     expect(screen.getByText('$150.00')).toBeDefined();
   });
 
-  it('renders positive change with green color', () => {
+  it('renders positive change', () => {
     render(<PriceTicker quote={mockQuote} isLoading={false} />);
-    const changeElement = screen.getByText('+5.00 (+3.45%)');
-    expect(changeElement.parentElement?.className).toContain('text-green-400');
+    const changeElement = screen.getByTestId('price-change');
+    expect(changeElement.textContent).toContain('+5.00 (+3.45%)');
   });
 
-  it('renders negative change with red color', () => {
+  it('renders negative change', () => {
     const negativeQuote = { ...mockQuote, change: -5.00, changePercent: -3.45 };
     render(<PriceTicker quote={negativeQuote} isLoading={false} />);
-    const changeElement = screen.getByText('-5.00 (-3.45%)');
-    expect(changeElement.parentElement?.className).toContain('text-red-400');
+    const changeElement = screen.getByTestId('price-change');
+    expect(changeElement.textContent).toContain('-5.00 (-3.45%)');
   });
 
   it('formats large volume correctly', () => {

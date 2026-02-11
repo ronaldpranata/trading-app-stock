@@ -6,11 +6,12 @@ import {
   setPrimarySymbol,
   addComparisonSymbol,
   removeComparisonSymbol,
-} from '@/store/slices/stockSlice';
+} from '@/features/stock/stockSlice';
 import {
   selectPrimarySymbol,
   selectComparisonSymbols,
-  selectCanAddMoreComparisons
+  selectCanAddMoreComparisons,
+  selectComparisonData
 } from '@/store/selectors';
 import { useGetStockDataQuery, stockApi } from '@/store/api/stockApi';
 import { StockData } from '@/types/stock';
@@ -48,13 +49,7 @@ export function useStock() {
     });
   }, [comparisonSymbols, dispatch]);
 
-  // Select results from store
-  const selectComparisonData = useCallback((state: any) => 
-    comparisonSymbols.map(sym => ({
-      symbol: sym,
-      ...stockApi.endpoints.getStockData.select(sym)(state)
-    })), [comparisonSymbols]);
-
+  // Select results from store using memoized selector
   const comparisonResults = useAppSelector(selectComparisonData);
 
   // 3. Batch Worker Analysis

@@ -7,16 +7,16 @@ import {
   Tab, 
   Tabs, 
 } from "@mui/material";
-import PriceTicker from "@/components/features/PriceTicker";
-import StockChart from "@/components/features/StockChart";
-import TechnicalAnalysis from "@/components/features/TechnicalAnalysis";
-import FundamentalAnalysis from "@/components/features/FundamentalAnalysis";
-import PredictionDisplay from "@/components/features/PredictionDisplay";
-import ElliottWaveDisplay from "@/components/features/ElliottWaveDisplay";
-import CandlestickPatternsDisplay from "@/components/features/CandlestickPatternsDisplay";
-import SignalsSummary from "@/components/features/SignalsSummary";
-import KeyMetrics from "@/components/features/KeyMetrics";
-import QuickStats from "@/components/features/QuickStats";
+import PriceTicker from "./PriceTicker";
+import StockChart from "./StockChart";
+import TechnicalAnalysis from "./TechnicalAnalysis";
+import FundamentalAnalysis from "./FundamentalAnalysis";
+import PredictionDisplay from "./PredictionDisplay";
+import ElliottWaveDisplay from "./ElliottWaveDisplay";
+import CandlestickPatternsDisplay from "./CandlestickPatternsDisplay";
+import SignalsSummary from "./SignalsSummary";
+import KeyMetrics from "./KeyMetrics";
+import QuickStats from "./QuickStats";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import { ActiveTab } from "@/store";
 

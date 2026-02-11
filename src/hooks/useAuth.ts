@@ -43,6 +43,7 @@ export function useAuth() {
   const handleLogout = useCallback(async () => {
     await dispatch(logout());
     router.refresh();
+    router.push('/login');
   }, [dispatch, router]);
 
   const clearError = useCallback(() => {

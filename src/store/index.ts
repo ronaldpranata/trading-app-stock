@@ -1,9 +1,10 @@
 "use client";
 
+
 import { configureStore } from '@reduxjs/toolkit';
-import { authReducer } from './slices/authSlice';
-import { stockReducer } from './slices/stockSlice';
-import { uiReducer } from './slices/uiSlice';
+import { authReducer } from '@/features/auth/authSlice';
+import { stockReducer } from '@/features/stock/stockSlice';
+import { uiReducer } from '@/features/ui/uiSlice';
 import { stockApi } from './api/stockApi';
 
 export const store = configureStore({
@@ -31,8 +32,8 @@ export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 
 // Re-export everything for convenience
-export * from './slices/authSlice';
-export * from './slices/stockSlice';
-export * from './slices/uiSlice';
+export * from '@/features/auth/authSlice';
+export * from '@/features/stock/stockSlice';
+export * from '@/features/ui/uiSlice';
 export * from './hooks';
 export * from './selectors';

@@ -1,6 +1,6 @@
-// Export chart components
-export { TimeRangeSelector } from './TimeRangeSelector';
-export { useChartData, useComparisonChartData } from './useChartData';
-export type { ChartDataPoint, PeriodStats } from './useChartData';
-export { PeriodStatsDisplay, PeriodSummary } from './PeriodStats';
-export { MeasureDisplay } from './MeasureDisplay';
+export * from './TimeRangeSelector';
+export * from './useChartData';
+export * from './PeriodStats';
+export * from './MeasureDisplay';
+export { default as ChartControls } from './ChartControls';
+export { default as StockChartDisplay } from './StockChartDisplay';

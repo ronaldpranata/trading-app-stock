@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { 
   Box, 
   Stack, 
@@ -18,7 +19,7 @@ import {
   GitCompare, 
   LogOut, 
 } from "lucide-react";
-import StockSearch from "@/components/features/StockSearch";
+import StockSearch from "@/features/stock/components/StockSearch";
 
 interface HeaderProps {
     viewMode: "single" | "compare";
@@ -32,7 +33,7 @@ interface HeaderProps {
     onLogout: () => void;
 }
 
-export default function Header({
+function Header({
     viewMode,
     setViewMode,
     currentSymbol,
@@ -136,3 +137,5 @@ export default function Header({
       </AppBar>
     );
 }
+
+export default memo(Header);

@@ -3,7 +3,7 @@ import { renderHook, act } from '@testing-library/react';
 import { useStock } from '../useStock';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import { stockReducer } from '../../store/slices/stockSlice';
+import { stockReducer } from '../../features/stock/stockSlice';
 
 // Mock the RTK Query hooks
 // We mock the *module* so useStock imports our mocked versions

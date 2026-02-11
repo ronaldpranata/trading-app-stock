@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Search, Star, Bitcoin, TrendingUp } from 'lucide-react';
 import { 
   TextField, 
@@ -48,7 +48,7 @@ const popularCrypto = [
   { symbol: 'LINK-USD', name: 'Chainlink', type: 'crypto' }
 ];
 
-export default function StockSearch({ onSelectStock, currentSymbol }: StockSearchProps) {
+function StockSearch({ onSelectStock, currentSymbol }: StockSearchProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<number>(0); // 0 = stocks, 1 = crypto
@@ -221,3 +221,5 @@ export default function StockSearch({ onSelectStock, currentSymbol }: StockSearc
     </ClickAwayListener>
   );
 }
+
+export default memo(StockSearch);

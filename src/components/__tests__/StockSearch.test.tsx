@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import StockSearch from '../StockSearch';
+import StockSearch from '../../features/stock/components/StockSearch';
 import { axe } from 'vitest-axe';
 
 describe('StockSearch Component', () => {

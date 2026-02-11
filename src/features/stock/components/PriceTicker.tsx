@@ -1,5 +1,7 @@
 'use client';
 
+import { memo } from 'react';
+
 import { StockQuote } from '@/types/stock';
 import { TrendingUp, TrendingDown, Wifi, Database, Bitcoin } from 'lucide-react';
 import { Card, CardContent, Typography, Box, Stack, Chip, useTheme } from '@mui/material';
@@ -30,12 +32,12 @@ function formatVolume(volume: number, isCryptoAsset: boolean): string {
   return (volume / 1000000).toFixed(1) + 'M';
 }
 
-export default function PriceTicker({ quote, isLoading }: PriceTickerProps) {
+function PriceTicker({ quote, isLoading }: PriceTickerProps) {
   const theme = useTheme();
 
   if (isLoading || !quote) {
     return (
-      <Card sx={{ animation: 'pulse 2s infinite' }}>
+      <Card sx={{ animation: 'pulse 2s infinite' }} data-testid="loading-skeleton">
         <CardContent sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
            <Box sx={{ width: 100, height: 40, bgcolor: 'action.hover', borderRadius: 1 }} />
            <Box sx={{ width: 140, height: 24, bgcolor: 'action.hover', borderRadius: 1 }} />
@@ -77,7 +79,7 @@ export default function PriceTicker({ quote, isLoading }: PriceTickerProps) {
               <Typography variant="h4" fontWeight="bold">
                 ${formatPrice(quote.price)}
               </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: trendColor }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: trendColor }} data-testid="price-change">
                 {isPositive ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
                 <Typography variant="subtitle1" fontWeight="bold" color="inherit">
                   {isPositive ? '+' : ''}{formatPrice(quote.change)} ({isPositive ? '+' : ''}{quote.changePercent.toFixed(2)}%)
@@ -98,6 +100,8 @@ export default function PriceTicker({ quote, isLoading }: PriceTickerProps) {
     </Card>
   );
 }
+
+export default memo(PriceTicker);
 
 function MetricItem({ label, value, color = 'text.primary' }: { label: string; value: string; color?: string }) {
   return (
