@@ -19,11 +19,12 @@ import KeyMetrics from "./KeyMetrics";
 import QuickStats from "./QuickStats";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import { ActiveTab } from "@/store";
+import { StockData } from "@/types/stock";
 
 interface SingleStockViewProps {
   activeTab: ActiveTab;
   setActiveTab: (tab: ActiveTab) => void;
-  primaryStock: any; // Using any for now to avoid complex type reconstruction, will refine if possible or rely on passed data structure
+  primaryStock: StockData | null;
   currentPrice: number;
   symbol: string;
   isLoading: boolean;

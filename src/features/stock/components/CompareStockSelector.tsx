@@ -9,11 +9,12 @@ import {
 } from "@mui/material";
 import { Plus } from "lucide-react";
 import StockPill from "@/components/shared/StockPill";
+import { StockData } from "@/types/stock";
 
 interface CompareStockSelectorProps {
   symbol: string;
-  primaryStock: any; // Using any to avoid complex type reconstruction for now
-  compareStocks: any[];
+  primaryStock: StockData | null;
+  compareStocks: StockData[];
   onRemove: (symbol: string) => void;
   canAddMore: boolean;
 }

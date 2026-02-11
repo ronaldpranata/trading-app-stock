@@ -8,11 +8,12 @@ import {
 } from "@mui/material";
 import { MetricBox, ScoreBar } from "@/components/ui";
 import { formatNumber } from "@/lib/formatters";
+import { StockQuote, FundamentalData, PredictionResult } from "@/types/stock";
 
 interface QuickStatsProps {
-  quote: any;
-  fundamentals: any;
-  prediction: any;
+  quote: StockQuote | null;
+  fundamentals: FundamentalData | null;
+  prediction: PredictionResult | null;
 }
 
 export default function QuickStats({
@@ -47,28 +48,28 @@ export default function QuickStats({
 
            <Grid container spacing={2}>
              <Grid size={{ xs: 6 }}>
-               {fundamentals?.marketCap > 0 && (
+               {(fundamentals?.marketCap ?? 0) > 0 && (
                  <MetricBox
                    label="Market Cap"
-                   value={fundamentals.marketCap}
+                   value={fundamentals?.marketCap ?? 0}
                    format={(v) => `$${formatNumber(v as number)}`}
                  />
                )}
              </Grid>
              <Grid size={{ xs: 6 }}>
-               {fundamentals?.peRatio > 0 && (
+               {(fundamentals?.peRatio ?? 0) > 0 && (
                  <MetricBox
                    label="P/E Ratio"
-                   value={fundamentals.peRatio}
+                   value={fundamentals?.peRatio ?? 0}
                    format={(v) => (v as number).toFixed(1)}
                  />
                )}
              </Grid>
              <Grid size={{ xs: 6 }}>
-               {fundamentals?.pegRatio > 0 && (
+               {(fundamentals?.pegRatio ?? 0) > 0 && (
                  <MetricBox
                    label="PEG Ratio"
-                   value={fundamentals.pegRatio}
+                   value={fundamentals?.pegRatio ?? 0}
                    format={(v) => (v as number).toFixed(2)}
                    colorize
                    thresholds={{ good: 1, bad: 2, inverse: true }}

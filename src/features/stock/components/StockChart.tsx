@@ -14,6 +14,16 @@ interface StockChartProps {
   isLoading: boolean;
 }
 
+interface RechartsEvent {
+  activePayload?: Array<{
+    payload: {
+      date: string;
+      price: number;
+      index: number;
+    };
+  }>;
+}
+
 const TIME_RANGE_OPTIONS: { id: TimeRange; label: string; days: number }[] = [
   { id: '1M', label: '1M', days: 22 },
   { id: '3M', label: '3M', days: 66 },
@@ -29,7 +39,7 @@ export default function StockChart({ data, indicators, currentPrice, symbol, isL
   const measure = useChartMeasure();
   const { chartData, periodStats } = useChartData(data, timeRange);
 
-  const handleChartClick = useCallback((e: any) => {
+  const handleChartClick = useCallback((e: RechartsEvent) => {
     if (!measure.isActive || !e || !e.activePayload || e.activePayload.length === 0) return;
 
     const payload = e.activePayload[0].payload;

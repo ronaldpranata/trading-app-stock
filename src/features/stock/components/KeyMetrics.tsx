@@ -1,7 +1,9 @@
 import { Card, CardContent, Typography, Stack } from '@mui/material';
+import { FundamentalData } from '@/types/stock';
+
 // Key Metrics Component
 interface KeyMetricsProps {
-  fundamentals: any;
+  fundamentals: FundamentalData | null;
 }
 export default function KeyMetrics({ fundamentals }:KeyMetricsProps) {
   if (!fundamentals) return null;
@@ -34,7 +36,7 @@ export default function KeyMetrics({ fundamentals }:KeyMetricsProps) {
     { label: "Dividend Yield", value: fundamentals.dividendYield, suffix: "%" },
   ];
 
-  const getColor = (val: number, thresholds: any) => {
+  const getColor = (val: number, thresholds: { good: number; bad: number; inverse?: boolean }) => {
      if(!thresholds) return 'text.primary';
      const isGood = thresholds.inverse ? val < thresholds.good : val > thresholds.good;
      const isBad = thresholds.inverse ? val > thresholds.bad : val < thresholds.bad;

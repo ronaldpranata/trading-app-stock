@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { StockQuote, HistoricalData, FundamentalData, TechnicalIndicators, PredictionResult } from '@/types/stock';
+import { StockQuote, HistoricalData, FundamentalData, TechnicalIndicators, PredictionResult, StockData } from '@/types/stock';
 import { TrendingUp, TrendingDown, Brain, BarChart3 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { 
@@ -24,15 +24,7 @@ import {
   useTheme
 } from '@mui/material';
 
-interface StockData {
-  symbol: string;
-  quote: StockQuote | null;
-  historicalData: HistoricalData[];
-  fundamentalData: FundamentalData | null;
-  technicalIndicators: TechnicalIndicators | null;
-  prediction: PredictionResult | null;
-  isLoading: boolean;
-}
+
 
 interface CompareViewProps {
   primaryStock: StockData;
@@ -90,7 +82,18 @@ export default function CompareView({ primaryStock, compareStocks }: CompareView
     });
 
     // Calculate performance metrics for each stock
-    const performanceData = allStocks.map((stock, index) => {
+    interface PerformanceMetric {
+      symbol: string;
+      color: string;
+      change: number;
+      maxDrawdown: number;
+      maxGain: number;
+      volatility: number;
+      high: number;
+      low: number;
+    }
+
+    const performanceData: PerformanceMetric[] = allStocks.map((stock, index) => {
       const filteredData = stock.historicalData.slice(-days);
       if (filteredData.length === 0) return null;
 
@@ -136,7 +139,7 @@ export default function CompareView({ primaryStock, compareStocks }: CompareView
         high: Math.max(...filteredData.map(d => d.high)),
         low: Math.min(...filteredData.map(d => d.low))
       };
-    }).filter(Boolean);
+    }).filter((item): item is PerformanceMetric => item !== null);
 
     return { chartData, performanceData };
   }, [allStocks, timeRange]);
@@ -192,7 +195,7 @@ export default function CompareView({ primaryStock, compareStocks }: CompareView
 
           {/* Performance Summary Cards */}
           <Grid container spacing={2} mb={3}>
-            {performanceData.map((perf: any) => (
+            {performanceData.map((perf) => (
               <Grid size={{xs:12,md:4}} key={perf.symbol}>
                 <Paper 
                   elevation={0} 
@@ -283,27 +286,27 @@ export default function CompareView({ primaryStock, compareStocks }: CompareView
             />
             <CompareRow 
               label={`${timeRange} Change`}
-              values={performanceData.map((p: any) => p?.change)}
+              values={performanceData.map(p => p.change)}
               format={(v) => v !== undefined && typeof v === 'number' ? `${v >= 0 ? '+' : ''}${v.toFixed(2)}%` : '-'}
               colorize
             />
             <CompareRow 
               label="Max Drawdown"
-              values={performanceData.map((p: any) => p?.maxDrawdown)}
+              values={performanceData.map(p => p.maxDrawdown)}
               format={(v) => v !== undefined && typeof v === 'number' ? `-${v.toFixed(1)}%` : '-'}
               colorize
               thresholds={{ good: 10, bad: 20, inverse: true }}
             />
             <CompareRow 
               label="Max Rally"
-              values={performanceData.map((p: any) => p?.maxGain)}
+              values={performanceData.map(p => p.maxGain)}
               format={(v) => v !== undefined && typeof v === 'number' ? `+${v.toFixed(1)}%` : '-'}
               colorize
               thresholds={{ good: 20, bad: 5 }}
             />
             <CompareRow 
               label="Volatility"
-              values={performanceData.map((p: any) => p?.volatility)}
+              values={performanceData.map(p => p.volatility)}
               format={(v) => v !== undefined && typeof v === 'number' ? `${v.toFixed(1)}%` : '-'}
               colorize
               thresholds={{ good: 20, bad: 40, inverse: true }}
