@@ -1,71 +1,39 @@
-'use client';
-
+import { Card as MuiCard, CardContent as MuiCardContent, CardProps as MuiCardProps } from '@mui/material';
 import { ReactNode } from 'react';
 
-interface CardProps {
+interface CardProps extends MuiCardProps {
   children: ReactNode;
-  className?: string;
-  variant?: 'default' | 'success' | 'danger' | 'warning' | 'info';
-  padding?: 'none' | 'sm' | 'md' | 'lg';
-  borderTop?: string;
+  noPadding?: boolean;
 }
 
-const variantStyles = {
-  default: 'bg-gray-900/50 border-gray-800/50',
-  success: 'bg-green-500/10 border-green-500/30',
-  danger: 'bg-red-500/10 border-red-500/30',
-  warning: 'bg-yellow-500/10 border-yellow-500/30',
-  info: 'bg-cyan-500/10 border-cyan-500/30'
-};
-
-const paddingStyles = {
-  none: '',
-  sm: 'p-2',
-  md: 'p-3',
-  lg: 'p-4'
-};
-
-export function Card({ 
-  children, 
-  className = '', 
-  variant = 'default',
-  padding = 'lg',
-  borderTop
-}: CardProps) {
+export function Card({ children, className, noPadding = false, ...props }: CardProps) {
   return (
-    <div 
-      className={`rounded-xl border ${variantStyles[variant]} ${paddingStyles[padding]} ${className}`}
-      style={borderTop ? { borderTopColor: borderTop, borderTopWidth: '3px' } : undefined}
+    <MuiCard 
+      elevation={0} 
+      className={className}
+      {...props}
     >
-      {children}
-    </div>
+      {noPadding ? children : <CardContent>{children}</CardContent>}
+    </MuiCard>
   );
 }
 
-interface CardHeaderProps {
-  children: ReactNode;
-  icon?: ReactNode;
-  action?: ReactNode;
-  className?: string;
-}
-
-export function CardHeader({ children, icon, action, className = '' }: CardHeaderProps) {
+// Wrapper for backward compatibility or specific styling
+export function CardHeader({ children, className, action }: { children: ReactNode, className?: string, action?: ReactNode }) {
   return (
-    <div className={`flex items-center justify-between mb-4 ${className}`}>
-      <div className="flex items-center gap-2">
-        {icon}
-        <h3 className="text-sm font-semibold text-gray-300">{children}</h3>
-      </div>
-      {action}
+    <div className={`p-4 pb-0 flex items-center justify-between ${className}`}>
+      <div className="font-semibold">{children}</div>
+      {action && <div>{action}</div>}
     </div>
   );
 }
 
-interface CardContentProps {
-  children: ReactNode;
-  className?: string;
+export function CardContent({ children, className }: { children: ReactNode, className?: string }) {
+  return (
+    <MuiCardContent className={`!p-4 ${className}`}>
+        {children}
+    </MuiCardContent>
+  );
 }
 
-export function CardContent({ children, className = '' }: CardContentProps) {
-  return <div className={className}>{children}</div>;
-}
+export default Card;

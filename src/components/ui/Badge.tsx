@@ -1,32 +1,32 @@
-'use client';
-
+import { Chip, ChipProps } from '@mui/material';
 import { ReactNode } from 'react';
 
-interface BadgeProps {
+interface BadgeProps extends Omit<ChipProps, 'children' | 'variant'> {
   children: ReactNode;
   variant?: 'default' | 'success' | 'danger' | 'warning' | 'info';
-  size?: 'sm' | 'md';
-  className?: string;
 }
 
-const variantStyles = {
-  default: 'bg-gray-500/20 text-gray-400',
-  success: 'bg-green-500/20 text-green-400',
-  danger: 'bg-red-500/20 text-red-400',
-  warning: 'bg-yellow-500/20 text-yellow-400',
-  info: 'bg-cyan-500/20 text-cyan-400'
-};
+export function Badge({ children, variant = 'default', size = 'small', className, ...props }: BadgeProps) {
+  
+  const getColor = () => {
+    switch(variant) {
+      case 'success': return 'success';
+      case 'danger': return 'error';
+      case 'warning': return 'warning';
+      case 'info': return 'info';
+      default: return 'default';
+    }
+  };
 
-const sizeStyles = {
-  sm: 'text-[10px] px-1.5 py-0.5',
-  md: 'text-xs px-2 py-0.5'
-};
-
-export function Badge({ children, variant = 'default', size = 'sm', className = '' }: BadgeProps) {
   return (
-    <span className={`rounded ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}>
-      {children}
-    </span>
+    <Chip
+      label={children}
+      size={size}
+      color={getColor()}
+      variant={variant === 'default' ? 'filled' : 'outlined'} // Style choice
+      className={className}
+      {...props}
+    />
   );
 }
 
@@ -44,7 +44,6 @@ export function StatusBadge({ status, className = '' }: StatusBadgeProps) {
   };
 
   const { text, variant } = config[status];
-
   return <Badge variant={variant} className={className}>{text}</Badge>;
 }
 
