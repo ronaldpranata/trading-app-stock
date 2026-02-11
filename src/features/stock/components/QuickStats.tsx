@@ -66,15 +66,15 @@ export default function QuickStats({
                )}
              </Grid>
              <Grid size={{ xs: 6 }}>
-               {(fundamentals?.pegRatio ?? 0) > 0 && (
-                 <MetricBox
-                   label="PEG Ratio"
-                   value={fundamentals?.pegRatio ?? 0}
-                   format={(v) => (v as number).toFixed(2)}
-                   colorize
-                   thresholds={{ good: 1, bad: 2, inverse: true }}
-                 />
-               )}
+             <Grid size={{ xs: 6 }}>
+               <MetricBox
+                 label="PEG Ratio"
+                 value={(fundamentals?.pegRatio === undefined || fundamentals?.pegRatio === 0) ? "N/A" : fundamentals.pegRatio}
+                 format={(v) => typeof v === 'string' ? v : (v as number).toFixed(2)}
+                 colorize={typeof fundamentals?.pegRatio === 'number' && fundamentals.pegRatio > 0}
+                 thresholds={{ good: 1, bad: 2, inverse: true }}
+               />
+             </Grid>
              </Grid>
              <Grid size={{ xs: 6 }}>
                {prediction?.targetPrice && (
