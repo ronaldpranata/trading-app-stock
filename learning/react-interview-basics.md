@@ -20,6 +20,24 @@ This guide covers fundamental React concepts often asked in interviews, mapped t
 - **Updating (componentDidUpdate):** `useEffect(() => { ... }, [prop])` (Runs when `prop` changes).
 - **Unmounting (componentWillUnmount):** Returning a cleanup function from `useEffect`.
 
+#### Example: Cleanup (componentWillUnmount)
+This is crucial for clearing timers, subscriptions, or event listeners to prevent memory leaks.
+
+```tsx
+useEffect(() => {
+  // Mount: Start a timer
+  const timer = setInterval(() => {
+    console.log('Polling data...');
+  }, 1000);
+
+  // Unmount: Cleanup function
+  return () => {
+    clearInterval(timer); // Stops the timer when component is removed
+    console.log('Component unmounted, timer cleared.');
+  };
+}, []); // Empty array = runs once on mount
+```
+
 ---
 
 ## Hooks (The "Magic" Functions)
