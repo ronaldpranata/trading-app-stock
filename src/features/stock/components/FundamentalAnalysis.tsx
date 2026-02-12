@@ -3,6 +3,7 @@
 import { FundamentalData } from '@/types/stock';
 import { formatNumber, getPEGInterpretation } from '@/utils/fundamentalAnalysis';
 import { Building2, TrendingUp, TrendingDown, Bitcoin, Zap } from 'lucide-react';
+import { Box, Card, CardContent, Grid, Typography, Stack, LinearProgress, Divider, Chip } from '@mui/material';
 
 interface FundamentalAnalysisProps {
   data: FundamentalData | null;
@@ -19,10 +20,12 @@ export default function FundamentalAnalysis({ data, currentPrice, symbol = '' }:
   
   if (!data) {
     return (
-      <div className="bg-gray-900/50 rounded-xl p-4 border border-gray-800/50">
-        <h3 className="text-sm font-semibold text-gray-300 mb-4">Fundamental Analysis</h3>
-        <div className="text-gray-400 text-sm">Loading...</div>
-      </div>
+      <Card variant="outlined" sx={{ height: '100%' }}>
+        <CardContent>
+          <Typography variant="subtitle2" color="text.secondary" gutterBottom>Fundamental Analysis</Typography>
+          <Typography variant="body2" color="text.secondary">Loading...</Typography>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -35,180 +38,238 @@ export default function FundamentalAnalysis({ data, currentPrice, symbol = '' }:
   // Crypto view
   if (isCryptoAsset) {
     return (
-      <div className="bg-gray-900/50 rounded-xl p-4 border border-gray-800/50">
-        <h3 className="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
-          <Bitcoin className="w-4 h-4 text-orange-400" />
-          Crypto Metrics
-        </h3>
-        
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-gray-800/30 rounded-lg p-3">
-              <div className="text-[10px] text-gray-500">Market Cap</div>
-              <div className="text-lg font-bold text-white">${formatNumber(data.marketCap)}</div>
-            </div>
-            <div className="bg-gray-800/30 rounded-lg p-3">
-              <div className="text-[10px] text-gray-500">Beta</div>
-              <div className={`text-lg font-bold ${data.beta > 1.5 ? 'text-red-400' : 'text-white'}`}>
-                {data.beta.toFixed(2)}
-              </div>
-            </div>
-          </div>
+      <Card variant="outlined" sx={{ height: '100%' }}>
+        <CardContent>
+          <Stack direction="row" alignItems="center" gap={1} mb={2}>
+            <Bitcoin size={16} color="#fb923c" /> {/* orange-400 */}
+            <Typography variant="subtitle2" fontWeight="bold">Crypto Metrics</Typography>
+          </Stack>
+          
+          <Stack spacing={2}>
+            <Grid container spacing={2}>
+              <Grid size={6}>
+                <MetricBox label="Market Cap" value={data.marketCap} format={(v) => `$${formatNumber(v)}`} />
+              </Grid>
+              <Grid size={6}>
+                 <Box sx={{ bgcolor: 'action.hover', p: 1.5, borderRadius: 1 }}>
+                    <Typography variant="caption" color="text.secondary" display="block">Beta</Typography>
+                    <Typography variant="body1" fontWeight="bold" color={data.beta > 1.5 ? 'error.main' : 'text.primary'}>
+                        {data.beta.toFixed(2)}
+                    </Typography>
+                 </Box>
+              </Grid>
+            </Grid>
 
-          {data.fiftyTwoWeekHigh > 0 && (
-            <div className="bg-gray-800/30 rounded-lg p-3">
-              <div className="text-xs font-medium text-gray-400 mb-2">52-Week Range</div>
-              <div className="flex justify-between text-xs mb-1">
-                <span className="text-red-400">${formatNumber(data.fiftyTwoWeekLow)}</span>
-                <span className="text-green-400">${formatNumber(data.fiftyTwoWeekHigh)}</span>
-              </div>
-              <div className="h-1.5 bg-gray-700 rounded-full overflow-hidden relative">
-                <div className="absolute h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 w-full" />
-                <div className="absolute h-3 w-0.5 bg-white -top-0.5 rounded" style={{ left: `${Math.min(100, Math.max(0, fiftyTwoWeekPosition))}%` }} />
-              </div>
-            </div>
-          )}
+            {data.fiftyTwoWeekHigh > 0 && (
+              <Box sx={{ bgcolor: 'action.hover', p: 1.5, borderRadius: 1 }}>
+                <Typography variant="caption" color="text.secondary" display="block" mb={1}>52-Week Range</Typography>
+                <Stack direction="row" justifyContent="space-between" mb={0.5}>
+                  <Typography variant="caption" color="error.main">${formatNumber(data.fiftyTwoWeekLow)}</Typography>
+                  <Typography variant="caption" color="success.main">${formatNumber(data.fiftyTwoWeekHigh)}</Typography>
+                </Stack>
+                <Box sx={{ position: 'relative', height: 6, bgcolor: 'action.selected', borderRadius: 99 }}>
+                    <Box sx={{ 
+                        position: 'absolute', 
+                        left: 0, top: 0, bottom: 0, right: 0, 
+                        background: 'linear-gradient(to right, #ef4444, #eab308, #22c55e)',
+                        borderRadius: 99,
+                        opacity: 0.5
+                    }} />
+                    <Box sx={{ 
+                        position: 'absolute', 
+                        left: `${Math.min(100, Math.max(0, fiftyTwoWeekPosition))}%`, 
+                        top: -2, 
+                        width: 2, 
+                        height: 10, 
+                        bgcolor: 'common.white',
+                        borderRadius: 1
+                    }} />
+                </Box>
+              </Box>
+            )}
 
-          <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-2">
-            <p className="text-[10px] text-orange-400">
-              Traditional metrics (P/E, PEG) don't apply to crypto.
-            </p>
-          </div>
-        </div>
-      </div>
+            <Box sx={{ bgcolor: 'warning.dark', p: 1, borderRadius: 1, bgOpacity: 0.1 }}>
+              <Typography variant="caption" color="warning.light">
+                Traditional metrics (P/E, PEG) don't apply to crypto.
+              </Typography>
+            </Box>
+          </Stack>
+        </CardContent>
+      </Card>
     );
   }
 
   // Stock view
   return (
-    <div className="bg-gray-900/50 rounded-xl p-4 border border-gray-800/50">
-      <h3 className="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
-        <Building2 className="w-4 h-4 text-purple-400" />
-        Fundamental Analysis
-      </h3>
-      
-      <div className="space-y-3">
-        {/* Market Cap */}
-        <div className="bg-gray-800/30 rounded-lg p-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-400">Market Cap</span>
-            <span className="text-lg font-bold text-white">${formatNumber(data.marketCap)}</span>
-          </div>
-        </div>
+    <Card variant="outlined" sx={{ height: '100%' }}>
+      <CardContent>
+        <Stack direction="row" alignItems="center" gap={1} mb={2}>
+          <Building2 size={16} color="#c084fc" /> {/* purple-400 */}
+          <Typography variant="subtitle2" fontWeight="bold">Fundamental Analysis</Typography>
+        </Stack>
+        
+        <Stack spacing={2}>
+            {/* Market Cap */}
+            <MetricBox label="Market Cap" value={data.marketCap} format={(v) => `$${formatNumber(v)}`} fullWidth />
 
-        {/* Intrinsic Value */}
-        {data.dcf && data.dcf.base > 0 && (
-          <div className={`rounded-lg p-3 border ${
-            data.dcf.base > currentPrice ? 'bg-green-500/10 border-green-500/30' : 'bg-red-500/10 border-red-500/30'
-          }`}>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex-col">
-                <span className="text-xs font-medium text-gray-300">Intrinsic Value</span>
-                <span className="text-[10px] text-gray-500">
-                  ({data.dcf.source === 'calculated' ? 'DCF Model' : 'Analyst Targets'})
-                </span>
-              </div>
-              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                data.dcf.base > currentPrice ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'
-              }`}>
-                {data.dcf.base > currentPrice ? 'Undervalued' : 'Overvalued'}
-              </span>
-            </div>
-            
-            <div className="space-y-2">
-              <ValuationCaseRow label="Bull Case" value={data.dcf.bull} currentPrice={currentPrice} />
-              <ValuationCaseRow label="Base Case" value={data.dcf.base} currentPrice={currentPrice} />
-              <ValuationCaseRow label="Bear Case" value={data.dcf.bear} currentPrice={currentPrice} />
-            </div>
+            {/* Intrinsic Value */}
+            {data.dcf && data.dcf.base > 0 && (
+            <Box sx={{ 
+                p: 1.5, 
+                borderRadius: 1, 
+                border: 1, 
+                borderColor: data.dcf.base > currentPrice ? 'success.dark' : 'error.dark',
+                bgcolor: data.dcf.base > currentPrice ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)' 
+            }}>
+                <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+                <Box>
+                    <Typography variant="caption" fontWeight="bold" display="block">Intrinsic Value</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                    ({data.dcf.source === 'calculated' ? 'DCF Model' : 'Analyst Targets'})
+                    </Typography>
+                </Box>
+                <Chip 
+                    label={data.dcf.base > currentPrice ? 'Undervalued' : 'Overvalued'} 
+                    size="small" 
+                    color={data.dcf.base > currentPrice ? 'success' : 'error'} 
+                    variant="outlined"
+                />
+                </Stack>
+                
+                <Stack spacing={1}>
+                    <ValuationCaseRow label="Bull Case" value={data.dcf.bull} currentPrice={currentPrice} />
+                    <ValuationCaseRow label="Base Case" value={data.dcf.base} currentPrice={currentPrice} />
+                    <ValuationCaseRow label="Bear Case" value={data.dcf.bear} currentPrice={currentPrice} />
+                </Stack>
 
-            <div className="text-center text-xs text-gray-400 mt-2">
-              {data.dcf.base > currentPrice
-                ? `The base case suggests a potential upside of ${(((data.dcf.base - currentPrice) / currentPrice) * 100).toFixed(0)}%`
-                : `The base case suggests a potential downside of ${(((currentPrice - data.dcf.base) / data.dcf.base) * 100).toFixed(0)}%`
-              }
-            </div>
-          </div>
-        )}
+                <Typography variant="caption" color="text.secondary" align="center" display="block" mt={1}>
+                {data.dcf.base > currentPrice
+                    ? `The base case suggests a potential upside of ${(((data.dcf.base - currentPrice) / currentPrice) * 100).toFixed(0)}%`
+                    : `The base case suggests a potential downside of ${(((currentPrice - data.dcf.base) / data.dcf.base) * 100).toFixed(0)}%`
+                }
+                </Typography>
+            </Box>
+            )}
 
-        {/* PEG Ratio - Featured */}
-        <div className={`rounded-lg p-3 border ${
-          data.pegRatio > 0 && data.pegRatio < 1 ? 'bg-green-500/10 border-green-500/30' :
-          data.pegRatio > 2 ? 'bg-red-500/10 border-red-500/30' :
-          'bg-gray-800/30 border-gray-700'
-        }`}>
-          <div className="flex items-center gap-2 mb-1">
-            <Zap className="w-3 h-3 text-yellow-400" />
-            <span className="text-xs font-medium text-gray-300">PEG Ratio</span>
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className={`text-2xl font-bold ${pegInterpretation.color}`}>
-              {data.pegRatio > 0 ? data.pegRatio.toFixed(2) : 'N/A'}
-            </span>
-            <span className={`text-xs ${pegInterpretation.color}`}>{pegInterpretation.label}</span>
-          </div>
-          {data.pegRatio > 0 && (
-            <div className="text-[10px] text-gray-500 mt-1">
-              P/E ({data.peRatio.toFixed(1)}) ÷ Growth ({data.epsGrowth?.toFixed(1)}%)
-            </div>
-          )}
-        </div>
+            {/* PEG Ratio - Featured */}
+            <Box sx={{ 
+                p: 1.5, 
+                borderRadius: 1, 
+                border: 1,
+                borderColor: 'divider',
+                bgcolor: data.pegRatio > 0 && data.pegRatio < 1 ? 'rgba(34, 197, 94, 0.05)' : data.pegRatio > 2 ? 'rgba(239, 68, 68, 0.05)' : 'action.hover'
+            }}>
+                <Stack direction="row" alignItems="center" gap={1} mb={0.5}>
+                    <Zap size={12} className="text-yellow-400" />
+                    <Typography variant="caption" fontWeight="medium">PEG Ratio</Typography>
+                </Stack>
+                <Stack direction="row" alignItems="baseline" gap={1}>
+                    <Typography variant="h5" fontWeight="bold" sx={{ color: pegInterpretation.color === 'text-green-400' ? 'success.main' : pegInterpretation.color === 'text-red-400' ? 'error.main' : 'warning.main' }}>
+                         {data.pegRatio > 0 ? data.pegRatio.toFixed(2) : 'N/A'}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: pegInterpretation.color === 'text-green-400' ? 'success.main' : pegInterpretation.color === 'text-red-400' ? 'error.main' : 'warning.main' }}>
+                        {pegInterpretation.label}
+                    </Typography>
+                </Stack>
+                {data.pegRatio > 0 && (
+                    <Typography variant="caption" color="text.secondary" mt={0.5}>
+                         P/E ({data.peRatio.toFixed(1)}) ÷ Growth ({data.epsGrowth?.toFixed(1)}%)
+                    </Typography>
+                )}
+            </Box>
 
-        {/* Valuation Grid */}
-        <div className="grid grid-cols-2 gap-2">
-          <MetricBox label="P/E Ratio" value={data.peRatio} format={(v) => v > 0 ? v.toFixed(1) : 'N/A'} 
-            good={15} bad={35} inverse />
-          <MetricBox label="P/B Ratio" value={data.pbRatio} format={(v) => v > 0 ? v.toFixed(2) : 'N/A'} 
-            good={1} bad={5} inverse />
-          <MetricBox label="EPS" value={data.eps} format={(v) => `$${v?.toFixed(2) || 'N/A'}`} />
-          <MetricBox label="EPS Growth" value={data.epsGrowth} format={(v) => v !== undefined ? `${v >= 0 ? '+' : ''}${v.toFixed(1)}%` : 'N/A'} 
-            good={10} bad={0} />
-        </div>
+            {/* Valuation Grid */}
+            <Grid container spacing={1}>
+                <Grid size={6}>
+                    <MetricBox label="P/E Ratio" value={data.peRatio} format={(v) => v > 0 ? v.toFixed(1) : 'N/A'} good={15} bad={35} inverse />
+                </Grid>
+                <Grid size={6}>
+                    <MetricBox label="P/B Ratio" value={data.pbRatio} format={(v) => v > 0 ? v.toFixed(2) : 'N/A'} good={1} bad={5} inverse />
+                </Grid>
+                <Grid size={6}>
+                    <MetricBox label="EPS" value={data.eps} format={(v) => `$${v?.toFixed(2) || 'N/A'}`} />
+                </Grid>
+                <Grid size={6}>
+                    <MetricBox label="EPS Growth" value={data.epsGrowth} format={(v) => v !== undefined ? `${v >= 0 ? '+' : ''}${v.toFixed(1)}%` : 'N/A'} good={10} bad={0} />
+                </Grid>
+            </Grid>
 
-        {/* Valuation */}
-        <div className="grid grid-cols-3 gap-2">
-          <MetricBox label="P/S Ratio" value={data.psRatio} format={(v) => v.toFixed(2)} good={1} bad={2} inverse small />
-          <MetricBox label="EV/EBITDA" value={data.evToEbitda} format={(v) => v.toFixed(1)} good={10} bad={20} inverse small />
-          <MetricBox label="Debt/Equity" value={data.debtToEquity} format={(v) => v.toFixed(2)} good={0.5} bad={2} inverse small />
-        </div>
+            {/* Valuation */}
+            <Grid container spacing={1}>
+                <Grid size={4}>
+                    <MetricBox label="P/S Ratio" value={data.psRatio} format={(v) => v.toFixed(2)} good={1} bad={2} inverse small />
+                </Grid>
+                <Grid size={4}>
+                    <MetricBox label="EV/EBITDA" value={data.evToEbitda} format={(v) => v.toFixed(1)} good={10} bad={20} inverse small />
+                </Grid>
+                <Grid size={4}>
+                    <MetricBox label="Debt/Equity" value={data.debtToEquity} format={(v) => v.toFixed(2)} good={0.5} bad={2} inverse small />
+                </Grid>
+            </Grid>
 
-        {/* Profitability */}
-        <div className="grid grid-cols-2 gap-2">
-          <MetricBox label="ROE" value={data.roe} format={(v) => `${v.toFixed(1)}%`} good={15} bad={5} />
-          <MetricBox label="Profit Margin" value={data.profitMargin} format={(v) => `${v.toFixed(1)}%`} good={15} bad={5} />
-        </div>
+            {/* Profitability */}
+            <Grid container spacing={1}>
+                <Grid size={6}>
+                     <MetricBox label="ROE" value={data.roe} format={(v) => `${v.toFixed(1)}%`} good={15} bad={5} />
+                </Grid>
+                <Grid size={6}>
+                     <MetricBox label="Profit Margin" value={data.profitMargin} format={(v) => `${v.toFixed(1)}%`} good={15} bad={5} />
+                </Grid>
+            </Grid>
+             {/* Growth & Health */}
+            <Grid container spacing={1}>
+                <Grid size={6}>
+                   <MetricBox label="Revenue Growth" value={data.revenueGrowth} format={(v) => `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`} good={10} bad={0} />
+                </Grid>
+                <Grid size={6}>
+                   <MetricBox label="Beta" value={data.beta} format={(v) => v.toFixed(2)} />
+                </Grid>
+            </Grid>
 
-        {/* Growth & Health */}
-        <div className="grid grid-cols-2 gap-2">
-          <MetricBox label="Revenue Growth" value={data.revenueGrowth} 
-            format={(v) => `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`} good={10} bad={0} />
-          <MetricBox label="Beta" value={data.beta} format={(v) => v.toFixed(2)} />
-        </div>
+             {/* Other */}
+            <Grid container spacing={1}>
+                <Grid size={6}>
+                    <MetricBox label="Div Yield" value={data.dividendYield} format={(v) => `${v.toFixed(2)}%`} />
+                </Grid>
+                <Grid size={6}>
+                    <MetricBox label="Avg Vol" value={data.avgVolume} format={(v) => formatNumber(v)} />
+                </Grid>
+            </Grid>
 
-        {/* Other */}
-        <div className="grid grid-cols-2 gap-2">
-          <MetricBox label="Div Yield" value={data.dividendYield} format={(v) => `${v.toFixed(2)}%`} />
-          <MetricBox label="Avg Vol" value={data.avgVolume} format={(v) => formatNumber(v)} />
-        </div>
-
-        {/* 52-Week Range */}
-        {data.fiftyTwoWeekHigh > 0 && (
-          <div className="bg-gray-800/30 rounded-lg p-3">
-            <div className="text-xs font-medium text-gray-400 mb-2">52-Week Range</div>
-            <div className="flex justify-between text-xs mb-1">
-              <span className="text-red-400">${data.fiftyTwoWeekLow.toFixed(2)}</span>
-              <span className="text-green-400">${data.fiftyTwoWeekHigh.toFixed(2)}</span>
-            </div>
-            <div className="h-1.5 bg-gray-700 rounded-full overflow-hidden relative">
-              <div className="absolute h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 w-full" />
-              <div className="absolute h-3 w-0.5 bg-white -top-0.5 rounded" style={{ left: `${Math.min(100, Math.max(0, fiftyTwoWeekPosition))}%` }} />
-            </div>
-            <div className="text-center text-[10px] text-gray-500 mt-1">
-              Current: ${currentPrice.toFixed(2)} ({fiftyTwoWeekPosition.toFixed(0)}%)
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+           {/* 52-Week Range */}
+            {data.fiftyTwoWeekHigh > 0 && (
+              <Box sx={{ bgcolor: 'action.hover', p: 1.5, borderRadius: 1 }}>
+                <Typography variant="caption" color="text.secondary" display="block" mb={1}>52-Week Range</Typography>
+                <Stack direction="row" justifyContent="space-between" mb={0.5}>
+                  <Typography variant="caption" color="error.main">${formatNumber(data.fiftyTwoWeekLow)}</Typography>
+                  <Typography variant="caption" color="success.main">${formatNumber(data.fiftyTwoWeekHigh)}</Typography>
+                </Stack>
+                <Box sx={{ position: 'relative', height: 6, bgcolor: 'action.selected', borderRadius: 99 }}>
+                    <Box sx={{ 
+                        position: 'absolute', 
+                        left: 0, top: 0, bottom: 0, right: 0, 
+                        background: 'linear-gradient(to right, #ef4444, #eab308, #22c55e)',
+                        borderRadius: 99,
+                        opacity: 0.5
+                    }} />
+                    <Box sx={{ 
+                        position: 'absolute', 
+                        left: `${Math.min(100, Math.max(0, fiftyTwoWeekPosition))}%`, 
+                        top: -2, 
+                        width: 2, 
+                        height: 10, 
+                        bgcolor: 'common.white',
+                        borderRadius: 1
+                    }} />
+                </Box>
+                <Typography variant="caption" color="text.secondary" align="center" display="block" mt={0.5}>
+                     Current: ${currentPrice.toFixed(2)} ({fiftyTwoWeekPosition.toFixed(0)}%)
+                </Typography>
+              </Box>
+            )}
+        </Stack>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -217,22 +278,22 @@ function ValuationCaseRow({ label, value, currentPrice }: { label: string; value
   const position = Math.min(100, Math.max(0, (currentPrice / value) * 100));
 
   return (
-    <div className="flex items-center gap-2">
-      <div className="w-12 text-[10px] text-gray-500">{label}</div>
-      <div className="flex-grow bg-gray-800/50 rounded-full h-2.5 relative">
-        <div 
-          className={`h-full rounded-full ${isUndervalued ? 'bg-green-500/50' : 'bg-red-500/50'}`} 
-          style={{ width: '100%' }} 
-        />
-        <div 
-          className="absolute top-0 h-full w-0.5 bg-white"
-          style={{ left: `${position}%` }}
-        />
-      </div>
-      <div className={`w-16 text-sm text-right font-bold ${isUndervalued ? 'text-green-400' : 'text-red-400'}`}>
-        ${value.toFixed(2)}
-      </div>
-    </div>
+    <Stack direction="row" alignItems="center" spacing={1}>
+        <Typography variant="caption" color="text.secondary" sx={{ width: 48 }}>{label}</Typography>
+        <Box sx={{ flexGrow: 1, height: 8, bgcolor: 'action.selected', borderRadius: 99, position: 'relative' }}>
+             <Box sx={{ 
+                 position: 'absolute', 
+                 left: 0, top: 0, bottom: 0, width: '100%', 
+                 bgcolor: isUndervalued ? 'success.main' : 'error.main', 
+                 opacity: 0.3, 
+                 borderRadius: 99 
+             }} />
+             <Box sx={{ position: 'absolute', left: `${position}%`, top: 0, bottom: 0, width: 2, bgcolor: 'common.white' }} />
+        </Box>
+        <Typography variant="caption" fontWeight="bold" align="right" sx={{ width: 60, color: isUndervalued ? 'success.main' : 'error.main' }}>
+            ${value.toFixed(2)}
+        </Typography>
+    </Stack>
   );
 }
 
@@ -244,7 +305,8 @@ function MetricBox({
   good, 
   bad, 
   inverse = false,
-  small = false
+  small = false,
+  fullWidth = false
 }: { 
   label: string; 
   value: number | undefined; 
@@ -253,24 +315,32 @@ function MetricBox({
   bad?: number;
   inverse?: boolean;
   small?: boolean;
+  fullWidth?: boolean;
 }) {
   const getColor = () => {
-    if (value === undefined || value === 0) return 'text-white';
+    if (value === undefined || value === 0) return 'text.primary';
     if (good !== undefined && bad !== undefined) {
       const isGood = inverse ? value < good : value > good;
       const isBad = inverse ? value > bad : value < bad;
-      if (isGood) return 'text-green-400';
-      if (isBad) return 'text-red-400';
+      if (isGood) return 'success.main';
+      if (isBad) return 'error.main';
     }
-    return 'text-white';
+    return 'text.primary';
   };
 
   return (
-    <div className="bg-gray-800/30 rounded-lg p-2">
-      <div className="text-[10px] text-gray-500">{label}</div>
-      <div className={`${small ? 'text-xs' : 'text-sm'} font-bold ${getColor()}`}>
+    <Box sx={{ 
+        bgcolor: 'action.hover', 
+        p: 1.5, 
+        borderRadius: 1, 
+        display: fullWidth ? 'flex' : 'block',
+        alignItems: fullWidth ? 'center' : 'initial',
+        justifyContent: fullWidth ? 'space-between' : 'initial'
+    }}>
+      <Typography variant="caption" color="text.secondary">{label}</Typography>
+      <Typography variant={small ? "caption" : "body2"} fontWeight="bold" color={getColor()}>
         {value !== undefined ? format(value) : 'N/A'}
-      </div>
-    </div>
+      </Typography>
+    </Box>
   );
 }

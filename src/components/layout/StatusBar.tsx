@@ -31,12 +31,12 @@ export default function StatusBar({
         <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
           <Stack direction="row" alignItems="center" gap={3}>
             <Stack direction="row" alignItems="center" gap={1}>
-              <BarChart3 size={14} className="text-blue-400" />
+              <BarChart3 size={14} color="#60a5fa" />
               <Typography variant="caption" color="text.secondary">Symbol:</Typography>
               <Typography variant="caption" fontWeight="bold">{symbol}</Typography>
             </Stack>
             <Stack direction="row" alignItems="center" gap={1}>
-              <Brain size={14} className="text-purple-400" />
+              <Brain size={14} color="#c084fc" />
               <Typography variant="caption" color="text.secondary">Signal:</Typography>
               <Typography 
                 variant="caption" 
@@ -48,14 +48,14 @@ export default function StatusBar({
             </Stack>
             {lastRefreshFormatted && (
               <Stack direction="row" alignItems="center" gap={1}>
-                <Clock size={14} className="text-gray-500" />
+                <Clock size={14} color="#9ca3af" />
                 <Typography variant="caption" color="text.secondary">{lastRefreshFormatted}</Typography>
               </Stack>
             )}
           </Stack>
           {autoRefreshEnabled && (
             <Stack direction="row" alignItems="center" gap={1}>
-              <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: 'success.main', animation: 'pulse 1.5s infinite' }} />
+              <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: 'success.main', animation: 'pulse-green 1.5s infinite' }} />
               <Typography variant="caption" color="success.main">Auto-refresh ON</Typography>
             </Stack>
           )}

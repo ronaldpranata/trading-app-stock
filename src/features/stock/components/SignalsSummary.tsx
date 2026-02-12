@@ -5,7 +5,7 @@ import {
   Typography, 
   Box, 
   Stack, 
-
+  Skeleton
 } from '@mui/material';
 
 interface SignalSummaryProps {
@@ -15,17 +15,48 @@ interface SignalSummaryProps {
     strength: number;
     description: string;
   }>;
+  recommendation?: string;
+  isLoading?: boolean;
 }
 
 // Signals Summary Component
 export default function SignalsSummary({
   signals,
+  recommendation,
+  isLoading
 }: SignalSummaryProps){
+  if (isLoading) {
+    return (
+      <Card variant="outlined" sx={{ height: '100%' }}>
+        <CardContent>
+          <Skeleton variant="text" width={140} height={24} sx={{ mb: 2 }} />
+          
+          <Grid container spacing={2} mb={2}>
+            <Grid size={{ xs: 6 }}>
+              <Skeleton variant="rectangular" height={80} sx={{ borderRadius: 2 }} />
+            </Grid>
+            <Grid size={{ xs: 6 }}>
+              <Skeleton variant="rectangular" height={80} sx={{ borderRadius: 2 }} />
+            </Grid>
+          </Grid>
+
+          <Stack spacing={1} mb={3}>
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} variant="rectangular" height={50} sx={{ borderRadius: 1 }} />
+            ))}
+          </Stack>
+
+          <Skeleton variant="rectangular" height={100} sx={{ borderRadius: 2 }} />
+        </CardContent>
+      </Card>
+    );
+  }
+
   const bullish = signals.filter((s) => s.type === "bullish");
   const bearish = signals.filter((s) => s.type === "bearish");
 
   return (
-    <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
+    <Card variant="outlined" sx={{ height: '100%' }}>
       <CardContent>
         <Typography variant="subtitle2" fontWeight="bold" gutterBottom>Signals Summary</Typography>
 
@@ -44,7 +75,7 @@ export default function SignalsSummary({
           </Grid>
         </Grid>
 
-        <Box sx={{ maxHeight: 250, overflowY: 'auto' }}>
+        <Box sx={{ maxHeight: 250, overflowY: 'auto', mb: 3 }}>
           <Stack spacing={1}>
             {signals.map((signal, i) => {
               const sColor = signal.type === 'bullish' ? 'success' : signal.type === 'bearish' ? 'error' : 'default';
@@ -59,6 +90,17 @@ export default function SignalsSummary({
             })}
           </Stack>
         </Box>
+
+        {recommendation && (
+            <Box sx={{ p: 2, bgcolor: 'rgba(59, 130, 246, 0.08)', borderRadius: 2, border: 1, borderColor: 'rgba(59, 130, 246, 0.2)' }}>
+                <Typography variant="subtitle2" fontWeight="bold" color="primary.main" mb={0.5}>
+                    AI Recommendation
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                    {recommendation}
+                </Typography>
+            </Box>
+        )}
       </CardContent>
     </Card>
   );

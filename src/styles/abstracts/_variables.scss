@@ -1,0 +1,11 @@
+:root {
+  --background: #000000;
+  --foreground: #ffffff;
+}
+
+$background: var(--background);
+$foreground: var(--foreground);
+
+$color-scrollbar-track: #1f2937;
+$color-scrollbar-thumb: #4b5563;
+$color-scrollbar-thumb-hover: #6b7280;

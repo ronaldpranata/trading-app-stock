@@ -1,5 +1,7 @@
 'use client';
 
+import { Box, ToggleButton, ToggleButtonGroup } from '@mui/material';
+
 interface TimeRangeOption {
   id: string;
   label: string;
@@ -20,20 +22,51 @@ export function TimeRangeSelector({
   className = ''
 }: TimeRangeSelectorProps) {
   return (
-    <div className={`flex bg-gray-800/50 rounded-lg p-0.5 ${className}`}>
-      {ranges.map(range => (
-        <button
-          key={range.id}
-          onClick={() => onChange(range.id)}
-          className={`px-2.5 py-1 text-xs font-medium rounded transition-all ${
-            value === range.id
-              ? 'bg-blue-500 text-white'
-              : 'text-gray-400 hover:text-white'
-          }`}
+    <Box className={className}>
+        <ToggleButtonGroup
+            value={value}
+            exclusive
+            onChange={(_, newValue) => {
+                if (newValue !== null) {
+                    onChange(newValue);
+                }
+            }}
+            aria-label="time range"
+            size="small"
+            sx={{ 
+                bgcolor: 'action.hover', 
+                borderRadius: 2,
+                '& .MuiToggleButton-root': {
+                    border: 'none',
+                    borderRadius: 1.5,
+                    px: 1.5,
+                    py: 0.5,
+                    mx: 0.5,
+                    my: 0.5,
+                    fontSize: '0.75rem',
+                    fontWeight: 'medium',
+                    color: 'text.secondary',
+                    textTransform: 'none',
+                    '&.Mui-selected': {
+                        bgcolor: 'primary.main',
+                        color: 'primary.contrastText',
+                        '&:hover': {
+                            bgcolor: 'primary.dark',
+                        }
+                    },
+                    '&:hover': {
+                        bgcolor: 'action.selected',
+                        color: 'text.primary',
+                    }
+                }
+            }}
         >
-          {range.label}
-        </button>
-      ))}
-    </div>
+        {ranges.map(range => (
+            <ToggleButton key={range.id} value={range.id}>
+                {range.label}
+            </ToggleButton>
+        ))}
+        </ToggleButtonGroup>
+    </Box>
   );
 }

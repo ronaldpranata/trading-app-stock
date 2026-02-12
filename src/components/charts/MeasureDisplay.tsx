@@ -2,6 +2,7 @@
 
 import { ArrowUp, ArrowDown, X, MousePointer2 } from 'lucide-react';
 import { formatDate } from '@/lib/formatters';
+import { Box, Typography, Stack, IconButton,  } from '@mui/material';
 
 interface MeasurementResult {
   startPoint: { date: string; price: number; index: number };
@@ -31,70 +32,71 @@ export function MeasureDisplay({
 
   if (result) {
     return (
-      <div className={`rounded-lg p-3 border ${
-        result.isGain 
-          ? 'bg-green-500/10 border-green-500/30' 
-          : 'bg-red-500/10 border-red-500/30'
-      } ${className}`}>
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
+      <Box sx={{ 
+          borderRadius: 2, 
+          p: 1.5, 
+          border: 1, 
+          borderColor: result.isGain ? 'success.dark' : 'error.dark',
+          bgcolor: result.isGain ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+          ...((className && {}) as any) // Allow passing className if needed, though usually sx is preferred
+      }} className={className}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between">
+          <Box>
+            <Stack direction="row" alignItems="baseline" gap={1} mb={0.5}>
               {result.isGain ? (
-                <ArrowUp className="w-5 h-5 text-green-400" />
+                <ArrowUp size={20} className="text-green-400" color="#4ade80" />
               ) : (
-                <ArrowDown className="w-5 h-5 text-red-400" />
+                <ArrowDown size={20} className="text-red-400" color="#f87171" />
               )}
-              <span className={`text-2xl font-bold ${result.isGain ? 'text-green-400' : 'text-red-400'}`}>
+              <Typography variant="h6" fontWeight="bold" color={result.isGain ? 'success.main' : 'error.main'} lineHeight={1}>
                 {result.isGain ? '+' : ''}{result.percentChange.toFixed(2)}%
-              </span>
-              <span className={`text-sm ${result.isGain ? 'text-green-400' : 'text-red-400'}`}>
+              </Typography>
+              <Typography variant="body2" color={result.isGain ? 'success.main' : 'error.main'}>
                 ({result.isGain ? '+' : ''}${result.priceChange.toFixed(2)})
-              </span>
-            </div>
-            <div className="text-xs text-gray-400">
-              <span className="text-white">${result.startPoint.price.toFixed(2)}</span>
-              <span className="mx-2">→</span>
-              <span className="text-white">${result.endPoint.price.toFixed(2)}</span>
-              <span className="mx-2">•</span>
+              </Typography>
+            </Stack>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <span style={{ color: '#fff' }}>${result.startPoint.price.toFixed(2)}</span>
+              <span>→</span>
+              <span style={{ color: '#fff' }}>${result.endPoint.price.toFixed(2)}</span>
+              <span>•</span>
               <span>{result.days} days</span>
-              <span className="mx-2">•</span>
+              <span>•</span>
               <span>{formatDate(result.startPoint.date)} → {formatDate(result.endPoint.date)}</span>
-            </div>
-          </div>
-          <button
-            onClick={onClear}
-            className="p-1 text-gray-400 hover:text-white transition-colors"
-            title="Clear measurement"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
+            </Typography>
+          </Box>
+          <IconButton onClick={onClear} size="small" sx={{ color: 'text.secondary' }}>
+            <X size={16} />
+          </IconButton>
+        </Stack>
+      </Box>
     );
   }
 
   return (
-    <div className={`rounded-lg p-3 border bg-cyan-500/10 border-cyan-500/30 ${className}`}>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <MousePointer2 className="w-4 h-4 text-cyan-400" />
-          <span className="text-sm text-cyan-400">
+    <Box sx={{ 
+        borderRadius: 2, 
+        p: 1.5, 
+        border: 1, 
+        borderColor: 'info.dark',
+        bgcolor: 'rgba(6, 182, 212, 0.1)', // cyan-500/10
+    }} className={className}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between">
+        <Stack direction="row" alignItems="center" gap={1}>
+          <MousePointer2 size={16} color="#22d3ee" /> {/* cyan-400 */}
+          <Typography variant="body2" sx={{ color: 'info.main' }}>
             {firstClick 
               ? `First point: $${firstClick.price.toFixed(2)} (${formatDate(firstClick.date)}) - Click second point`
               : 'Click on chart to select first point'
             }
-          </span>
-        </div>
+          </Typography>
+        </Stack>
         {firstClick && (
-          <button
-            onClick={onClear}
-            className="p-1 text-gray-400 hover:text-white transition-colors"
-            title="Clear"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <IconButton onClick={onClear} size="small" sx={{ color: 'text.secondary' }}>
+             <X size={16} />
+          </IconButton>
         )}
-      </div>
-    </div>
+      </Stack>
+    </Box>
   );
 }

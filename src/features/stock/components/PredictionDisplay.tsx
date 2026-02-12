@@ -1,294 +1,291 @@
-import { PredictionResult, PredictionTimeframe, SentimentData } from '@/types/stock';
+'use client';
+
 import { useState } from 'react';
-import { Brain, Target, Shield, TrendingUp, TrendingDown, Minus, Clock, FileText } from 'lucide-react';
+import { PredictionResult, TimeframePrediction } from '@/types/stock';
+import { Brain, TrendingUp, TrendingDown, Target, Shield, AlertTriangle, Clock, FileText } from 'lucide-react';
 import { 
-  Card, 
-  CardContent, 
-  Typography, 
-  Box, 
-  Stack, 
-  Chip, 
-  LinearProgress, 
-  Grid, 
-  useTheme,
-  Button
+    Box, 
+    Card, 
+    CardContent, 
+    Typography, 
+    Grid,
+    Stack, 
+    Chip, 
+    LinearProgress,
+    Tooltip,
+    Tabs,
+    Tab,
+    Skeleton
 } from '@mui/material';
 
 interface PredictionDisplayProps {
   prediction: PredictionResult | null;
-  sentimentData?: SentimentData;
   currentPrice: number;
+  isLoading?: boolean;
 }
 
-const TIMEFRAME_LABELS: Record<PredictionTimeframe, string> = {
-  day: '1D',
-  week: '1W',
-  month: '1M',
-  quarter: '3M',
-  year: '1Y'
-};
+export default function PredictionDisplay({ prediction, currentPrice, isLoading }: PredictionDisplayProps) {
+  const [selectedTab, setSelectedTab] = useState(0);
 
-export default function PredictionDisplay({ prediction, sentimentData, currentPrice }: PredictionDisplayProps) {
-  const [selectedTimeframe, setSelectedTimeframe] = useState<PredictionTimeframe>('week');
-  const theme = useTheme();
-
-  if (!prediction) {
+  if (isLoading) {
     return (
-      <Card sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Card variant="outlined" sx={{ height: '100%' }}>
         <CardContent>
-          <Typography variant="h6" color="text.secondary" gutterBottom>
-            AI Prediction
-          </Typography>
-          <Typography color="text.disabled">Loading...</Typography>
+          <Stack direction="row" alignItems="center" gap={1} mb={2}>
+             <Skeleton variant="circular" width={16} height={16} />
+             <Skeleton variant="text" width={120} sx={{ fontSize: '1rem' }} />
+          </Stack>
+          
+          {/* Tabs Skeleton */}
+          <Skeleton variant="rectangular" height={36} sx={{ mb: 3, borderRadius: 1 }} />
+          
+          {/* Main Card Skeleton */}
+          <Skeleton variant="rectangular" height={100} sx={{ mb: 3, borderRadius: 2 }} />
+          
+          {/* Targets Grid Skeleton */}
+          <Grid container spacing={2} mb={3}>
+            <Grid size={{ xs: 6 }}>
+               <Skeleton variant="rectangular" height={80} sx={{ borderRadius: 2 }} />
+            </Grid>
+            <Grid size={{ xs: 6 }}>
+                <Skeleton variant="rectangular" height={80} sx={{ borderRadius: 2 }} />
+            </Grid>
+          </Grid>
+
+          {/* Scores Skeleton */}
+          <Stack direction="row" spacing={2} mb={3}>
+             <Box flex={1}><Skeleton variant="rectangular" height={40} sx={{ borderRadius: 1 }} /></Box>
+             <Box flex={1}><Skeleton variant="rectangular" height={40} sx={{ borderRadius: 1 }} /></Box>
+             <Box flex={1}><Skeleton variant="rectangular" height={40} sx={{ borderRadius: 1 }} /></Box>
+          </Stack>
+
+          {/* All Timeframes Skeleton */}
+          <Skeleton variant="rectangular" height={80} sx={{ borderRadius: 2 }} />
         </CardContent>
       </Card>
     );
   }
 
-  const selectedPrediction = prediction.timeframePredictions.find(p => p.timeframe === selectedTimeframe) 
-    || prediction.timeframePredictions[0];
+  if (!prediction) {
+    return (
+      <Card variant="outlined" sx={{ height: '100%' }}>
+        <CardContent>
+          <Stack direction="row" alignItems="center" gap={1} mb={2}>
+             <Brain size={16} color="#c084fc" />
+             <Typography variant="subtitle2" fontWeight="bold">AI Prediction</Typography>
+          </Stack>
+          <Typography variant="body2" color="text.secondary">Generating prediction...</Typography>
+        </CardContent>
+      </Card>
+    );
+  }
 
-  const getDirectionIcon = (direction: string) => {
-    if (direction === 'BULLISH') return <TrendingUp size={20} />;
-    if (direction === 'BEARISH') return <TrendingDown size={20} />;
-    return <Minus size={20} />;
+  // Use timeframe predictions if available, otherwise fall back to main prediction
+  const predictions = prediction.timeframePredictions?.length > 0 
+    ? prediction.timeframePredictions 
+    : [{
+        timeframe: 'day',
+        direction: prediction.direction,
+        confidence: prediction.confidence,
+        targetPrice: prediction.targetPrice,
+        stopLoss: prediction.stopLoss,
+        expectedChange: 0, 
+        expectedChangePercent: 0, 
+        riskRewardRatio: 0 
+      } as TimeframePrediction];
+
+  const currentPrediction = predictions[selectedTab] || predictions[0];
+  const isBullish = currentPrediction.direction === 'BULLISH';
+  const confidenceColor = isBullish ? 'success.main' : currentPrediction.direction === 'BEARISH' ? 'error.main' : 'warning.main';
+  
+  // Calculate potential profit/loss for current selection
+  const profitPotential = ((currentPrediction.targetPrice - currentPrice) / currentPrice) * 100;
+  const riskPotential = ((currentPrice - currentPrediction.stopLoss) / currentPrice) * 100;
+  const riskRewardRatio = Math.abs(riskPotential) > 0 ? Math.abs(profitPotential / riskPotential) : 0;
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setSelectedTab(newValue);
   };
 
-  const getDirectionColor = (direction: string) => {
-    if (direction === 'BULLISH') return theme.palette.success.main;
-    if (direction === 'BEARISH') return theme.palette.error.main;
-    return theme.palette.warning.main;
+  const getLabel = (tf: string) => {
+      switch(tf) {
+          case 'day': return '1D';
+          case 'week': return '1W';
+          case 'month': return '1M';
+          case 'quarter': return '3M';
+          case 'year': return '1Y';
+          default: return tf;
+      }
   };
-
-  const directionColor = getDirectionColor(selectedPrediction.direction);
-  const isBullish = selectedPrediction.direction === 'BULLISH';
-  const isBearish = selectedPrediction.direction === 'BEARISH';
 
   return (
-    <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
+    <Card variant="outlined" sx={{ height: '100%' }}>
       <CardContent>
+        {/* Header */}
         <Stack direction="row" alignItems="center" gap={1} mb={2}>
-          <Brain className="w-4 h-4 text-purple-400" />
-          <Typography variant="subtitle2" fontWeight="bold">AI Prediction</Typography>
+             <Brain size={16} color="#c084fc" />
+             <Typography variant="subtitle2" fontWeight="bold">AI Prediction</Typography>
         </Stack>
-
-        {/* Timeframe Selector */}
-        <Box sx={{ mb: 2, bgcolor: 'action.hover', p: 0.5, borderRadius: 1, display: 'flex', gap: 0.5 }}>
-          {prediction.timeframePredictions.map(tp => {
-             const isSelected = selectedTimeframe === tp.timeframe;
-             const tpColor = tp.direction === 'BULLISH' ? 'success' : tp.direction === 'BEARISH' ? 'error' : 'warning';
-             
-             return (
-              <Button
-                key={tp.timeframe}
-                onClick={() => setSelectedTimeframe(tp.timeframe)}
-                variant={isSelected ? 'contained' : 'text'}
-                color={isSelected ? tpColor : 'inherit'}
-                size="small"
+        
+        {/* Tabs */}
+        {predictions.length > 1 && (
+            <Tabs 
+                value={selectedTab} 
+                onChange={handleTabChange} 
+                variant="fullWidth" 
                 sx={{ 
-                  flex: 1, 
-                  minWidth: 0, 
-                  py: 0.5,
-                  fontSize: '0.75rem',
-                  color: !isSelected ? 'text.secondary' : undefined
+                    minHeight: 36, 
+                    mb: 3, 
+                    bgcolor: 'action.hover', 
+                    borderRadius: 1,
+                    p: 0.5,
+                    '& .MuiIndicator-root': { display: 'none' }
                 }}
-              >
-                {TIMEFRAME_LABELS[tp.timeframe]}
-              </Button>
-            );
-          })}
-        </Box>
+            >
+                {predictions.map((p, index) => (
+                    <Tab 
+                        key={index} 
+                        label={getLabel(p.timeframe)} 
+                        sx={{ 
+                            minHeight: 32, 
+                            borderRadius: 1, 
+                            zIndex: 1,
+                            textTransform: 'none',
+                            fontWeight: 'bold',
+                            fontSize: '0.8rem',
+                            '&.Mui-selected': { bgcolor: 'background.paper', boxShadow: 1, color: 'text.primary' }
+                        }}
+                    />
+                ))}
+            </Tabs>
+        )}
 
-        {/* Main Prediction */}
-        <Box 
-          sx={{ 
+        {/* Main Direction Card */}
+        <Box sx={{ 
             p: 2, 
             borderRadius: 2, 
-            mb: 2, 
-            border: '1px solid',
-            borderColor: `${directionColor}40`,
-            bgcolor: `${directionColor}10`
-          }}
-        >
-          <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-            <Stack direction="row" alignItems="center" gap={1}>
-              <Box sx={{ color: directionColor }}>
-                {getDirectionIcon(selectedPrediction.direction)}
-              </Box>
-              <Typography variant="h5" fontWeight="bold" color={directionColor}>
-                {selectedPrediction.direction}
-              </Typography>
+            border: 1, 
+            borderColor: isBullish ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+            bgcolor: isBullish ? 'rgba(34, 197, 94, 0.05)' : 'rgba(239, 68, 68, 0.05)',
+            mb: 3
+        }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={1}>
+                 <Stack direction="row" alignItems="center" gap={1}>
+                    {isBullish ? <TrendingUp size={20} color="#22c55e" /> : <TrendingDown size={20} color="#ef4444" />}
+                    <Typography variant="h5" fontWeight="bold" color={isBullish ? 'success.main' : 'error.main'}>
+                        {currentPrediction.direction}
+                    </Typography>
+                 </Stack>
+                 <Box textAlign="right">
+                     <Typography variant="caption" color="text.secondary">Confidence</Typography>
+                     <Typography variant="h6" fontWeight="bold" color={currentPrediction.confidence > 70 ? 'success.main' : 'warning.main'} sx={{ lineHeight: 1 }}>
+                         {currentPrediction.confidence.toFixed(0)}%
+                     </Typography>
+                 </Box>
             </Stack>
-            <Box textAlign="right">
-              <Typography variant="caption" color="text.secondary">Confidence</Typography>
-              <Typography variant="h6" fontWeight="bold" color={directionColor}>
-                {selectedPrediction.confidence.toFixed(0)}%
-              </Typography>
-            </Box>
-          </Stack>
-
-          {/* Confidence Bar */}
-          <LinearProgress 
-            variant="determinate" 
-            value={selectedPrediction.confidence} 
-            color={isBullish ? 'success' : isBearish ? 'error' : 'warning'}
-            sx={{ height: 8, borderRadius: 4, bgcolor: 'action.selected' }}
-          />
+            <LinearProgress 
+                variant="determinate" 
+                value={currentPrediction.confidence} 
+                color={currentPrediction.confidence > 70 ? 'success' : 'warning'}
+                sx={{ height: 6, borderRadius: 3, bgcolor: 'action.selected' }} 
+            />
         </Box>
+        
+        {/* Targets Grid */}
+        <Grid container spacing={2} mb={3}>
+            <Grid size={{ xs: 6 }}>
+               <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'action.hover', border: 1, borderColor: 'divider' }}>
+                   <Stack direction="row" alignItems="center" gap={1} mb={1}>
+                       <Target size={16} color="#9ca3af" />
+                       <Typography variant="body2" color="text.secondary">Target Price</Typography>
+                   </Stack>
+                   <Typography variant="h6" fontWeight="bold" color="text.primary">
+                        ${currentPrediction.targetPrice.toFixed(2)}
+                   </Typography>
+                   <Typography variant="caption" color="success.main" fontWeight="bold">
+                        {profitPotential > 0 ? '+' : ''}{profitPotential.toFixed(2)}%
+                   </Typography>
+               </Box>
+            </Grid>
 
-        {/* Price Targets */}
-        <Grid container spacing={2} mb={2}>
-          <Grid size={6}>
-            <Box sx={{ bgcolor: 'action.hover', p: 2.5, borderRadius: 3 }}>
-              <Stack direction="row" alignItems="center" gap={1} mb={1}>
-                <Target size={16} className="text-gray-400" />
-                <Typography variant="body2" color="text.secondary">Target Price</Typography>
-              </Stack>
-              <Typography variant="h5" fontWeight="bold">
-                ${selectedPrediction.targetPrice.toFixed(2)}
-              </Typography>
-              <Typography variant="body2" fontWeight="medium" color={selectedPrediction.expectedChangePercent >= 0 ? 'success.main' : 'error.main'}>
-                {selectedPrediction.expectedChangePercent >= 0 ? '+' : ''}{selectedPrediction.expectedChangePercent.toFixed(2)}%
-              </Typography>
-            </Box>
-          </Grid>
-          <Grid size={6}>
-            <Box sx={{ bgcolor: 'action.hover', p: 2.5, borderRadius: 3 }}>
-              <Stack direction="row" alignItems="center" gap={1} mb={1}>
-                <Shield size={16} className="text-gray-400" />
-                <Typography variant="body2" color="text.secondary">Stop Loss</Typography>
-              </Stack>
-              <Typography variant="h5" fontWeight="bold">
-                ${selectedPrediction.stopLoss.toFixed(2)}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                R/R: {selectedPrediction.riskRewardRatio.toFixed(2)}
-              </Typography>
-            </Box>
-          </Grid>
+            <Grid size={{ xs: 6 }}>
+                <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'action.hover', border: 1, borderColor: 'divider' }}>
+                   <Stack direction="row" alignItems="center" gap={1} mb={1}>
+                       <Shield size={16} color="#9ca3af" />
+                       <Typography variant="body2" color="text.secondary">Stop Loss</Typography>
+                   </Stack>
+                   <Typography variant="h6" fontWeight="bold" color="text.primary">
+                        ${currentPrediction.stopLoss.toFixed(2)}
+                   </Typography>
+                   <Typography variant="caption" color="text.secondary">
+                        R/R: {riskRewardRatio.toFixed(2)}
+                   </Typography>
+               </Box>
+            </Grid>
         </Grid>
 
         {/* Scores */}
-        <Grid container spacing={1} mb={2}>
-          <Grid size={4}>
-            <ScoreBar label="Technical" score={prediction.technicalScore} />
-          </Grid>
-          <Grid size={4}>
-            <ScoreBar label="Fundamental" score={prediction.fundamentalScore} />
-          </Grid>
-          <Grid size={4}>
-            <ScoreBar label="Sentiment" score={prediction.sentimentScore || 50} />
-          </Grid>
-        </Grid>
+        <Stack direction="row" spacing={2} mb={3}>
+             {[
+                 { label: 'Technical', score: prediction.technicalScore, color: '#eab308' },
+                 { label: 'Fundamental', score: prediction.fundamentalScore, color: '#eab308' },
+                 { label: 'Sentiment', score: prediction.sentimentScore || 50, color: '#22c55e' }
+             ].map((item, i) => (
+                 <Box key={i} sx={{ flex: 1, p: 1, bgcolor: 'action.hover', borderRadius: 1, border: 1, borderColor: 'divider' }}>
+                      <Stack direction="row" justifyContent="space-between" mb={0.5}>
+                          <Typography variant="caption" color="text.secondary">{item.label}</Typography>
+                          <Typography variant="caption" fontWeight="bold" sx={{ color: item.color }}>{Math.round(item.score)}</Typography>
+                      </Stack>
+                      <LinearProgress 
+                        variant="determinate" 
+                        value={item.score} 
+                        sx={{ height: 4, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.1)', '& .MuiLinearProgress-bar': { bgcolor: item.color } }} 
+                      />
+                 </Box>
+             ))}
+        </Stack>
 
-        {/* Sentiment Text Display */}
-        {sentimentData && (
-          <Box sx={{ mb: 2, p: 1.5, bgcolor: 'action.hover', borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
-             <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-                 <Stack direction="row" alignItems="center" gap={0.5}>
-                     <FileText size={12} className="text-gray-400" />
-                     <Typography variant="caption" color="text.secondary">News Sentiment</Typography>
-                 </Stack>
-                 <Chip 
-                    label={sentimentData.sentiment.toUpperCase()} 
-                    size="small"
-                    color={sentimentData.sentiment === 'positive' ? 'success' : sentimentData.sentiment === 'negative' ? 'error' : 'warning'}
-                    variant="outlined"
-                    sx={{ height: 20, fontSize: '0.65rem' }}
-                 />
-             </Stack>
-             {sentimentData.keywordMatches && sentimentData.keywordMatches.length > 0 && (
-                <Stack direction="row" flexWrap="wrap" gap={0.5} mt={0.5}>
-                    {sentimentData.keywordMatches.slice(0, 3).map((match, idx) => (
-                        <Chip 
-                          key={idx} 
-                          label={match.word} 
-                          size="small" 
-                          sx={{ height: 18, fontSize: '0.6rem', bgcolor: 'background.paper' }} 
-                        />
-                    ))}
+        {/* All Timeframes Summary */}
+        {predictions.length > 1 && (
+             <Box sx={{ mb: 3, p: 2, borderRadius: 2, bgcolor: 'action.hover' }}>
+                <Typography variant="subtitle2" color="text.secondary" mb={2} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                     <Clock size={16} /> All Timeframes
+                </Typography>
+                <Stack direction="row" justifyContent="space-between">
+                     {predictions.map((p, i) => {
+                         const potential = ((p.targetPrice - currentPrice) / currentPrice) * 100;
+                         const isUp = p.direction === 'BULLISH';
+                         return (
+                            <Box key={i} textAlign="center">
+                                <Typography variant="caption" color="text.secondary" mb={0.5} display="block">
+                                    {getLabel(p.timeframe)}
+                                </Typography>
+                                {isUp ? (
+                                    <TrendingUp size={16} color="#22c55e" style={{ display: 'block', margin: '0 auto 4px' }} />
+                                ) : (
+                                    <TrendingDown size={16} color="#ef4444" style={{ display: 'block', margin: '0 auto 4px' }} />
+                                )}
+                                <Typography variant="caption" fontWeight="bold" color={isUp ? 'success.main' : 'error.main'}>
+                                    {potential > 0 ? '+' : ''}{potential.toFixed(1)}%
+                                </Typography>
+                            </Box>
+                         );
+                     })}
                 </Stack>
-             )}
-          </Box>
+             </Box>
         )}
 
-        {/* All Timeframes Overview */}
-        <Box sx={{ bgcolor: 'action.hover', p: 2, borderRadius: 2 }}>
-          <Stack direction="row" alignItems="center" gap={0.5} mb={1.5}>
-            <Clock size={16} className="text-gray-400" />
-            <Typography variant="body2" color="text.secondary">All Timeframes</Typography>
-          </Stack>
-          <Box display="grid" gridTemplateColumns="repeat(5, 1fr)" gap={1}>
-            {prediction.timeframePredictions.map(tp => (
-              <Box key={tp.timeframe} textAlign="center" sx={{ p: 1, borderRadius: 1, '&:hover': { bgcolor: 'action.selected' } }}>
-                <Typography variant="caption" color="text.secondary" display="block" fontSize="0.75rem" mb={0.5}>
-                  {TIMEFRAME_LABELS[tp.timeframe]}
-                </Typography>
-                <Typography 
-                  variant="h6" 
-                  fontWeight="bold" 
-                  color={tp.direction === 'BULLISH' ? 'success.main' : tp.direction === 'BEARISH' ? 'error.main' : 'warning.main'}
-                  lineHeight={1}
-                  mb={0.5}
-                >
-                  {tp.direction === 'BULLISH' ? '↑' : tp.direction === 'BEARISH' ? '↓' : '→'}
-                </Typography>
-                <Typography 
-                  variant="caption" 
-                  color={tp.expectedChangePercent >= 0 ? 'success.main' : 'error.main'}
-                  fontWeight="medium"
-                  fontSize="0.7rem"
-                >
-                  {tp.expectedChangePercent >= 0 ? '+' : ''}{tp.expectedChangePercent.toFixed(1)}%
-                </Typography>
-              </Box>
-            ))}
-          </Box>
+
+        
+        <Box sx={{ pt: 2, mt: 2 }}>
+             <Tooltip title="This is an AI-generated prediction. Trading involves risk.">
+                  <Stack direction="row" alignItems="center" justifyContent="center" gap={0.5} sx={{ cursor: 'help' }}>
+                       <AlertTriangle size={14} color="#f59e0b" />
+                       <Typography variant="caption" color="warning.main">Disclaimer: Not financial advice</Typography>
+                  </Stack>
+             </Tooltip>
         </Box>
-
-        {/* Recommendation */}
-        {prediction.recommendation && (
-          <Box sx={{ mt: 2, p: 1.5, bgcolor: 'primary.main', bgcolorOpacity: 0.1, borderRadius: 2, border: '1px solid', borderColor: 'primary.dark' }} style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)', borderColor: 'rgba(37, 99, 235, 0.2)' }}>
-            <Typography variant="caption" color="primary.light" fontWeight="bold" gutterBottom>
-              AI Recommendation
-            </Typography>
-            <Typography variant="caption" color="text.primary" display="block" sx={{ lineHeight: 1.4 }}>
-              {prediction.recommendation}
-            </Typography>
-          </Box>
-        )}
       </CardContent>
     </Card>
-  );
-}
-
-function ScoreBar({ label, score }: { label: string; score: number }) {
-  const getColor = () => {
-    if (score >= 60) return 'success';
-    if (score <= 40) return 'error';
-    return 'warning';
-  };
-  
-  const getTextColor = () => {
-      if (score >= 60) return 'success.main';
-      if (score <= 40) return 'error.main';
-      return 'warning.main';
-  };
-
-  return (
-    <Box sx={{ bgcolor: 'action.hover', p: 1, borderRadius: 1 }}>
-      <Stack direction="row" justifyContent="space-between" mb={0.5}>
-        <Typography variant="caption" color="text.secondary" fontSize="0.65rem">{label}</Typography>
-        <Typography variant="caption" fontWeight="bold" color={getTextColor()} fontSize="0.7rem">
-          {score.toFixed(0)}
-        </Typography>
-      </Stack>
-      <LinearProgress 
-        variant="determinate" 
-        value={score} 
-        color={getColor()}
-        sx={{ height: 4, borderRadius: 2 }}
-      />
-    </Box>
   );
 }

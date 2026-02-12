@@ -1,16 +1,15 @@
 import { memo } from 'react';
 import { 
-  ResponsiveContainer, 
-  ComposedChart, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
-  Area, 
-  Line, 
-  ReferenceLine, 
-  ReferenceArea 
-} from 'recharts';
-import { Box, Stack, Typography } from '@mui/material';
+  LineChart, 
+  LineSeriesType,
+  AxisConfig,
+  ChartsReferenceLine,
+  ChartsXAxis,
+  ChartsYAxis,
+  ChartsTooltip,
+  ChartsAxisHighlight
+} from '@mui/x-charts';
+import { Box, Stack, Typography, useTheme } from '@mui/material';
 import { formatDate } from '@/lib/formatters';
 import { TechnicalIndicators } from '@/types/stock';
 
@@ -52,90 +51,144 @@ function StockChartDisplay({
   measure, 
   onChartClick 
 }: StockChartDisplayProps) {
+  const theme = useTheme();
+
+  // Prepare data for MUI X Charts
+  const xData = data.map(d => new Date(d.date));
+  const priceData = data.map(d => d.price);
+  const sma20Data = data.map(d => d.sma20 > 0 ? d.sma20 : null);
+  const sma50Data = data.map(d => d.sma50 > 0 ? d.sma50 : null);
+
+  const series = [
+    {
+      type: 'line',
+      data: priceData,
+      label: 'Close',
+      color: isPositive ? '#22c55e' : '#ef4444',
+      showMark: (params: any) => measure.isActive && params.index === measure.firstClick?.index,
+      area: true, // Enable area fill
+      valueFormatter: (v: number | null) => v?.toFixed(2) || '',
+    },
+    ...(showSMA ? [
+      {
+        type: 'line',
+        data: sma20Data,
+        label: 'SMA20',
+        color: '#facc15',
+        showMark: false,
+        dashStyle: [5, 5],
+        valueFormatter: (v: number | null) => v?.toFixed(2) || '',
+      },
+      {
+        type: 'line',
+        data: sma50Data,
+        label: 'SMA50',
+        color: '#a855f7',
+        showMark: false,
+        dashStyle: [10, 5],
+        valueFormatter: (v: number | null) => v?.toFixed(2) || '',
+      }
+    ] : [])
+  ] as any[]; // Using any to bypass strict type checking for now due to complexity
+
+  // Handle axis click to simulate Recharts behavior
+  const handleAxisClick = (event: MouseEvent, data: any) => {
+      // MUI X Charts provides index in the click event data
+      // We need to map this back to our data source
+      // Note: check the exact payload structure in documentation/logs
+      if (data && typeof data.dataIndex === 'number') {
+           const point = {
+               payload: {
+                   date: xData[data.dataIndex].toISOString(),
+                   price: priceData[data.dataIndex],
+                   index: data.dataIndex
+               }
+           };
+           // Wrap in a structure similar to what StockChart expects
+           onChartClick({ activePayload: [point] });
+      }
+  };
+
   return (
     <>
-      <Box sx={{ height: 224, cursor: measure.isActive ? 'crosshair' : 'default' }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={data} onClick={onChartClick}>
-            <defs>
-              <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={isPositive ? '#22c55e' : '#ef4444'} stopOpacity={0.3}/>
-                <stop offset="95%" stopColor={isPositive ? '#22c55e' : '#ef4444'} stopOpacity={0}/>
+      <Box sx={{ height: 300, width: '100%', cursor: measure.isActive ? 'crosshair' : 'default' }}>
+        <LineChart
+            xAxis={[{ 
+                data: xData, 
+                scaleType: 'time', 
+                valueFormatter: (date: Date) => {
+                    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                    const day = date.getDate().toString().padStart(2, '0');
+                    return `${month}-${day}`;
+                },
+                min: xData[0]?.getTime(),
+                max: xData[xData.length-1]?.getTime(),
+            }]}
+            yAxis={[{
+                min: minPrice,
+                max: maxPrice,
+                valueFormatter: (value: number) => `$${value.toFixed(0)}`,
+            }]}
+            series={series.map(s => ({ ...s, curve: 'catmullRom' }))}
+            height={300}
+            margin={{ top: 10, bottom: 20, left: 50, right: 10 }}
+            grid={{ horizontal: true }}
+            onAxisClick={handleAxisClick}
+            sx={{
+                '.MuiAreaElement-root': {
+                    fill: `url(#priceGradient-${isPositive ? 'up' : 'down'})`,
+                },
+                '.MuiChartsGrid-line': {
+                    strokeDasharray: '4 4',
+                    stroke: '#374151 !important', // gray-700
+                },
+                 // Animation simulation for line drawing
+                '.MuiLineElement-root': {
+                    strokeDasharray: 2000,
+                    strokeDashoffset: 2000,
+                    animation: 'draw 1.5s ease-out forwards',
+                },
+                '@keyframes draw': {
+                    'to': {
+                        strokeDashoffset: 0,
+                    }
+                }
+            }}
+        >
+             <defs>
+              <linearGradient id="priceGradient-up" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#22c55e" stopOpacity={0.4}/>
+                <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
+              </linearGradient>
+              <linearGradient id="priceGradient-down" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.4}/>
+                <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
               </linearGradient>
             </defs>
-            <XAxis 
-              dataKey="date" 
-              tick={{ fill: '#6b7280', fontSize: 10 }}
-              tickFormatter={(value) => formatDate(value)}
-              interval="preserveStartEnd"
-              minTickGap={30}
-            />
-            <YAxis 
-              domain={[minPrice, maxPrice]}
-              tick={{ fill: '#6b7280', fontSize: 10 }}
-              tickFormatter={(value) => `$${value.toFixed(0)}`}
-              width={40}
-            />
-            <Tooltip 
-              contentStyle={{ 
-                backgroundColor: '#1f2937', 
-                border: '1px solid #374151',
-                borderRadius: '8px',
-                fontSize: '12px'
-              }}
-              formatter={(value: number, name: string) => [
-                `$${value.toFixed(2)}`,
-                name === 'price' ? 'Close' : name === 'sma20' ? 'SMA20' : name === 'sma50' ? 'SMA50' : name
-              ]}
-              labelFormatter={(label) => `Date: ${label}`}
-            />
+            <ChartsAxisHighlight x="line" />
+            <ChartsTooltip />
             
-            {/* Selection highlight area */}
-            {measure.firstClick && measure.secondClick && (
-              <ReferenceArea
-                x1={measure.firstClick.index < measure.secondClick.index ? measure.firstClick.date : measure.secondClick.date}
-                x2={measure.firstClick.index < measure.secondClick.index ? measure.secondClick.date : measure.firstClick.date}
-                fill={measure.result?.isGain ? '#22c55e' : '#ef4444'}
-                fillOpacity={0.1}
-              />
-            )}
-            
-            {/* Click markers */}
+            {/* Reference Lines for Measure Tool */}
             {measure.firstClick && (
-              <ReferenceLine x={measure.firstClick.date} stroke="#06b6d4" strokeWidth={2} strokeDasharray="3 3" />
+                 <ChartsReferenceLine 
+                    x={new Date(measure.firstClick.date)} 
+                    lineStyle={{ stroke: '#06b6d4', strokeWidth: 2, strokeDasharray: '3 3' }} 
+                 />
             )}
             {measure.secondClick && (
-              <ReferenceLine x={measure.secondClick.date} stroke="#06b6d4" strokeWidth={2} strokeDasharray="3 3" />
+                 <ChartsReferenceLine 
+                    x={new Date(measure.secondClick.date)} 
+                    lineStyle={{ stroke: '#06b6d4', strokeWidth: 2, strokeDasharray: '3 3' }} 
+                 />
             )}
-
-            <Area
-              type="monotone"
-              dataKey="price"
-              stroke="transparent"
-              fill="url(#priceGradient)"
-            />
-            <Line
-              type="monotone"
-              dataKey="price"
-              stroke={isPositive ? '#22c55e' : '#ef4444'}
-              strokeWidth={2}
-              dot={false}
-              activeDot={measure.isActive ? { r: 6, fill: '#06b6d4', stroke: '#fff', strokeWidth: 2 } : false}
-            />
-            {showSMA && data.some(d => d.sma20 > 0) && (
-              <Line type="monotone" dataKey="sma20" stroke="#facc15" strokeWidth={1} dot={false} strokeDasharray="3 3" />
-            )}
-            {showSMA && data.some(d => d.sma50 > 0) && (
-              <Line type="monotone" dataKey="sma50" stroke="#a855f7" strokeWidth={1} dot={false} strokeDasharray="5 5" />
-            )}
-            {indicators?.bollingerBands && (
-              <>
-                <ReferenceLine y={indicators.bollingerBands.upper} stroke="#374151" strokeDasharray="2 2" />
-                <ReferenceLine y={indicators.bollingerBands.lower} stroke="#374151" strokeDasharray="2 2" />
-              </>
-            )}
-          </ComposedChart>
-        </ResponsiveContainer>
+             {/* Bollinger Bands Reference Lines */}
+             {indicators?.bollingerBands && (
+                <>
+                    <ChartsReferenceLine y={indicators.bollingerBands.upper} lineStyle={{ stroke: '#374151', strokeDasharray: '2 2' }} />
+                    <ChartsReferenceLine y={indicators.bollingerBands.lower} lineStyle={{ stroke: '#374151', strokeDasharray: '2 2' }} />
+                </>
+             )}
+        </LineChart>
       </Box>
 
       {/* Legend */}

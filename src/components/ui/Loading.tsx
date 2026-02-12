@@ -1,41 +1,49 @@
 'use client';
 
-import { Loader2 } from 'lucide-react';
+import { CircularProgress, Box, Skeleton as MuiSkeleton, Paper } from '@mui/material';
 
 interface LoadingSpinnerProps {
-  size?: 'sm' | 'md' | 'lg';
+  size?: number | string;
   className?: string;
+  color?: 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' | 'inherit';
 }
 
-const sizeStyles = {
-  sm: 'w-4 h-4',
-  md: 'w-6 h-6',
-  lg: 'w-8 h-8'
-};
-
-export function LoadingSpinner({ size = 'md', className = '' }: LoadingSpinnerProps) {
-  return <Loader2 className={`animate-spin text-blue-400 ${sizeStyles[size]} ${className}`} />;
+export function LoadingSpinner({ size = 24, className = '', color = 'primary' }: LoadingSpinnerProps) {
+  return <CircularProgress size={size} color={color} className={className} />;
 }
 
 interface LoadingCardProps {
-  height?: string;
+  height?: number | string;
   className?: string;
 }
 
-export function LoadingCard({ height = 'h-64', className = '' }: LoadingCardProps) {
+export function LoadingCard({ height = 256, className = '' }: LoadingCardProps) {
   return (
-    <div className={`bg-gray-900/50 rounded-xl border border-gray-800/50 flex items-center justify-center ${height} ${className}`}>
-      <LoadingSpinner size="lg" />
-    </div>
+    <Paper 
+      variant="outlined" 
+      sx={{ 
+        height, 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        bgcolor: 'background.paper' 
+      }}
+      className={className}
+    >
+      <LoadingSpinner size={40} />
+    </Paper>
   );
 }
 
 interface SkeletonProps {
+  width?: number | string;
+  height?: number | string;
+  variant?: 'text' | 'rectangular' | 'rounded' | 'circular';
   className?: string;
 }
 
-export function Skeleton({ className = '' }: SkeletonProps) {
-  return <div className={`bg-gray-800 rounded animate-pulse ${className}`} />;
+export function Skeleton({ width, height, variant = 'rounded', className = '' }: SkeletonProps) {
+  return <MuiSkeleton variant={variant} width={width} height={height} animation="wave" className={className} sx={{ bgcolor: 'action.hover' }} />;
 }
 
 interface SkeletonCardProps {
@@ -45,11 +53,17 @@ interface SkeletonCardProps {
 
 export function SkeletonCard({ lines = 3, className = '' }: SkeletonCardProps) {
   return (
-    <div className={`bg-gray-900/50 rounded-xl p-4 border border-gray-800/50 ${className}`}>
-      <Skeleton className="h-6 w-24 mb-4" />
+    <Paper variant="outlined" sx={{ p: 2, bgcolor: 'background.paper' }} className={className}>
+      <MuiSkeleton variant="rounded" width={96} height={24} sx={{ mb: 2, bgcolor: 'action.hover' }} />
       {Array.from({ length: lines }).map((_, i) => (
-        <Skeleton key={i} className={`h-4 ${i === lines - 1 ? 'w-3/4' : 'w-full'} mb-2`} />
+        <MuiSkeleton 
+            key={i} 
+            variant="rounded" 
+            height={16} 
+            width={i === lines - 1 ? '75%' : '100%'} 
+            sx={{ mb: 1, bgcolor: 'action.hover' }} 
+        />
       ))}
-    </div>
+    </Paper>
   );
 }

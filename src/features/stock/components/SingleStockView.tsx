@@ -143,13 +143,15 @@ export default function SingleStockView({
           <Grid size={{ xs: 12, lg: 6 }}>
             <PredictionDisplay
               prediction={primaryStock?.prediction || null}
-              sentimentData={primaryStock?.sentimentData}
               currentPrice={currentPrice}
+              isLoading={isLoading}
             />
           </Grid>
           <Grid size={{ xs: 12, lg: 6 }}>
             <SignalsSummary
               signals={primaryStock?.prediction?.signals || []}
+              recommendation={primaryStock?.prediction?.recommendation}
+              isLoading={isLoading}
             />
           </Grid>
         </Grid>

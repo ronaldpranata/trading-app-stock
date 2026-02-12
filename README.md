@@ -98,6 +98,8 @@ Signals are weighted by strength and type (bullish/bearish) to generate:
 - Target price (based on ATR)
 - Stop loss level (based on ATR)
 
+
+
 ## Supported Stocks
 
 The app supports any US stock symbol. Popular pre-configured stocks include:
@@ -116,7 +118,7 @@ The app supports any US stock symbol. Popular pre-configured stocks include:
 
 - **Framework**: Next.js 16 with App Router
 - **Language**: TypeScript
-- **Styling**: Tailwind CSS
+- **Styling**: SCSS (7-1 Pattern), Material UI
 - **Charts**: Recharts
 - **Icons**: Lucide React
 

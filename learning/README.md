@@ -109,6 +109,26 @@ Follow this path step-by-step.
 
 ---
 
+## Phase 6: Styling & Domain Logic
+*Architecture decisions specific to this trading application.*
+
+### 15. [SCSS Best Practices](./scss-best-practices.md)
+   - **Goal:** Write scalable, maintainable styles.
+   - **Key Concepts:** 7-1 Pattern, BEM Naming, Global vs Local usage in Next.js.
+   - **Practical:** Review `src/styles` folder structure.
+
+### 16. [Calculation Logic Deconstructed](./calculation-logic.md)
+   - **Goal:** Understand the math behind the trading signals.
+   - **Key Concepts:** Technical Analysis formulas (RSI, MACD), Fundamental Scoring.
+   - **Practical:** Read `src/utils/technicalAnalysis.ts` alongside this guide.
+
+### 17. [Material UI & Charts](./material-ui-guide.md)
+   - **Goal:** Master the UI library and data visualization tools.
+   - **Key Concepts:** Theming, Responsive Grid, MUI X Charts customization.
+   - **Practical:** Learn how `StockChartDisplay` and `CompareView` are built.
+
+---
+
 ## How to Use This
 1. Read the guide.
 2. Open the referenced file in the codebase.

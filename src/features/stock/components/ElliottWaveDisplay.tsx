@@ -2,6 +2,7 @@
 
 import { ElliottWaveAnalysis } from '@/types/stock';
 import { Waves, Target, AlertTriangle } from 'lucide-react';
+import { Box, Card, CardContent, Grid, Typography, Stack, LinearProgress } from '@mui/material';
 
 interface ElliottWaveDisplayProps {
   elliottWave: ElliottWaveAnalysis | undefined;
@@ -11,150 +12,160 @@ interface ElliottWaveDisplayProps {
 export default function ElliottWaveDisplay({ elliottWave, currentPrice }: ElliottWaveDisplayProps) {
   if (!elliottWave) {
     return (
-      <div className="bg-gray-900/50 rounded-xl p-4 border border-gray-800/50">
-        <h3 className="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
-          <Waves className="w-4 h-4 text-cyan-400" />
-          Elliott Wave
-        </h3>
-        <div className="text-gray-400 text-sm">Loading...</div>
-      </div>
+      <Card variant="outlined" sx={{ height: '100%' }}>
+        <CardContent>
+          <Typography variant="subtitle2" color="text.secondary" gutterBottom>Elliott Wave</Typography>
+          <Typography variant="body2" color="text.secondary">Loading...</Typography>
+        </CardContent>
+      </Card>
     );
   }
 
   const waveColors: Record<number, string> = {
-    1: 'text-blue-400',
-    2: 'text-purple-400',
-    3: 'text-green-400',
-    4: 'text-yellow-400',
-    5: 'text-red-400'
+    1: 'info.main', // blue
+    2: 'secondary.main', // purple
+    3: 'success.main', // green
+    4: 'warning.main', // yellow
+    5: 'error.main' // red
   };
 
   return (
-    <div className="bg-gray-900/50 rounded-xl p-4 border border-gray-800/50">
-      <h3 className="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
-        <Waves className="w-4 h-4 text-cyan-400" />
-        Elliott Wave Analysis
-      </h3>
+    <Card variant="outlined" sx={{ height: '100%' }}>
+      <CardContent>
+        <Stack direction="row" alignItems="center" gap={1} mb={2}>
+          <Waves size={16} color="#22d3ee" /> {/* cyan-400 */}
+          <Typography variant="subtitle2" fontWeight="bold">Elliott Wave Analysis</Typography>
+        </Stack>
 
-      {/* Current Wave Status */}
-      <div className={`rounded-lg p-3 mb-3 border ${
-        elliottWave.trendDirection === 'up' ? 'bg-green-500/10 border-green-500/30' : 'bg-red-500/10 border-red-500/30'
-      }`}>
-        <div className="flex items-center justify-between mb-2">
-          <div>
-            <span className="text-xs text-gray-400">Current Wave</span>
-            <div className={`text-2xl font-bold ${waveColors[elliottWave.currentWave] || 'text-white'}`}>
-              Wave {elliottWave.currentWave}
-            </div>
-          </div>
-          <div className="text-right">
-            <span className="text-xs text-gray-400">Trend</span>
-            <div className={`text-lg font-bold ${elliottWave.trendDirection === 'up' ? 'text-green-400' : 'text-red-400'}`}>
-              {elliottWave.trendDirection === 'up' ? '↑ UP' : '↓ DOWN'}
-            </div>
-          </div>
-        </div>
-        
-        {/* Progress Bar */}
-        <div className="mb-2">
-          <div className="flex justify-between text-[10px] text-gray-400 mb-1">
-            <span>Progress</span>
-            <span>{(elliottWave.waveProgress * 100).toFixed(0)}%</span>
-          </div>
-          <div className="h-1.5 bg-gray-700 rounded-full overflow-hidden">
-            <div 
-              className={`h-full ${elliottWave.trendDirection === 'up' ? 'bg-green-500' : 'bg-red-500'}`}
-              style={{ width: `${elliottWave.waveProgress * 100}%` }}
+        {/* Current Wave Status */}
+        <Box sx={{ 
+            p: 1.5,
+            mb: 2,
+            borderRadius: 1,
+            border: 1,
+            borderColor: elliottWave.trendDirection === 'up' ? 'success.dark' : 'error.dark',
+            bgcolor: elliottWave.trendDirection === 'up' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)'
+        }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+            <Box>
+              <Typography variant="caption" color="text.secondary" display="block">Current Wave</Typography>
+              <Typography variant="h5" fontWeight="bold" color={waveColors[elliottWave.currentWave] || 'text.primary'}>
+                Wave {elliottWave.currentWave}
+              </Typography>
+            </Box>
+            <Box textAlign="right">
+              <Typography variant="caption" color="text.secondary" display="block">Trend</Typography>
+              <Typography variant="h6" fontWeight="bold" color={elliottWave.trendDirection === 'up' ? 'success.main' : 'error.main'}>
+                {elliottWave.trendDirection === 'up' ? '↑ UP' : '↓ DOWN'}
+              </Typography>
+            </Box>
+          </Stack>
+          
+          {/* Progress Bar */}
+          <Box mb={1}>
+            <Stack direction="row" justifyContent="space-between" mb={0.5}>
+              <Typography variant="caption" color="text.secondary">Progress</Typography>
+              <Typography variant="caption" color="text.secondary">{(elliottWave.waveProgress * 100).toFixed(0)}%</Typography>
+            </Stack>
+            <LinearProgress 
+                variant="determinate" 
+                value={elliottWave.waveProgress * 100} 
+                color={elliottWave.trendDirection === 'up' ? 'success' : 'error'}
+                sx={{ height: 6, borderRadius: 1 }}
             />
-          </div>
-        </div>
+          </Box>
 
-        <div className="text-[10px] text-gray-400">
-          {elliottWave.waveType === 'impulse' ? 'Impulse' : 'Corrective'} • {elliottWave.wavePhase} phase
-        </div>
-      </div>
+          <Typography variant="caption" color="text.secondary">
+            {elliottWave.waveType === 'impulse' ? 'Impulse' : 'Corrective'} • {elliottWave.wavePhase} phase
+          </Typography>
+        </Box>
 
-      {/* Wave Pattern Visual */}
-      <div className="bg-gray-800/30 rounded-lg p-3 mb-3">
-        <div className="text-xs text-gray-400 mb-2">Wave Pattern</div>
-        <div className="flex items-end justify-between h-12 px-2">
-          {[1, 2, 3, 4, 5].map(wave => {
-            const heights = { 1: 40, 2: 25, 3: 100, 4: 60, 5: 80 };
-            const isActive = wave === elliottWave.currentWave;
-            return (
-              <div key={wave} className="flex flex-col items-center gap-1">
-                <div 
-                  className={`w-4 rounded-t transition-all ${
-                    isActive ? 'bg-cyan-400' : wave < elliottWave.currentWave ? 'bg-gray-500' : 'bg-gray-700'
-                  }`}
-                  style={{ height: `${heights[wave as keyof typeof heights] * 0.4}px` }}
-                />
-                <span className={`text-[10px] ${isActive ? 'text-cyan-400 font-bold' : 'text-gray-500'}`}>
-                  {wave}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+        {/* Wave Pattern Visual */}
+        <Box sx={{ bgcolor: 'action.hover', p: 1.5, borderRadius: 1, mb: 2 }}>
+          <Typography variant="caption" color="text.secondary" mb={1} display="block">Wave Pattern</Typography>
+          <Stack direction="row" alignItems="flex-end" justifyContent="space-between" height={48} px={1}>
+            {[1, 2, 3, 4, 5].map(wave => {
+              const heights = { 1: 40, 2: 25, 3: 100, 4: 60, 5: 80 };
+              const isActive = wave === elliottWave.currentWave;
+              return (
+                <Stack key={wave} alignItems="center" gap={0.5}>
+                  <Box sx={{ 
+                      width: 16, 
+                      height: heights[wave as keyof typeof heights] * 0.4,
+                      borderTopLeftRadius: 4,
+                      borderTopRightRadius: 4,
+                      bgcolor: isActive ? 'info.light' : wave < elliottWave.currentWave ? 'text.disabled' : 'action.selected',
+                      transition: 'all 0.3s'
+                  }} />
+                  <Typography variant="caption" fontWeight={isActive ? 'bold' : 'regular'} color={isActive ? 'info.light' : 'text.disabled'} sx={{ fontSize: '0.65rem' }}>
+                    {wave}
+                  </Typography>
+                </Stack>
+              );
+            })}
+          </Stack>
+        </Box>
 
-      {/* Targets */}
-      <div className="grid grid-cols-2 gap-2 mb-3">
-        <div className="bg-gray-800/30 rounded-lg p-2">
-          <div className="flex items-center gap-1 text-[10px] text-gray-400 mb-1">
-            <Target className="w-3 h-3 text-green-400" />
-            Wave Target
-          </div>
-          <div className="text-sm font-bold text-green-400">
-            ${elliottWave.nextWaveTarget.toFixed(2)}
-          </div>
-          <div className="text-[10px] text-gray-500">
-            {((elliottWave.nextWaveTarget - currentPrice) / currentPrice * 100).toFixed(1)}% from current
-          </div>
-        </div>
-        <div className="bg-gray-800/30 rounded-lg p-2">
-          <div className="flex items-center gap-1 text-[10px] text-gray-400 mb-1">
-            <AlertTriangle className="w-3 h-3 text-red-400" />
-            Invalidation
-          </div>
-          <div className="text-sm font-bold text-red-400">
-            ${elliottWave.invalidationLevel.toFixed(2)}
-          </div>
-          <div className="text-[10px] text-gray-500">
-            {((elliottWave.invalidationLevel - currentPrice) / currentPrice * 100).toFixed(1)}% from current
-          </div>
-        </div>
-      </div>
+        {/* Targets */}
+        <Grid container spacing={1} mb={2}>
+          <Grid size={6}>
+            <Box sx={{ bgcolor: 'action.hover', p: 1, borderRadius: 1 }}>
+              <Stack direction="row" alignItems="center" gap={0.5} mb={0.5}>
+                <Target size={12} className="text-green-400" />
+                <Typography variant="caption" color="text.secondary">Wave Target</Typography>
+              </Stack>
+              <Typography variant="body2" fontWeight="bold" color="success.main">
+                ${elliottWave.nextWaveTarget.toFixed(2)}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {((elliottWave.nextWaveTarget - currentPrice) / currentPrice * 100).toFixed(1)}% from current
+              </Typography>
+            </Box>
+          </Grid>
+          <Grid size={6}>
+            <Box sx={{ bgcolor: 'action.hover', p: 1, borderRadius: 1 }}>
+              <Stack direction="row" alignItems="center" gap={0.5} mb={0.5}>
+                <AlertTriangle size={12} className="text-red-400" />
+                <Typography variant="caption" color="text.secondary">Invalidation</Typography>
+              </Stack>
+              <Typography variant="body2" fontWeight="bold" color="error.main">
+                ${elliottWave.invalidationLevel.toFixed(2)}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {((elliottWave.invalidationLevel - currentPrice) / currentPrice * 100).toFixed(1)}% from current
+              </Typography>
+            </Box>
+          </Grid>
+        </Grid>
 
-      {/* Fibonacci Levels */}
-      {elliottWave.fibonacciLevels.length > 0 && (
-        <div className="bg-gray-800/30 rounded-lg p-2">
-          <div className="text-xs text-gray-400 mb-2">Key Fibonacci Levels</div>
-          <div className="space-y-1">
-            {elliottWave.fibonacciLevels.slice(0, 4).map((fib, i) => (
-              <div key={i} className="flex justify-between text-[10px]">
-                <span className="text-gray-500">{fib.label}</span>
-                <span className={`font-medium ${
-                  fib.type === 'retracement' ? 'text-yellow-400' : 'text-cyan-400'
-                }`}>
-                  ${fib.price.toFixed(2)}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+        {/* Fibonacci Levels */}
+        {elliottWave.fibonacciLevels.length > 0 && (
+          <Box sx={{ bgcolor: 'action.hover', p: 1, borderRadius: 1, mb: 2 }}>
+            <Typography variant="caption" color="text.secondary" mb={1} display="block">Key Fibonacci Levels</Typography>
+            <Stack spacing={0.5}>
+              {elliottWave.fibonacciLevels.slice(0, 4).map((fib, i) => (
+                <Stack key={i} direction="row" justifyContent="space-between">
+                  <Typography variant="caption" color="text.secondary">{fib.label}</Typography>
+                  <Typography variant="caption" color={fib.type === 'retracement' ? 'warning.main' : 'info.main'} fontWeight="medium">
+                    ${fib.price.toFixed(2)}
+                  </Typography>
+                </Stack>
+              ))}
+            </Stack>
+          </Box>
+        )}
 
-      {/* Confidence */}
-      <div className="mt-3 flex items-center justify-between text-xs">
-        <span className="text-gray-400">Analysis Confidence</span>
-        <span className={`font-bold ${
-          elliottWave.confidence > 70 ? 'text-green-400' : 
-          elliottWave.confidence > 50 ? 'text-yellow-400' : 'text-red-400'
-        }`}>
-          {elliottWave.confidence.toFixed(0)}%
-        </span>
-      </div>
-    </div>
+        {/* Confidence */}
+        <Stack direction="row" justifyContent="space-between" alignItems="center" mt="auto">
+          <Typography variant="caption" color="text.secondary">Analysis Confidence</Typography>
+          <Typography variant="caption" fontWeight="bold" color={
+             elliottWave.confidence > 70 ? 'success.main' : 
+             elliottWave.confidence > 50 ? 'warning.main' : 'error.main'
+          }>
+            {elliottWave.confidence.toFixed(0)}%
+          </Typography>
+        </Stack>
+      </CardContent>
+    </Card>
   );
 }

@@ -4,7 +4,7 @@ import { TimeRange } from '@/lib/constants';
 import { LoadingCard } from '@/components/ui';
 import { useChartData, PeriodSummary, MeasureDisplay, ChartControls, StockChartDisplay, PeriodStatsDisplay } from '@/components/charts';
 import { useChartMeasure } from '@/hooks';
-import { Card, CardContent, Typography, Box } from '@mui/material';
+import { Box, Card, CardContent, Typography, useTheme } from '@mui/material';
 
 interface StockChartProps {
   data: HistoricalData[];
@@ -109,6 +109,7 @@ export default function StockChart({ data, indicators, currentPrice, symbol, isL
 
         {/* Chart (Memoized) */}
         <StockChartDisplay 
+          key={timeRange}
           data={chartData}
           showSMA={showSMA}
           indicators={indicators}
@@ -121,7 +122,9 @@ export default function StockChart({ data, indicators, currentPrice, symbol, isL
 
         {/* Period Statistics */}
         {periodStats && (
-          <PeriodStatsDisplay stats={periodStats} className="mt-3 pt-3 border-t border-gray-800/50" />
+          <Box sx={{ mt: 3, pt: 3, borderTop: 1, borderColor: 'divider' }}>
+            <PeriodStatsDisplay stats={periodStats} />
+          </Box>
         )}
 
         {/* Current Price */}

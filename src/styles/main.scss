@@ -1,0 +1,42 @@
+@use 'abstracts/variables' as *;
+@use 'abstracts/mixins' as *;
+@use 'base/animations' as *;
+
+:root {
+  --background: #000000;
+  --foreground: #ffffff;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  margin: 0;
+  padding: 0;
+  @include custom-scrollbar;
+}
+
+/* Global Utility Classes */
+.gradient-text {
+  @include gradient-text;
+}
+
+.glass {
+  @include glass-effect;
+}
+
+/* Chart tooltip custom styles */
+.recharts-tooltip-wrapper {
+  outline: none !important;
+}
+
+.recharts-default-tooltip {
+  background-color: #1f2937 !important;
+  border: 1px solid #374151 !important;
+  border-radius: 8px !important;
+}
+
+/* Scrollbar utilities */
+.no-scrollbar {
+  @include no-scrollbar;
+}

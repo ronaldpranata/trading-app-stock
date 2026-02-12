@@ -2,6 +2,7 @@
 
 import { TechnicalIndicators } from '@/types/stock';
 import { TrendingUp, TrendingDown, Activity, Calendar } from 'lucide-react';
+import { Box, Card, CardContent, Grid, Typography, Stack, Chip } from '@mui/material';
 
 interface TechnicalAnalysisProps {
   indicators: TechnicalIndicators | null;
@@ -11,17 +12,19 @@ interface TechnicalAnalysisProps {
 export default function TechnicalAnalysis({ indicators, currentPrice }: TechnicalAnalysisProps) {
   if (!indicators) {
     return (
-      <div className="bg-gray-900/50 rounded-xl p-4 border border-gray-800/50">
-        <h3 className="text-sm font-semibold text-gray-300 mb-4">Technical Analysis</h3>
-        <div className="text-gray-400 text-sm">Loading...</div>
-      </div>
+      <Card variant="outlined" sx={{ height: '100%' }}>
+        <CardContent>
+           <Typography variant="subtitle2" color="text.secondary" gutterBottom>Technical Analysis</Typography>
+           <Typography variant="body2" color="text.secondary">Loading...</Typography>
+        </CardContent>
+      </Card>
     );
   }
 
   const getRSIColor = (rsi: number) => {
-    if (rsi < 30) return 'text-green-400';
-    if (rsi > 70) return 'text-red-400';
-    return 'text-yellow-400';
+    if (rsi < 30) return 'success';
+    if (rsi > 70) return 'error';
+    return 'warning';
   };
 
   const getRSILabel = (rsi: number) => {
@@ -31,209 +34,226 @@ export default function TechnicalAnalysis({ indicators, currentPrice }: Technica
   };
 
   return (
-    <div className="bg-gray-900/50 rounded-xl p-4 border border-gray-800/50">
-      <h3 className="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
-        <Activity className="w-4 h-4 text-blue-400" />
-        Technical Analysis
-      </h3>
-      
-      <div className="space-y-4">
-        {/* Yearly Performance */}
-        {indicators.yearlyMetrics && (
-          <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg p-3 border border-blue-500/20">
-            <div className="flex items-center gap-2 mb-2">
-              <Calendar className="w-3 h-3 text-blue-400" />
-              <span className="text-xs font-medium text-blue-400">1-Year Performance</span>
-            </div>
-            <div className="grid grid-cols-4 gap-2">
-              <div>
-                <div className="text-[10px] text-gray-500">Return</div>
-                <div className={`text-sm font-bold ${indicators.yearlyMetrics.yearlyReturn >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  {indicators.yearlyMetrics.yearlyReturn >= 0 ? '+' : ''}{indicators.yearlyMetrics.yearlyReturn.toFixed(1)}%
-                </div>
-              </div>
-              <div>
-                <div className="text-[10px] text-gray-500">Volatility</div>
-                <div className="text-sm font-bold text-white">{indicators.yearlyMetrics.volatility.toFixed(1)}%</div>
-              </div>
-              <div>
-                <div className="text-[10px] text-gray-500">Sharpe</div>
-                <div className={`text-sm font-bold ${indicators.yearlyMetrics.sharpeRatio > 1 ? 'text-green-400' : 'text-white'}`}>
-                  {indicators.yearlyMetrics.sharpeRatio.toFixed(2)}
-                </div>
-              </div>
-              <div>
-                <div className="text-[10px] text-gray-500">Max DD</div>
-                <div className="text-sm font-bold text-red-400">-{indicators.yearlyMetrics.maxDrawdown.toFixed(1)}%</div>
-              </div>
-            </div>
-          </div>
-        )}
+    <Card variant="outlined" sx={{ height: '100%' }}>
+      <CardContent>
+        <Stack direction="row" alignItems="center" gap={1} mb={2}>
+          <Activity size={16} color="#60a5fa" /> {/* blue-400 */}
+          <Typography variant="subtitle2" fontWeight="bold">Technical Analysis</Typography>
+        </Stack>
+        
+        <Stack spacing={2}>
+          {/* Yearly Performance */}
+          {indicators.yearlyMetrics && (
+            <Box sx={{ 
+                background: 'linear-gradient(to right, rgba(59, 130, 246, 0.1), rgba(168, 85, 247, 0.1))',
+                p: 1.5,
+                borderRadius: 1,
+                border: 1,
+                borderColor: 'rgba(59, 130, 246, 0.2)'
+            }}>
+              <Stack direction="row" alignItems="center" gap={1} mb={1}>
+                <Calendar size={12} className="text-blue-400" />
+                <Typography variant="caption" color="primary.light" fontWeight="medium">1-Year Performance</Typography>
+              </Stack>
+              <Grid container spacing={1}>
+                <Grid size={3}>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" display="block">Return</Typography>
+                    <Typography variant="body2" fontWeight="bold" color={indicators.yearlyMetrics.yearlyReturn >= 0 ? 'success.main' : 'error.main'}>
+                      {indicators.yearlyMetrics.yearlyReturn >= 0 ? '+' : ''}{indicators.yearlyMetrics.yearlyReturn.toFixed(1)}%
+                    </Typography>
+                  </Box>
+                </Grid>
+                <Grid size={3}>
+                    <Box>
+                        <Typography variant="caption" color="text.secondary" display="block">Volatility</Typography>
+                        <Typography variant="body2" fontWeight="bold">{indicators.yearlyMetrics.volatility.toFixed(1)}%</Typography>
+                    </Box>
+                </Grid>
+                <Grid size={3}>
+                    <Box>
+                        <Typography variant="caption" color="text.secondary" display="block">Sharpe</Typography>
+                        <Typography variant="body2" fontWeight="bold" color={indicators.yearlyMetrics.sharpeRatio > 1 ? 'success.main' : 'text.primary'}>
+                            {indicators.yearlyMetrics.sharpeRatio.toFixed(2)}
+                        </Typography>
+                    </Box>
+                </Grid>
+                <Grid size={3}>
+                    <Box>
+                        <Typography variant="caption" color="text.secondary" display="block">Max DD</Typography>
+                        <Typography variant="body2" fontWeight="bold" color="error.main">-{indicators.yearlyMetrics.maxDrawdown.toFixed(1)}%</Typography>
+                    </Box>
+                </Grid>
+              </Grid>
+            </Box>
+          )}
 
-        {/* Moving Averages */}
-        <div className="bg-gray-800/30 rounded-lg p-3">
-          <div className="text-xs font-medium text-gray-400 mb-2">Moving Averages</div>
-          <div className="grid grid-cols-3 gap-2">
-            <div>
-              <div className="text-[10px] text-gray-500">SMA20</div>
-              <div className={`text-sm font-bold ${currentPrice > indicators.sma20 ? 'text-green-400' : 'text-red-400'}`}>
-                ${indicators.sma20.toFixed(2)}
-              </div>
-            </div>
-            <div>
-              <div className="text-[10px] text-gray-500">SMA50</div>
-              <div className={`text-sm font-bold ${currentPrice > indicators.sma50 ? 'text-green-400' : 'text-red-400'}`}>
-                ${indicators.sma50.toFixed(2)}
-              </div>
-            </div>
-            <div>
-              <div className="text-[10px] text-gray-500">SMA200</div>
-              <div className={`text-sm font-bold ${currentPrice > indicators.sma200 ? 'text-green-400' : 'text-red-400'}`}>
-                ${indicators.sma200.toFixed(2)}
-              </div>
-            </div>
-          </div>
-          <div className="mt-2 text-[10px]">
-            {indicators.sma50 > indicators.sma200 ? (
-              <span className="text-green-400 flex items-center gap-1">
-                <TrendingUp className="w-3 h-3" /> Golden Cross Active
-              </span>
-            ) : (
-              <span className="text-red-400 flex items-center gap-1">
-                <TrendingDown className="w-3 h-3" /> Death Cross Active
-              </span>
-            )}
-          </div>
-        </div>
+          {/* Moving Averages */}
+          <Box sx={{ bgcolor: 'action.hover', p: 1.5, borderRadius: 1 }}>
+            <Typography variant="caption" color="text.secondary" fontWeight="medium" mb={1} display="block">Moving Averages</Typography>
+            <Grid container spacing={1}>
+              <Grid size={4}>
+                  <Typography variant="caption" color="text.secondary" display="block">SMA20</Typography>
+                  <Typography variant="body2" fontWeight="bold" color={currentPrice > indicators.sma20 ? 'success.main' : 'error.main'}>
+                    ${indicators.sma20.toFixed(2)}
+                  </Typography>
+              </Grid>
+              <Grid size={4}>
+                  <Typography variant="caption" color="text.secondary" display="block">SMA50</Typography>
+                   <Typography variant="body2" fontWeight="bold" color={currentPrice > indicators.sma50 ? 'success.main' : 'error.main'}>
+                    ${indicators.sma50.toFixed(2)}
+                  </Typography>
+              </Grid>
+              <Grid size={4}>
+                   <Typography variant="caption" color="text.secondary" display="block">SMA200</Typography>
+                   <Typography variant="body2" fontWeight="bold" color={currentPrice > indicators.sma200 ? 'success.main' : 'error.main'}>
+                    ${indicators.sma200.toFixed(2)}
+                  </Typography>
+              </Grid>
+            </Grid>
+            <Box mt={1}>
+                 {indicators.sma50 > indicators.sma200 ? (
+                  <Stack direction="row" alignItems="center" gap={0.5}>
+                    <TrendingUp size={12} color="#4ade80" /> 
+                    <Typography variant="caption" color="success.main">Golden Cross Active</Typography>
+                  </Stack>
+                ) : (
+                  <Stack direction="row" alignItems="center" gap={0.5}>
+                    <TrendingDown size={12} color="#f87171" />
+                    <Typography variant="caption" color="error.main">Death Cross Active</Typography>
+                  </Stack>
+                )}
+            </Box>
+          </Box>
 
-        {/* RSI */}
-        <div className="bg-gray-800/30 rounded-lg p-3">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-gray-400">RSI (14)</span>
-            <span className={`text-xs px-2 py-0.5 rounded ${getRSIColor(indicators.rsi)} bg-gray-700/50`}>
-              {getRSILabel(indicators.rsi)}
-            </span>
-          </div>
-          <div className={`text-2xl font-bold ${getRSIColor(indicators.rsi)}`}>
-            {indicators.rsi.toFixed(1)}
-          </div>
-          <div className="mt-2 h-1.5 bg-gray-700 rounded-full overflow-hidden">
-            <div 
-              className={`h-full transition-all ${
-                indicators.rsi < 30 ? 'bg-green-500' : 
-                indicators.rsi > 70 ? 'bg-red-500' : 'bg-yellow-500'
-              }`}
-              style={{ width: `${indicators.rsi}%` }}
-            />
-          </div>
-        </div>
+          {/* RSI */}
+          <Box sx={{ bgcolor: 'action.hover', p: 1.5, borderRadius: 1 }}>
+             <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+                <Typography variant="caption" color="text.secondary" fontWeight="medium">RSI (14)</Typography>
+                <Chip label={getRSILabel(indicators.rsi)} size="small" color={getRSIColor(indicators.rsi)} variant="outlined" sx={{ height: 20, fontSize: '0.65rem' }} />
+             </Stack>
+             <Typography variant="h5" fontWeight="bold" color={`${getRSIColor(indicators.rsi)}.main`}>
+                {indicators.rsi.toFixed(1)}
+             </Typography>
+             <Box sx={{ height: 6, bgcolor: 'action.selected', borderRadius: 99, mt: 1, position: 'relative', overflow: 'hidden' }}>
+                <Box sx={{ 
+                    position: 'absolute', 
+                    height: '100%', 
+                    width: `${indicators.rsi}%`, 
+                    bgcolor: indicators.rsi < 30 ? 'success.main' : indicators.rsi > 70 ? 'error.main' : 'warning.main',
+                    transition: 'width 0.5s ease'
+                }} />
+             </Box>
+          </Box>
 
-        {/* MACD */}
-        <div className="bg-gray-800/30 rounded-lg p-3">
-          <div className="text-xs font-medium text-gray-400 mb-2">MACD</div>
-          <div className="grid grid-cols-3 gap-2">
-            <div>
-              <div className="text-[10px] text-gray-500">MACD</div>
-              <div className="text-sm font-bold text-white">{indicators.macd.macdLine.toFixed(2)}</div>
-            </div>
-            <div>
-              <div className="text-[10px] text-gray-500">Signal</div>
-              <div className="text-sm font-bold text-white">{indicators.macd.signalLine.toFixed(2)}</div>
-            </div>
-            <div>
-              <div className="text-[10px] text-gray-500">Histogram</div>
-              <div className={`text-sm font-bold ${indicators.macd.histogram > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                {indicators.macd.histogram.toFixed(2)}
-              </div>
-            </div>
-          </div>
-        </div>
+          {/* MACD */}
+          <Box sx={{ bgcolor: 'action.hover', p: 1.5, borderRadius: 1 }}>
+             <Typography variant="caption" color="text.secondary" fontWeight="medium" mb={1} display="block">MACD</Typography>
+             <Grid container spacing={1}>
+                <Grid size={4}>
+                    <Typography variant="caption" color="text.secondary" display="block">MACD</Typography>
+                    <Typography variant="body2" fontWeight="bold">{indicators.macd.macdLine.toFixed(2)}</Typography>
+                </Grid>
+                <Grid size={4}>
+                     <Typography variant="caption" color="text.secondary" display="block">Signal</Typography>
+                     <Typography variant="body2" fontWeight="bold">{indicators.macd.signalLine.toFixed(2)}</Typography>
+                </Grid>
+                <Grid size={4}>
+                     <Typography variant="caption" color="text.secondary" display="block">Histogram</Typography>
+                     <Typography variant="body2" fontWeight="bold" color={indicators.macd.histogram > 0 ? 'success.main' : 'error.main'}>
+                        {indicators.macd.histogram.toFixed(2)}
+                     </Typography>
+                </Grid>
+             </Grid>
+          </Box>
 
-        {/* Bollinger & Stochastic */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-gray-800/30 rounded-lg p-3">
-            <div className="text-xs font-medium text-gray-400 mb-2">Bollinger Bands</div>
-            <div className="space-y-1 text-xs">
-              <div className="flex justify-between">
-                <span className="text-gray-500">Upper</span>
-                <span className="text-red-400">${indicators.bollingerBands.upper.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Middle</span>
-                <span className="text-white">${indicators.bollingerBands.middle.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Lower</span>
-                <span className="text-green-400">${indicators.bollingerBands.lower.toFixed(2)}</span>
-              </div>
-            </div>
-          </div>
+          {/* Bollinger & Stochastic */}
+          <Grid container spacing={2}>
+            <Grid size={6}>
+                 <Box sx={{ bgcolor: 'action.hover', p: 1.5, borderRadius: 1 }}>
+                     <Typography variant="caption" color="text.secondary" fontWeight="medium" mb={1} display="block">Bollinger Bands</Typography>
+                     <Stack spacing={0.5}>
+                        <Stack direction="row" justifyContent="space-between">
+                             <Typography variant="caption" color="text.secondary">Upper</Typography>
+                             <Typography variant="caption" color="error.main">${indicators.bollingerBands.upper.toFixed(2)}</Typography>
+                        </Stack>
+                        <Stack direction="row" justifyContent="space-between">
+                             <Typography variant="caption" color="text.secondary">Middle</Typography>
+                             <Typography variant="caption" color="text.primary">${indicators.bollingerBands.middle.toFixed(2)}</Typography>
+                        </Stack>
+                        <Stack direction="row" justifyContent="space-between">
+                             <Typography variant="caption" color="text.secondary">Lower</Typography>
+                             <Typography variant="caption" color="success.main">${indicators.bollingerBands.lower.toFixed(2)}</Typography>
+                        </Stack>
+                     </Stack>
+                 </Box>
+            </Grid>
+            <Grid size={6}>
+                 <Box sx={{ bgcolor: 'action.hover', p: 1.5, borderRadius: 1 }}>
+                     <Typography variant="caption" color="text.secondary" fontWeight="medium" mb={1} display="block">Stochastic</Typography>
+                     <Stack spacing={0.5}>
+                        <Stack direction="row" justifyContent="space-between">
+                             <Typography variant="caption" color="text.secondary">%K</Typography>
+                             <Typography variant="caption" color={indicators.stochastic.k < 20 ? 'success.main' : indicators.stochastic.k > 80 ? 'error.main' : 'text.primary'}>
+                                {indicators.stochastic.k.toFixed(1)}
+                             </Typography>
+                        </Stack>
+                        <Stack direction="row" justifyContent="space-between">
+                             <Typography variant="caption" color="text.secondary">%D</Typography>
+                             <Typography variant="caption" color="text.primary">{indicators.stochastic.d.toFixed(1)}</Typography>
+                        </Stack>
+                         <Stack direction="row" justifyContent="space-between">
+                             <Typography variant="caption" color="text.secondary">ATR</Typography>
+                             <Typography variant="caption" color="text.primary">${indicators.atr.toFixed(2)}</Typography>
+                        </Stack>
+                     </Stack>
+                 </Box>
+            </Grid>
+          </Grid>
 
-          <div className="bg-gray-800/30 rounded-lg p-3">
-            <div className="text-xs font-medium text-gray-400 mb-2">Stochastic</div>
-            <div className="space-y-1 text-xs">
-              <div className="flex justify-between">
-                <span className="text-gray-500">%K</span>
-                <span className={`${
-                  indicators.stochastic.k < 20 ? 'text-green-400' : 
-                  indicators.stochastic.k > 80 ? 'text-red-400' : 'text-white'
-                }`}>{indicators.stochastic.k.toFixed(1)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">%D</span>
-                <span className="text-white">{indicators.stochastic.d.toFixed(1)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">ATR</span>
-                <span className="text-white">${indicators.atr.toFixed(2)}</span>
-              </div>
-            </div>
-          </div>
-        </div>
+          {/* Extended Indicators */}
+          {(indicators.adx !== undefined || indicators.cci !== undefined) && (
+             <Box sx={{ bgcolor: 'action.hover', p: 1.5, borderRadius: 1 }}>
+                <Typography variant="caption" color="text.secondary" fontWeight="medium" mb={1} display="block">Extended Indicators</Typography>
+                <Grid container spacing={1}>
+                     {indicators.adx !== undefined && (
+                        <Grid size={3}>
+                            <Typography variant="caption" color="text.secondary" display="block">ADX</Typography>
+                            <Typography variant="body2" fontWeight="bold" color={indicators.adx > 25 ? 'success.main' : 'text.disabled'}>
+                                {indicators.adx.toFixed(0)}
+                            </Typography>
+                        </Grid>
+                     )}
+                     {indicators.williamsR !== undefined && (
+                        <Grid size={3}>
+                            <Typography variant="caption" color="text.secondary" display="block">W%R</Typography>
+                            <Typography variant="body2" fontWeight="bold" color={indicators.williamsR < -80 ? 'success.main' : indicators.williamsR > -20 ? 'error.main' : 'text.primary'}>
+                                {indicators.williamsR.toFixed(0)}
+                            </Typography>
+                        </Grid>
+                     )}
+                     {indicators.cci !== undefined && (
+                        <Grid size={3}>
+                            <Typography variant="caption" color="text.secondary" display="block">CCI</Typography>
+                            <Typography variant="body2" fontWeight="bold" color={indicators.cci < -100 ? 'success.main' : indicators.cci > 100 ? 'error.main' : 'text.primary'}>
+                                {indicators.cci.toFixed(0)}
+                            </Typography>
+                        </Grid>
+                     )}
+                     {indicators.roc !== undefined && (
+                        <Grid size={3}>
+                            <Typography variant="caption" color="text.secondary" display="block">ROC</Typography>
+                            <Typography variant="body2" fontWeight="bold" color={indicators.roc > 0 ? 'success.main' : 'error.main'}>
+                                {indicators.roc > 0 ? '+' : ''}{indicators.roc.toFixed(1)}%
+                            </Typography>
+                        </Grid>
+                     )}
+                </Grid>
+             </Box>
+          )}
 
-        {/* Extended Indicators */}
-        {(indicators.adx !== undefined || indicators.cci !== undefined) && (
-          <div className="bg-gray-800/30 rounded-lg p-3">
-            <div className="text-xs font-medium text-gray-400 mb-2">Extended Indicators</div>
-            <div className="grid grid-cols-4 gap-2 text-xs">
-              {indicators.adx !== undefined && (
-                <div>
-                  <div className="text-[10px] text-gray-500">ADX</div>
-                  <div className={`font-bold ${indicators.adx > 25 ? 'text-green-400' : 'text-gray-400'}`}>
-                    {indicators.adx.toFixed(0)}
-                  </div>
-                </div>
-              )}
-              {indicators.williamsR !== undefined && (
-                <div>
-                  <div className="text-[10px] text-gray-500">W%R</div>
-                  <div className={`font-bold ${
-                    indicators.williamsR < -80 ? 'text-green-400' : 
-                    indicators.williamsR > -20 ? 'text-red-400' : 'text-white'
-                  }`}>{indicators.williamsR.toFixed(0)}</div>
-                </div>
-              )}
-              {indicators.cci !== undefined && (
-                <div>
-                  <div className="text-[10px] text-gray-500">CCI</div>
-                  <div className={`font-bold ${
-                    indicators.cci < -100 ? 'text-green-400' : 
-                    indicators.cci > 100 ? 'text-red-400' : 'text-white'
-                  }`}>{indicators.cci.toFixed(0)}</div>
-                </div>
-              )}
-              {indicators.roc !== undefined && (
-                <div>
-                  <div className="text-[10px] text-gray-500">ROC</div>
-                  <div className={`font-bold ${indicators.roc > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {indicators.roc > 0 ? '+' : ''}{indicators.roc.toFixed(1)}%
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+        </Stack>
+      </CardContent>
+    </Card>
   );
 }

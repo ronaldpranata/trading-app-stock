@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { StockQuote, HistoricalData, FundamentalData, TechnicalIndicators, PredictionResult, StockData } from '@/types/stock';
 import { TrendingUp, TrendingDown, Brain, BarChart3 } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { LineChart } from '@mui/x-charts';
 import { 
   Grid, 
   Card, 
@@ -23,8 +23,6 @@ import {
   ToggleButtonGroup,
   useTheme
 } from '@mui/material';
-
-
 
 interface CompareViewProps {
   primaryStock: StockData;
@@ -55,7 +53,7 @@ export default function CompareView({ primaryStock, compareStocks }: CompareView
   const theme = useTheme();
 
   // Prepare chart data with time range
-  const { chartData, performanceData } = useMemo(() => {
+  const { xData, seriesData, performanceData } = useMemo(() => {
     const range = TIME_RANGES.find(r => r.id === timeRange);
     const days = range?.days || 66;
 
@@ -65,20 +63,29 @@ export default function CompareView({ primaryStock, compareStocks }: CompareView
     });
 
     const sortedDates = Array.from(allDates).sort();
-
-    const chartData = sortedDates.map(date => {
-      const dataPoint: Record<string, string | number> = { date };
-      
-      allStocks.forEach(stock => {
+    
+    // Prepare series data for MUI X Charts
+    const seriesData = allStocks.map((stock, index) => {
         const filteredData = stock.historicalData.slice(-days);
         const firstPrice = filteredData[0]?.close || 1;
-        const dayData = filteredData.find(d => d.date === date);
-        if (dayData) {
-          dataPoint[stock.symbol] = ((dayData.close - firstPrice) / firstPrice) * 100;
-        }
-      });
+        
+        // Map dates to values, handling missing data points
+        const data = sortedDates.map(date => {
+            const dayData = filteredData.find(d => d.date === date);
+            if (dayData) {
+                return ((dayData.close - firstPrice) / firstPrice) * 100;
+            }
+            return null;
+        });
 
-      return dataPoint;
+        return {
+            type: 'line' as const,
+            data,
+            label: stock.symbol,
+            color: COLORS[index % COLORS.length],
+            showMark: false,
+            valueFormatter: (v: number | null) => v !== null ? `${v.toFixed(2)}%` : '',
+        };
     });
 
     // Calculate performance metrics for each stock
@@ -141,7 +148,7 @@ export default function CompareView({ primaryStock, compareStocks }: CompareView
       };
     }).filter((item): item is PerformanceMetric => item !== null);
 
-    return { chartData, performanceData };
+    return { xData: sortedDates, seriesData, performanceData };
   }, [allStocks, timeRange]);
 
   const formatNum = (n: number) => {
@@ -162,7 +169,7 @@ export default function CompareView({ primaryStock, compareStocks }: CompareView
         ))}
         {allStocks.length < 3 && (
           <Grid size={{xs:12,md:4}}>
-            <Card sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'action.hover', borderStyle: 'dashed' }}>
+            <Card variant="outlined" sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'action.hover', borderStyle: 'dashed' }}>
                <Typography color="text.secondary" variant="body2">Search to add another stock</Typography>
             </Card>
           </Grid>
@@ -170,11 +177,11 @@ export default function CompareView({ primaryStock, compareStocks }: CompareView
       </Grid>
 
       {/* Performance Chart */}
-      <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
+      <Card variant="outlined">
         <CardContent>
           <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
             <Stack direction="row" alignItems="center" gap={1}>
-              <BarChart3 size={18} className="text-blue-400" />
+              <BarChart3 size={18} color="#60a5fa" />
               <Typography variant="subtitle2" fontWeight="bold">Price Performance (% Change)</Typography>
             </Stack>
             
@@ -183,10 +190,21 @@ export default function CompareView({ primaryStock, compareStocks }: CompareView
               exclusive
               onChange={(_, val) => val && setTimeRange(val)}
               size="small"
-              sx={{ height: 32 }}
+              sx={{ 
+                height: 32,
+                '& .MuiToggleButton-root': {
+                    px: 2,
+                    fontSize: '0.75rem',
+                    color: 'text.secondary',
+                    '&.Mui-selected': {
+                        color: 'primary.main',
+                        bgcolor: 'action.selected'
+                    }
+                }
+              }}
             >
               {TIME_RANGES.map(range => (
-                <ToggleButton key={range.id} value={range.id} sx={{ px: 2, fontSize: '0.75rem' }}>
+                <ToggleButton key={range.id} value={range.id}>
                   {range.label}
                 </ToggleButton>
               ))}
@@ -202,8 +220,9 @@ export default function CompareView({ primaryStock, compareStocks }: CompareView
                   sx={{ 
                     p: 2, 
                     bgcolor: perf.change >= 0 ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                    border: '1px solid',
+                    border: 1,
                     borderColor: perf.change >= 0 ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                    borderRadius: 2
                   }}
                 >
                   <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
@@ -227,47 +246,51 @@ export default function CompareView({ primaryStock, compareStocks }: CompareView
             ))}
           </Grid>
 
-          <Box sx={{ height: 300 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
-                <XAxis 
-                  dataKey="date" 
-                  tick={{ fill: '#6b7280', fontSize: 10 }}
-                  tickFormatter={(value) => value.slice(5)}
-                />
-                <YAxis 
-                  tick={{ fill: '#6b7280', fontSize: 10 }}
-                  tickFormatter={(value) => `${value.toFixed(0)}%`}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#1f2937', 
-                    border: '1px solid #374151',
-                    borderRadius: '8px',
-                    fontSize: '12px'
-                  }}
-                  formatter={(value: number) => [`${value.toFixed(2)}%`, '']}
-                />
-                <Legend />
-                {allStocks.map((stock, index) => (
-                  <Line
-                    key={stock.symbol}
-                    type="monotone"
-                    dataKey={stock.symbol}
-                    stroke={COLORS[index % COLORS.length]}
-                    strokeWidth={2}
-                    dot={false}
-                    name={stock.symbol}
-                  />
-                ))}
-              </LineChart>
-            </ResponsiveContainer>
+          <Box sx={{ height: 300, width: '100%' }}>
+            <LineChart
+                key={timeRange}
+                xAxis={[{ 
+                    data: xData.map(d => new Date(d)), 
+                    scaleType: 'time', 
+                    valueFormatter: (date: Date) => {
+                        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                        const day = date.getDate().toString().padStart(2, '0');
+                        return `${month}-${day}`;
+                    },
+                    min: new Date(xData[0]).getTime(),
+                    max: new Date(xData[xData.length-1]).getTime(),
+                }]}
+                yAxis={[{
+                    valueFormatter: (value: number) => `${value.toFixed(0)}%`,
+                }]}
+                series={seriesData.map(s => ({ ...s, curve: 'catmullRom' }))}
+                height={300}
+                margin={{ top: 10, bottom: 20, left: 50, right: 10 }}
+                grid={{ horizontal: true }}
+                sx={{
+                    '.MuiChartsGrid-line': {
+                        strokeDasharray: '4 4',
+                        stroke: '#374151 !important', // gray-700
+                    },
+                     // Animation simulation for line drawing
+                    '.MuiLineElement-root': {
+                        strokeDasharray: 2000,
+                        strokeDashoffset: 2000,
+                        animation: 'draw 1.5s ease-out forwards',
+                    },
+                    '@keyframes draw': {
+                        'to': {
+                            strokeDashoffset: 0,
+                        }
+                    }
+                }}
+            />
           </Box>
         </CardContent>
       </Card>
 
       {/* Comparison Table */}
-      <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', borderRadius: 3 }}>
+      <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 3 }}>
         <Table>
           <TableHead>
             <TableRow>
@@ -389,7 +412,7 @@ export default function CompareView({ primaryStock, compareStocks }: CompareView
 function PriceCard({ stock, color }: { stock: StockData; color: string }) {
   if (!stock.quote) {
     return (
-      <Card sx={{ height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Card variant="outlined" sx={{ height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Typography color="text.secondary">Loading...</Typography>
       </Card>
     );
@@ -426,7 +449,7 @@ function PredictionCard({ stock, color }: { stock: StockData; color: string }) {
   
   if (!prediction) {
     return (
-      <Card sx={{ height: 160, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Card variant="outlined" sx={{ height: 160, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Typography color="text.secondary">Loading prediction...</Typography>
       </Card>
     );
@@ -442,7 +465,7 @@ function PredictionCard({ stock, color }: { stock: StockData; color: string }) {
       <CardContent>
         <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
           <Typography variant="h6" fontWeight="bold" sx={{ color }}>{stock.symbol}</Typography>
-          <Brain size={16} className="text-purple-400" />
+          <Brain size={16} color="#c084fc" />
         </Stack>
         
         <Box sx={{ bgcolor: bgColor, p: 2, borderRadius: 2, textAlign: 'center', mb: 2 }}>

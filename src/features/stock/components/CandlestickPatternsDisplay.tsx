@@ -1,7 +1,7 @@
 'use client';
 
 import { CandlestickAnalysis, CandlestickPattern } from '@/types/stock';
-import { Card } from '@/components/ui';
+import { Card, CardContent, Typography, Box, Stack, Grid, Chip, LinearProgress, Divider } from '@mui/material';
 import { CandlestickChart, TrendingUp, TrendingDown, Minus, AlertCircle } from 'lucide-react';
 
 interface CandlestickPatternsDisplayProps {
@@ -11,15 +11,17 @@ interface CandlestickPatternsDisplayProps {
 export default function CandlestickPatternsDisplay({ analysis }: CandlestickPatternsDisplayProps) {
   if (!analysis) {
     return (
-      <Card>
-        <div className="flex items-center gap-2 mb-4">
-          <CandlestickChart className="w-5 h-5 text-orange-400" />
-          <h3 className="text-lg font-semibold text-white">Candlestick Patterns</h3>
-        </div>
-        <div className="text-center py-8 text-gray-400">
-          <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
-          <p>No candlestick data available</p>
-        </div>
+      <Card variant="outlined">
+        <CardContent>
+          <Stack direction="row" alignItems="center" gap={1} mb={2}>
+            <CandlestickChart size={20} color="#fb923c" /> {/* orange-400 */}
+            <Typography variant="h6" fontWeight="bold">Candlestick Patterns</Typography>
+          </Stack>
+          <Box sx={{ textAlign: 'center', py: 4, color: 'text.secondary' }}>
+            <AlertCircle size={32} style={{ margin: '0 auto', marginBottom: 8, opacity: 0.5 }} />
+            <Typography>No candlestick data available</Typography>
+          </Box>
+        </CardContent>
       </Card>
     );
   }
@@ -28,33 +30,18 @@ export default function CandlestickPatternsDisplay({ analysis }: CandlestickPatt
 
   const getBiasColor = (bias: string) => {
     switch (bias) {
-      case 'bullish': return 'text-green-400';
-      case 'bearish': return 'text-red-400';
-      default: return 'text-yellow-400';
+      case 'bullish': return 'success.main';
+      case 'bearish': return 'error.main';
+      default: return 'warning.main';
     }
   };
 
   const getBiasIcon = (bias: string) => {
     switch (bias) {
-      case 'bullish': return <TrendingUp className="w-5 h-5 text-green-400" />;
-      case 'bearish': return <TrendingDown className="w-5 h-5 text-red-400" />;
-      default: return <Minus className="w-5 h-5 text-yellow-400" />;
+      case 'bullish': return <TrendingUp size={20} className="text-green-400" />;
+      case 'bearish': return <TrendingDown size={20} className="text-red-400" />;
+      default: return <Minus size={20} className="text-yellow-400" />;
     }
-  };
-
-  const getPatternColor = (direction: string) => {
-    switch (direction) {
-      case 'bullish': return 'bg-green-500/10 border-green-500/30 text-green-400';
-      case 'bearish': return 'bg-red-500/10 border-red-500/30 text-red-400';
-      default: return 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400';
-    }
-  };
-
-  const getReliabilityLabel = (reliability: number) => {
-    if (reliability >= 0.8) return 'Very High';
-    if (reliability >= 0.65) return 'High';
-    if (reliability >= 0.5) return 'Moderate';
-    return 'Low';
   };
 
   const bullishPatterns = patterns.filter(p => p.direction === 'bullish');
@@ -62,166 +49,207 @@ export default function CandlestickPatternsDisplay({ analysis }: CandlestickPatt
   const neutralPatterns = patterns.filter(p => p.direction === 'neutral');
 
   return (
-    <Card>
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <CandlestickChart className="w-5 h-5 text-orange-400" />
-          <h3 className="text-lg font-semibold text-white">Candlestick Patterns</h3>
-        </div>
-        <div className="flex items-center gap-2">
-          {getBiasIcon(overallBias)}
-          <span className={`font-semibold ${getBiasColor(overallBias)}`}>
-            {overallBias.charAt(0).toUpperCase() + overallBias.slice(1)}
-          </span>
-        </div>
-      </div>
+    <Card variant="outlined">
+      <CardContent>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3}>
+          <Stack direction="row" alignItems="center" gap={1}>
+            <CandlestickChart size={20} color="#fb923c" />
+            <Typography variant="h6" fontWeight="bold">Candlestick Patterns</Typography>
+          </Stack>
+          <Stack direction="row" alignItems="center" gap={1}>
+            {getBiasIcon(overallBias)}
+            <Typography fontWeight="bold" sx={{ color: getBiasColor(overallBias), textTransform: 'capitalize' }}>
+              {overallBias}
+            </Typography>
+          </Stack>
+        </Stack>
 
-      {/* Score Display */}
-      <div className="mb-4 p-3 bg-gray-800/50 rounded-lg">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-gray-400">Pattern Score</span>
-          <span className={`text-lg font-bold ${
-            score >= 60 ? 'text-green-400' : score <= 40 ? 'text-red-400' : 'text-yellow-400'
-          }`}>
-            {score.toFixed(0)}
-          </span>
-        </div>
-        <div className="w-full bg-gray-700 rounded-full h-2">
-          <div 
-            className={`h-2 rounded-full transition-all ${
-              score >= 60 ? 'bg-green-500' : score <= 40 ? 'bg-red-500' : 'bg-yellow-500'
-            }`}
-            style={{ width: `${score}%` }}
+        {/* Score Display */}
+        <Box sx={{ mb: 3, p: 2, bgcolor: 'action.hover', borderRadius: 2 }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
+            <Typography variant="body2" color="text.secondary">Pattern Score</Typography>
+            <Typography variant="h6" fontWeight="bold" sx={{ 
+              color: score >= 60 ? 'success.main' : score <= 40 ? 'error.main' : 'warning.main'
+            }}>
+              {score.toFixed(0)}
+            </Typography>
+          </Stack>
+          <LinearProgress 
+            variant="determinate" 
+            value={score} 
+            color={score >= 60 ? 'success' : score <= 40 ? 'error' : 'warning'}
+            sx={{ height: 8, borderRadius: 4, bgcolor: 'action.selected' }}
           />
-        </div>
-      </div>
+        </Box>
 
-      {/* Pattern Summary */}
-      <div className="grid grid-cols-3 gap-2 mb-4">
-        <div className="bg-green-500/10 rounded-lg p-2 text-center border border-green-500/20">
-          <div className="text-xl font-bold text-green-400">{bullishPatterns.length}</div>
-          <div className="text-xs text-green-400/70">Bullish</div>
-        </div>
-        <div className="bg-yellow-500/10 rounded-lg p-2 text-center border border-yellow-500/20">
-          <div className="text-xl font-bold text-yellow-400">{neutralPatterns.length}</div>
-          <div className="text-xs text-yellow-400/70">Neutral</div>
-        </div>
-        <div className="bg-red-500/10 rounded-lg p-2 text-center border border-red-500/20">
-          <div className="text-xl font-bold text-red-400">{bearishPatterns.length}</div>
-          <div className="text-xs text-red-400/70">Bearish</div>
-        </div>
-      </div>
+        {/* Pattern Summary */}
+        <Grid container spacing={1} mb={3}>
+          <Grid size={{ xs: 4 }}>
+            <Box sx={{ 
+              bgcolor: 'rgba(34, 197, 94, 0.1)', 
+              borderRadius: 2, 
+              p: 1.5, 
+              textAlign: 'center', 
+              border: 1, 
+              borderColor: 'rgba(34, 197, 94, 0.2)' 
+            }}>
+              <Typography variant="h6" fontWeight="bold" color="success.main">{bullishPatterns.length}</Typography>
+              <Typography variant="caption" color="success.main">Bullish</Typography>
+            </Box>
+          </Grid>
+          <Grid size={{ xs: 4 }}>
+            <Box sx={{ 
+              bgcolor: 'rgba(234, 179, 8, 0.1)', 
+              borderRadius: 2, 
+              p: 1.5, 
+              textAlign: 'center', 
+              border: 1, 
+              borderColor: 'rgba(234, 179, 8, 0.2)' 
+            }}>
+              <Typography variant="h6" fontWeight="bold" color="warning.main">{neutralPatterns.length}</Typography>
+              <Typography variant="caption" color="warning.main">Neutral</Typography>
+            </Box>
+          </Grid>
+          <Grid size={{ xs: 4 }}>
+            <Box sx={{ 
+              bgcolor: 'rgba(239, 68, 68, 0.1)', 
+              borderRadius: 2, 
+              p: 1.5, 
+              textAlign: 'center', 
+              border: 1, 
+              borderColor: 'rgba(239, 68, 68, 0.2)' 
+            }}>
+              <Typography variant="h6" fontWeight="bold" color="error.main">{bearishPatterns.length}</Typography>
+              <Typography variant="caption" color="error.main">Bearish</Typography>
+            </Box>
+          </Grid>
+        </Grid>
 
-      {/* Recent Patterns */}
-      {recentPatterns.length > 0 && (
-        <div className="mb-4">
-          <h4 className="text-sm font-semibold text-gray-300 mb-2 flex items-center gap-2">
-            <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
-            Recent Patterns (Last 5 Days)
-          </h4>
-          <div className="space-y-2">
-            {recentPatterns.map((pattern, index) => (
-              <PatternCard key={`recent-${index}`} pattern={pattern} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* All Patterns */}
-      {patterns.length > 0 ? (
-        <div>
-          <h4 className="text-sm font-semibold text-gray-300 mb-2">
-            All Detected Patterns ({patterns.length})
-          </h4>
-          <div className="space-y-2 max-h-64 overflow-y-auto">
-            {[...patterns]
-              .sort((a, b) => b.reliability - a.reliability)
-              .slice(0, 10)
-              .map((pattern, index) => (
-                <PatternCard key={`all-${index}`} pattern={pattern} compact />
+        {/* Recent Patterns */}
+        {recentPatterns.length > 0 && (
+          <Box mb={3}>
+            <Typography variant="subtitle2" fontWeight="bold" mb={1.5} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box component="span" sx={{ width: 8, height: 8, bgcolor: 'info.main', borderRadius: '50%', animation: 'pulse 2s infinite' }} />
+              Recent Patterns (Last 5 Days)
+            </Typography>
+            <Stack spacing={1}>
+              {recentPatterns.map((pattern, index) => (
+                <PatternCard key={`recent-${index}`} pattern={pattern} />
               ))}
-          </div>
-        </div>
-      ) : (
-        <div className="text-center py-4 text-gray-400">
-          <p className="text-sm">No significant patterns detected</p>
-        </div>
-      )}
+            </Stack>
+          </Box>
+        )}
 
-      {/* Legend */}
-      <div className="mt-4 pt-4 border-t border-gray-800/50">
-        <h4 className="text-xs font-semibold text-gray-400 mb-2">Pattern Reliability</h4>
-        <div className="flex flex-wrap gap-2 text-xs">
-          <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded">Very High (80%+)</span>
-          <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded">High (65-79%)</span>
-          <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded">Moderate (50-64%)</span>
-          <span className="px-2 py-1 bg-gray-500/20 text-gray-400 rounded">Low (&lt;50%)</span>
-        </div>
-      </div>
+        {/* All Patterns */}
+        {patterns.length > 0 ? (
+          <Box>
+            <Typography variant="subtitle2" fontWeight="bold" mb={1.5}>
+              All Detected Patterns ({patterns.length})
+            </Typography>
+            <Stack spacing={1} sx={{ maxHeight: 256, overflowY: 'auto', pr: 0.5 }}>
+              {[...patterns]
+                .sort((a, b) => b.reliability - a.reliability)
+                .slice(0, 10)
+                .map((pattern, index) => (
+                  <PatternCard key={`all-${index}`} pattern={pattern} compact />
+                ))}
+            </Stack>
+          </Box>
+        ) : (
+          <Box sx={{ textAlign: 'center', py: 2, color: 'text.secondary' }}>
+            <Typography variant="body2">No significant patterns detected</Typography>
+          </Box>
+        )}
+
+        {/* Legend */}
+        <Box sx={{ mt: 3, pt: 2, borderTop: 1, borderColor: 'divider' }}>
+          <Typography variant="caption" fontWeight="bold" color="text.secondary" display="block" mb={1}>
+            Pattern Reliability
+          </Typography>
+          <Stack direction="row" flexWrap="wrap" gap={1}>
+            <Chip label="Very High (80%+)" size="small" sx={{ bgcolor: 'rgba(34, 197, 94, 0.1)', color: 'success.main', height: 24, fontSize: '0.7rem' }} />
+            <Chip label="High (65-79%)" size="small" sx={{ bgcolor: 'rgba(59, 130, 246, 0.1)', color: 'info.main', height: 24, fontSize: '0.7rem' }} />
+            <Chip label="Moderate (50-64%)" size="small" sx={{ bgcolor: 'rgba(234, 179, 8, 0.1)', color: 'warning.main', height: 24, fontSize: '0.7rem' }} />
+            <Chip label="Low (<50%)" size="small" sx={{ bgcolor: 'action.hover', color: 'text.secondary', height: 24, fontSize: '0.7rem' }} />
+          </Stack>
+        </Box>
+      </CardContent>
     </Card>
   );
 }
 
 // Pattern Card Component
 function PatternCard({ pattern, compact = false }: { pattern: CandlestickPattern; compact?: boolean }) {
-  const getPatternColor = (direction: string) => {
+  const getPatternStyles = (direction: string) => {
     switch (direction) {
-      case 'bullish': return 'bg-green-500/10 border-green-500/30';
-      case 'bearish': return 'bg-red-500/10 border-red-500/30';
-      default: return 'bg-yellow-500/10 border-yellow-500/30';
-    }
-  };
-
-  const getDirectionColor = (direction: string) => {
-    switch (direction) {
-      case 'bullish': return 'text-green-400';
-      case 'bearish': return 'text-red-400';
-      default: return 'text-yellow-400';
+      case 'bullish': return { bgcolor: 'rgba(34, 197, 94, 0.05)', borderColor: 'rgba(34, 197, 94, 0.2)', color: 'success.main', chipBg: 'rgba(34, 197, 94, 0.1)' };
+      case 'bearish': return { bgcolor: 'rgba(239, 68, 68, 0.05)', borderColor: 'rgba(239, 68, 68, 0.2)', color: 'error.main', chipBg: 'rgba(239, 68, 68, 0.1)' };
+      default: return { bgcolor: 'rgba(234, 179, 8, 0.05)', borderColor: 'rgba(234, 179, 8, 0.2)', color: 'warning.main', chipBg: 'rgba(234, 179, 8, 0.1)' };
     }
   };
 
   const getReliabilityColor = (reliability: number) => {
-    if (reliability >= 0.8) return 'text-green-400';
-    if (reliability >= 0.65) return 'text-blue-400';
-    if (reliability >= 0.5) return 'text-yellow-400';
-    return 'text-gray-400';
+    if (reliability >= 0.8) return 'success.main';
+    if (reliability >= 0.65) return 'info.main';
+    if (reliability >= 0.5) return 'warning.main';
+    return 'text.secondary';
   };
+
+  const styles = getPatternStyles(pattern.direction);
 
   if (compact) {
     return (
-      <div className={`p-2 rounded-lg border ${getPatternColor(pattern.direction)}`}>
-        <div className="flex items-center justify-between">
-          <span className={`text-sm font-medium ${getDirectionColor(pattern.direction)}`}>
+      <Box sx={{ 
+        p: 1.5, 
+        borderRadius: 2, 
+        border: 1, 
+        bgcolor: styles.bgcolor, 
+        borderColor: styles.borderColor 
+      }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between">
+          <Typography variant="body2" fontWeight="medium" sx={{ color: styles.color }}>
             {pattern.name}
-          </span>
-          <span className={`text-xs ${getReliabilityColor(pattern.reliability)}`}>
+          </Typography>
+          <Typography variant="caption" sx={{ color: getReliabilityColor(pattern.reliability) }}>
             {(pattern.reliability * 100).toFixed(0)}%
-          </span>
-        </div>
-      </div>
+          </Typography>
+        </Stack>
+      </Box>
     );
   }
 
   return (
-    <div className={`p-3 rounded-lg border ${getPatternColor(pattern.direction)}`}>
-      <div className="flex items-center justify-between mb-1">
-        <span className={`font-medium ${getDirectionColor(pattern.direction)}`}>
+    <Box sx={{ 
+      p: 2, 
+      borderRadius: 2, 
+      border: 1, 
+      bgcolor: styles.bgcolor, 
+      borderColor: styles.borderColor 
+    }}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
+        <Typography variant="body2" fontWeight="medium" sx={{ color: styles.color }}>
           {pattern.name}
-        </span>
-        <div className="flex items-center gap-2">
-          <span className={`text-xs px-2 py-0.5 rounded ${
-            pattern.direction === 'bullish' ? 'bg-green-500/20 text-green-400' :
-            pattern.direction === 'bearish' ? 'bg-red-500/20 text-red-400' :
-            'bg-yellow-500/20 text-yellow-400'
-          }`}>
-            {pattern.direction}
-          </span>
-          <span className={`text-xs font-medium ${getReliabilityColor(pattern.reliability)}`}>
+        </Typography>
+        <Stack direction="row" alignItems="center" gap={1}>
+          <Chip 
+            label={pattern.direction} 
+            size="small" 
+            sx={{ 
+              bgcolor: styles.chipBg, 
+              color: styles.color, 
+              height: 20, 
+              fontSize: '0.65rem',
+              textTransform: 'capitalize' 
+            }} 
+          />
+          <Typography variant="caption" fontWeight="medium" sx={{ color: getReliabilityColor(pattern.reliability) }}>
             {(pattern.reliability * 100).toFixed(0)}% reliable
-          </span>
-        </div>
-      </div>
-      <p className="text-xs text-gray-400">{pattern.description}</p>
-    </div>
+          </Typography>
+        </Stack>
+      </Stack>
+      <Typography variant="caption" color="text.secondary">
+        {pattern.description}
+      </Typography>
+    </Box>
   );
 }

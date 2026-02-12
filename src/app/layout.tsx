@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import "./globals.css";
+import "../styles/main.scss";
 import { Providers } from "../providers";
 import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry";
 
