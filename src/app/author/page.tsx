@@ -50,27 +50,8 @@ export default function AuthorPage() {
     }
   };
 
-  // Header Props
-  const headerProps = {
-    viewMode: ui.viewMode,
-    setViewMode: ui.setViewMode,
-    currentSymbol: stock.symbol || '',
-    onSelectStock: handleSymbolChange,
-    onRefresh: () => stock.refresh(),
-    isLoading: stock.isLoading,
-    autoRefreshEnabled: ui.autoRefreshEnabled,
-    toggleAutoRefresh: ui.toggleAutoRefresh,
-    onLogout: auth.logout
-  };
-
-  const skills = [
-    "React", "Next.js", "TypeScript", "Node.js", 
-    "Material UI", "Tailwind CSS", "Redux", "Recharts",
-    "Finance API Integration", "Frontend Architecture"
-  ];
-
   return (
-    <AppLayout headerProps={headerProps}>
+    <AppLayout>
       <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', py: 8 }}>
         <Container maxWidth="lg">
           <Grid container spacing={4}>

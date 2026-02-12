@@ -1,4 +1,4 @@
-   
+import { useState } from 'react';
 import { 
   Grid, 
   Card,  
@@ -12,17 +12,30 @@ import {
   useTheme,
 } from '@mui/material';
 import { TrendingUp, Lock } from 'lucide-react';
+import { useAuth } from '@/hooks';
 
-interface LoginFormProps {
-   handleLogin: (e: React.FormEvent) => void;
-   password: string;
-   setPassword: (password: string) => void;
-   isLoggingIn: boolean;
-   loginError: string;
-}
-
-export default function LoginForm({ handleLogin, password, setPassword, isLoggingIn, loginError }: LoginFormProps){   
+export default function LoginForm(){   
    const theme = useTheme();
+   const { login, error } = useAuth();
+   const [password, setPassword] = useState("");
+   const [isLoggingIn, setIsLoggingIn] = useState(false);
+   const [localError, setLocalError] = useState("");
+
+   const handleLoginSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLocalError("");
+    setIsLoggingIn(true);
+    
+    const success = await login(password);
+    setIsLoggingIn(false);
+    
+    if (!success) {
+      setLocalError(error || "Invalid password");
+    } else {
+      setPassword("");
+    }
+  };
+
    return (
       <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'background.default', p: 2 }}>
         <Card sx={{ maxWidth: 400, width: '100%', p: 4, borderRadius: 4 }}>
@@ -36,7 +49,7 @@ export default function LoginForm({ handleLogin, password, setPassword, isLoggin
              <Typography variant="body2" color="text.secondary">Enter password to access</Typography>
           </Stack>
 
-          <form onSubmit={handleLogin}>
+          <form onSubmit={handleLoginSubmit}>
             <Stack spacing={3}>
               <TextField 
                 fullWidth
@@ -55,8 +68,8 @@ export default function LoginForm({ handleLogin, password, setPassword, isLoggin
                 }}
               />
 
-              {loginError && (
-                <Alert severity="error">{loginError}</Alert>
+              {localError && (
+                <Alert severity="error">{localError}</Alert>
               )}
 
               <Button 

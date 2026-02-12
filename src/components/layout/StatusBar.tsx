@@ -10,21 +10,14 @@ import {
   Clock, 
 } from "lucide-react";
 
-interface StatusBarProps {
-  symbol: string;
-  predictionDirection: string;
-  isLoading: boolean;
-  lastRefreshFormatted: string | null;
-  autoRefreshEnabled: boolean;
-}
+import { useStock, useUI } from "@/hooks";
 
-export default function StatusBar({
-  symbol,
-  predictionDirection,
-  isLoading,
-  lastRefreshFormatted,
-  autoRefreshEnabled,
-}: StatusBarProps) {
+export default function StatusBar() {
+  const { symbol, primaryStock, isLoading } = useStock();
+  const { lastRefreshFormatted, autoRefreshEnabled } = useUI();
+  
+  const predictionDirection = primaryStock?.prediction?.direction || "NEUTRAL";
+
   return (
     <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: 'background.paper', py: 1, px: 2 }}>
       <Container maxWidth="xl" disableGutters>

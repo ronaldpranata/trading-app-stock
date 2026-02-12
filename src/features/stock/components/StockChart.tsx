@@ -1,18 +1,9 @@
-import { useState, useCallback, useMemo } from 'react';
-import { HistoricalData, TechnicalIndicators } from '@/types/stock';
+import { useState, useCallback } from 'react';
 import { TimeRange } from '@/lib/constants';
 import { LoadingCard } from '@/components/ui';
 import { useChartData, PeriodSummary, MeasureDisplay, ChartControls, StockChartDisplay, PeriodStatsDisplay } from '@/components/charts';
-import { useChartMeasure } from '@/hooks';
-import { Box, Card, CardContent, Typography, useTheme } from '@mui/material';
-
-interface StockChartProps {
-  data: HistoricalData[];
-  indicators: TechnicalIndicators | null;
-  currentPrice: number;
-  symbol: string;
-  isLoading: boolean;
-}
+import { useChartMeasure, useStock } from '@/hooks';
+import { Box, Card, CardContent, Typography } from '@mui/material';
 
 interface RechartsEvent {
   activePayload?: Array<{
@@ -32,7 +23,11 @@ const TIME_RANGE_OPTIONS: { id: TimeRange; label: string; days: number }[] = [
   { id: 'YTD', label: 'YTD', days: 0 }
 ];
 
-export default function StockChart({ data, indicators, currentPrice, symbol, isLoading }: StockChartProps) {
+export default function StockChart() {
+  const { primaryStock, currentPrice, symbol, isLoading } = useStock();
+  const data = primaryStock?.historicalData || [];
+  const indicators = primaryStock?.technicalIndicators || null;
+
   const [timeRange, setTimeRange] = useState<TimeRange>('3M');
   const [showSMA, setShowSMA] = useState(true);
   
@@ -83,7 +78,7 @@ export default function StockChart({ data, indicators, currentPrice, symbol, isL
       <CardContent sx={{ p: '16px !important' }}>
         {/* Controls (Memoized) */}
         <ChartControls 
-          symbol={symbol}
+          symbol={symbol || ''}
           measureActive={measure.isActive}
           onToggleMeasure={handleToggleMeasure}
           timeRange={timeRange}

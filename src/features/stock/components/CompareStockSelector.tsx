@@ -11,21 +11,11 @@ import { Plus } from "lucide-react";
 import StockPill from "@/components/shared/StockPill";
 import { StockData } from "@/types/stock";
 
-interface CompareStockSelectorProps {
-  symbol: string;
-  primaryStock: StockData | null;
-  compareStocks: StockData[];
-  onRemove: (symbol: string) => void;
-  canAddMore: boolean;
-}
+import { useStock } from "@/hooks";
 
-export default function CompareStockSelector({
-  symbol,
-  primaryStock,
-  compareStocks,
-  onRemove,
-  canAddMore
-}: CompareStockSelectorProps) {
+export default function CompareStockSelector() {
+  const { symbol, primaryStock, compareStocks, removeCompare, canAddMoreComparisons } = useStock();
+
   return (
     <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: 'action.hover', py: 1 }}>
       <Container maxWidth="xl">
@@ -34,7 +24,7 @@ export default function CompareStockSelector({
 
           {/* Primary Stock */}
           <StockPill
-            symbol={symbol}
+            symbol={symbol || ''}
             change={primaryStock?.quote?.changePercent}
             color="blue"
           />
@@ -46,11 +36,11 @@ export default function CompareStockSelector({
               symbol={s.symbol}
               change={s.quote?.changePercent}
               color={index === 0 ? "purple" : "orange"}
-              onRemove={() => onRemove(s.symbol)}
+              onRemove={() => removeCompare(s.symbol)}
             />
           ))}
 
-          {canAddMore && (
+          {canAddMoreComparisons && (
             <Button variant="outlined" startIcon={<Plus size={14} />} size="small" sx={{ borderRadius: 10, whiteSpace: 'nowrap' }}>
               Add Stock
             </Button>

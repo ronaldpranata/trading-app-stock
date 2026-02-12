@@ -1,15 +1,13 @@
 'use client';
 
-import { TrendingUp, TrendingDown, Bitcoin, DollarSign } from 'lucide-react';
-import { Box, Typography, Stack, Chip, Card, Skeleton } from '@mui/material';
-import { StockQuote } from '@/types/stock';
+import { TrendingUp, TrendingDown, Bitcoin } from 'lucide-react';
+import { Box, Typography, Stack, Card, Skeleton } from '@mui/material';
+import { useStock } from "@/hooks";
 
-interface PriceTickerProps {
-  quote: StockQuote | null;
-  isLoading?: boolean;
-}
+export default function PriceTicker() {
+  const { primaryStock, isLoading } = useStock();
+  const quote = primaryStock?.quote;
 
-export default function PriceTicker({ quote, isLoading = false }: PriceTickerProps) {
   if (isLoading || !quote) {
     return (
         <Card variant="outlined" sx={{ p: 2, mb: 3 }}>

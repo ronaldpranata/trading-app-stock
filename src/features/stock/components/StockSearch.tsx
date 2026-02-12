@@ -1,10 +1,9 @@
-'use client';
-
 import { useState, useEffect, useRef } from 'react';
 import { Search, TrendingUp, Bitcoin } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { searchStocks, SearchResult } from '@/services/api';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useStock, useUI } from '@/hooks';
 import { 
     Box, 
     TextField, 
@@ -34,6 +33,9 @@ export default function StockSearch({ onSelectStock, currentSymbol }: StockSearc
   const debouncedQuery = useDebounce(query, 300);
   const router = useRouter();
   const searchRef = useRef<HTMLDivElement>(null);
+  
+  const { load, addComparison } = useStock();
+  const { isCompareMode } = useUI();
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -76,7 +78,11 @@ export default function StockSearch({ onSelectStock, currentSymbol }: StockSearc
     if (onSelectStock) {
         onSelectStock(symbol);
     } else {
-        router.push(`/?symbol=${symbol}`);
+        if (isCompareMode) {
+          addComparison(symbol);
+        } else {
+          load(symbol);
+        }
     }
   };
 
@@ -136,10 +142,10 @@ export default function StockSearch({ onSelectStock, currentSymbol }: StockSearc
                   <ListItemButton 
                     onClick={() => handleSelect(result.symbol)}
                     sx={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: 2,
-                        '&:hover': { bgcolor: 'action.hover' }
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 2,
+                      '&:hover': { bgcolor: 'action.hover' }
                     }}
                   >
                     <ListItemIcon sx={{ minWidth: 32 }}>

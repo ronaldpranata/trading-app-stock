@@ -24,10 +24,7 @@ import {
   useTheme
 } from '@mui/material';
 
-interface CompareViewProps {
-  primaryStock: StockData;
-  compareStocks: StockData[];
-}
+import { useStock } from '@/hooks';
 
 type TimeRange = '1M' | '3M' | '6M' | '1Y';
 
@@ -47,9 +44,23 @@ const COLORS = [
   '#eab308', // Yellow
 ];
 
-export default function CompareView({ primaryStock, compareStocks }: CompareViewProps) {
+export default function CompareView() {
+  const { primaryStock, compareStocks } = useStock();
   const [timeRange, setTimeRange] = useState<TimeRange>('3M');
-  const allStocks = useMemo(() => [primaryStock, ...compareStocks], [primaryStock, compareStocks]);
+  
+  // Guard clause for when primaryStock might be null (though usually loaded by page.tsx)
+  const safePrimaryStock = primaryStock || { 
+      symbol: "Loading...", 
+      quote: null, 
+      historicalData: [], 
+      fundamentalData: null, 
+      technicalIndicators: null, 
+      prediction: null,
+      isLoading: true,
+      error: null
+  };
+
+  const allStocks = useMemo(() => [safePrimaryStock, ...compareStocks], [safePrimaryStock, compareStocks]);
   const theme = useTheme();
 
   // Prepare chart data with time range

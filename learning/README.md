@@ -117,8 +117,9 @@ Follow this path step-by-step.
 ## Phase 6: Styling & Domain Logic
 *Architecture decisions specific to this trading application.*
 
-### 15. [SCSS Best Practices](./scss-best-practices.md)
+### 15. [CSS/SCSS Best Practices](./scss-best-practices.md) - Guidelines on SCSS architecture and theming.
    - **Goal:** Write scalable, maintainable styles.
+   - [State Management Best Practices](./state-management-best-practices.md) - When to use Props vs. Hooks.
    - **Key Concepts:** 7-1 Pattern, BEM Naming, Global vs Local usage in Next.js.
    - **Practical:** Review `src/styles` folder structure.
 

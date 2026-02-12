@@ -20,31 +20,29 @@ import {
   LogOut, 
 } from "lucide-react";
 import StockSearch from "@/features/stock/components/StockSearch";
+import { useAuth, useStock, useUI } from "@/hooks";
 
-interface HeaderProps {
-    viewMode: "single" | "compare";
-    setViewMode: (mode: "single" | "compare") => void;
-    currentSymbol: string;
-    onSelectStock: (symbol: string) => void;
-    onRefresh: () => void;
-    isLoading: boolean;
-    autoRefreshEnabled: boolean;
-    toggleAutoRefresh: () => void;
-    onLogout: () => void;
-}
-
-function Header({
-    viewMode,
-    setViewMode,
-    currentSymbol,
-    onSelectStock,
-    onRefresh,
-    isLoading,
-    autoRefreshEnabled,
-    toggleAutoRefresh,
-    onLogout
-}: HeaderProps) {
+function Header() {
     const theme = useTheme();
+    const { isAuthenticated, logout } = useAuth();
+    const { symbol, refresh, isLoading, load, addComparison } = useStock();
+    const { 
+      viewMode, 
+      setViewMode, 
+      autoRefreshEnabled, 
+      toggleAutoRefresh,
+      isCompareMode 
+    } = useUI();
+
+    const handleSelectStock = (newSymbol: string) => {
+      if (isCompareMode) {
+        addComparison(newSymbol);
+      } else {
+        load(newSymbol);
+      }
+    };
+
+    if (!isAuthenticated) return null;
 
     return (
       <AppBar position="sticky" elevation={0} sx={{ bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider', backdropFilter: 'blur(20px)', background: 'rgba(17, 24, 39, 0.8)' }}>
@@ -84,10 +82,7 @@ function Header({
 
               {/* Search */}
               <Box sx={{ width: { xs: '100%', md: 300 } }}>
-                <StockSearch
-                  onSelectStock={onSelectStock}
-                  currentSymbol={currentSymbol}
-                />
+                <StockSearch />
               </Box>
               
               {/* Mobile View Mode */}
@@ -111,7 +106,7 @@ function Header({
               <Stack direction="row" alignItems="center" gap={1} ml={{ xs: 'auto', md: 0 }}>
                   {/* Refresh Controls */}
                   <IconButton
-                    onClick={onRefresh}
+                    onClick={refresh}
                     disabled={isLoading}
                     size="small"
                   >
@@ -127,7 +122,7 @@ function Header({
                   </IconButton>
 
                   {/* Logout Button */}
-                  <IconButton onClick={onLogout} size="small" title="Logout">
+                  <IconButton onClick={logout} size="small" title="Logout">
                     <LogOut size={18} />
                   </IconButton>
               </Stack>

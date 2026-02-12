@@ -18,17 +18,8 @@ import SignalsSummary from "./SignalsSummary";
 import KeyMetrics from "./KeyMetrics";
 import QuickStats from "./QuickStats";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
+import { useStock, useUI } from "@/hooks";
 import { ActiveTab } from "@/store";
-import { StockData } from "@/types/stock";
-
-interface SingleStockViewProps {
-  activeTab: ActiveTab;
-  setActiveTab: (tab: ActiveTab) => void;
-  primaryStock: StockData | null;
-  currentPrice: number;
-  symbol: string;
-  isLoading: boolean;
-}
 
 const tabs: { id: ActiveTab; label: string }[] = [
   { id: "overview", label: "Overview" },
@@ -37,14 +28,9 @@ const tabs: { id: ActiveTab; label: string }[] = [
   { id: "prediction", label: "Prediction" },
 ];
 
-export default function SingleStockView({
-  activeTab,
-  setActiveTab,
-  primaryStock,
-  currentPrice,
-  symbol,
-  isLoading
-}: SingleStockViewProps) {
+export default function SingleStockView() {
+  const { primaryStock, currentPrice, symbol, isLoading } = useStock();
+  const { activeTab, setActiveTab } = useUI();
   return (
     <>
       {/* Tabs */}
@@ -66,18 +52,9 @@ export default function SingleStockView({
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, lg: 8 }}>
             <Stack spacing={3}>
-              <PriceTicker
-                quote={primaryStock?.quote || null}
-                isLoading={isLoading}
-              />
+              <PriceTicker />
               <ErrorBoundary>
-                <StockChart
-                    data={primaryStock?.historicalData || []}
-                    indicators={primaryStock?.technicalIndicators || null}
-                    currentPrice={currentPrice}
-                    symbol={symbol || ''}
-                    isLoading={isLoading}
-                />
+                <StockChart />
               </ErrorBoundary>
             </Stack>
           </Grid>
