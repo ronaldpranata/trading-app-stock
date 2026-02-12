@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import CompareView from "@/features/stock/components/CompareView";
 import CompareStockSelector from "@/features/stock/components/CompareStockSelector";
-import LoginForm from "@/features/auth/components/LoginForm";
 import StatusBar from "@/components/layout/StatusBar";
 import AppLayout from "@/components/layout/AppLayout";
 import SingleStockView from "@/features/stock/components/SingleStockView";
@@ -23,9 +23,27 @@ export default function Home() {
   const stock = useStock();
   const ui = useUI();
 
-  // Login screen
+  const router = useRouter();
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!auth.isChecking && !auth.isAuthenticated) {
+      router.replace('/login');
+    }
+  }, [auth.isChecking, auth.isAuthenticated, router]);
+
+  // Loading state
+  if (auth.isChecking) {
+    return (
+      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  // Prevent flash of content
   if (!auth.isAuthenticated) {
-    return <LoginForm />;
+    return null;
   }
 
   const predictionDirection = stock.primaryStock?.prediction?.direction || "NEUTRAL";

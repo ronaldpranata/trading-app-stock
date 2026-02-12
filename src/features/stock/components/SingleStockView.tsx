@@ -52,8 +52,8 @@ export default function SingleStockView() {
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, lg: 8 }}>
             <Stack spacing={3}>
-              <PriceTicker />
               <ErrorBoundary>
+                <PriceTicker />
                 <StockChart />
               </ErrorBoundary>
             </Stack>

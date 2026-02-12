@@ -26,11 +26,11 @@ export default function LoginForm(){
     setLocalError("");
     setIsLoggingIn(true);
     
-    const success = await login(password);
+    const errorMsg = await login(password);
     setIsLoggingIn(false);
     
-    if (!success) {
-      setLocalError(error || "Invalid password");
+    if (errorMsg) {
+      setLocalError(errorMsg);
     } else {
       setPassword("");
     }

@@ -29,16 +29,19 @@ export function useAuth() {
   const isChecking = useAppSelector(selectIsCheckingAuth);
   const error = useAppSelector(selectAuthError);
 
-  // Check auth on mount
-  useEffect(() => {
-    dispatch(checkAuth());
-  }, [dispatch]);
+  // Check auth on mount - REMOVED, now handled by AuthProvider
+  // useEffect(() => {
+  //   dispatch(checkAuth());
+  // }, [dispatch]);
 
   // Actions
   const handleLogin = useCallback(
-    async (password: string): Promise<boolean> => {
+    async (password: string): Promise<string | null> => {
       const result = await dispatch(login(password));
-      return !login.rejected.match(result);
+      if (login.rejected.match(result)) {
+        return (result.payload as string) || "Login failed";
+      }
+      return null;
     },
     [dispatch]
   );
@@ -49,7 +52,7 @@ export function useAuth() {
     dispatch(stockApi.util.resetApiState());
     
     router.refresh(); // Invalidate server components
-    router.push('/');
+    router.replace('/login');
   }, [dispatch, router]);
 
   const clearError = useCallback(() => {
