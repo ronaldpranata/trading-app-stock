@@ -22,6 +22,11 @@ Follow this path step-by-step.
    - **Key Concepts:** Encapsulation, Composition, Rules of Hooks.
    - **Practical:** Study `src/hooks/useStock.ts`. It is the "Controller" for our application.
 
+### 2.5. [React Basics & Interview Prep](./react-interview-basics.md)
+   - **Goal:** Quick reference for common interview questions (Virtual DOM, State vs Props, Hooks).
+   - **Key Concepts:** Core definitions and "What is X?" answers.
+   - **Practical:** Maps concepts to specific files in this project.
+
 ---
 
 ## Phase 2: State Management (The Architecture)
