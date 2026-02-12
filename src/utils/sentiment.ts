@@ -55,6 +55,7 @@ function analyzeHeadline(headline: string): number {
 export interface SentimentAnalysisResult {
   score: number; // 0 to 100
   sentiment: 'positive' | 'negative' | 'neutral';
+  headlines: string[];
   keywordMatches: { word: string; impact: 'positive' | 'negative' }[];
 }
 
@@ -63,7 +64,7 @@ export interface SentimentAnalysisResult {
  */
 export function calculateSentiment(headlines: string[]): SentimentAnalysisResult {
   if (!headlines || headlines.length === 0) {
-    return { score: 50, sentiment: 'neutral', keywordMatches: [] };
+    return { score: 50, sentiment: 'neutral', headlines: [], keywordMatches: [] };
   }
 
   let totalScore = 0;
@@ -87,7 +88,7 @@ export function calculateSentiment(headlines: string[]): SentimentAnalysisResult
 
   // If no relevant keywords found in any headlines
   if (relevantHeadlines === 0) {
-    return { score: 50, sentiment: 'neutral', keywordMatches: [] };
+    return { score: 50, sentiment: 'neutral', headlines, keywordMatches: [] };
   }
 
   // Calculate average score (-1 to 1)
@@ -106,6 +107,7 @@ export function calculateSentiment(headlines: string[]): SentimentAnalysisResult
   return {
     score: finalScore,
     sentiment,
+    headlines,
     keywordMatches: [...new Set(allMatches.map(m => JSON.stringify(m)))] // De-duplicate
       .map(s => JSON.parse(s))
       .slice(0, 10) // Limit to top 10

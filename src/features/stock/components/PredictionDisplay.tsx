@@ -254,7 +254,7 @@ export default function PredictionDisplay({ prediction, currentPrice, isLoading 
                 <Stack direction="row" justifyContent="space-between">
                      {predictions.map((p, i) => {
                          const potential = ((p.targetPrice - currentPrice) / currentPrice) * 100;
-                         const isUp = p.direction === 'BULLISH';
+                         const isUp = potential > 0;
                          return (
                             <Box key={i} textAlign="center">
                                 <Typography variant="caption" color="text.secondary" mb={0.5} display="block">

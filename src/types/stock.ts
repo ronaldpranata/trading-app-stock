@@ -185,3 +185,10 @@ export interface StockData {
   isLoading: boolean;
   error: string | null;
 }
+
+export interface AnalysisResult {
+  symbol: string;
+  technicalIndicators: TechnicalIndicators;
+  prediction: PredictionResult;
+  sentimentData?: SentimentData;
+}

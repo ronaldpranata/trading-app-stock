@@ -15,11 +15,14 @@ export interface ReferenceData {
   headlines?: string[]; // Added headlines
 }
 
-export interface AnalysisResult {
+import { AnalysisResult } from '@/types/stock';
+
+export interface ReferenceData {
+  historicalData: HistoricalData[];
+  fundamentalData: FundamentalData | null;
+  currentPrice: number;
   symbol: string;
-  technicalIndicators: TechnicalIndicators;
-  prediction: PredictionResult;
-  sentimentData?: any; // To pass back calculated sentiment
+  headlines?: string[]; // Added headlines
 }
 
 // Global context for the worker
