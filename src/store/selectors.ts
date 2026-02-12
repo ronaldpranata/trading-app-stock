@@ -52,6 +52,16 @@ export const selectCanAddMoreComparisons = createSelector(
   (count) => count < 5
 );
 
+export const selectAnalysisResults = createSelector(
+  selectStockState,
+  (stock) => stock.analysisResults
+);
+
+export const selectIsAnalyzing = createSelector(
+  selectStockState,
+  (stock) => stock.isAnalyzing
+);
+
 // ============================================
 // UI Selectors
 // ============================================

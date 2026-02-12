@@ -12,10 +12,13 @@ import {
   selectIsCheckingAuth,
   selectAuthError,
 } from '@/store';
+import { resetStock } from '@/features/stock/stockSlice';
+import { stockApi } from '@/store/api/stockApi';
 
 /**
  * Custom hook for authentication operations
  * Provides a clean interface for components to interact with auth state
+ * @returns Object containing auth state and actions
  */
 export function useAuth() {
   const dispatch = useAppDispatch();
@@ -42,8 +45,11 @@ export function useAuth() {
 
   const handleLogout = useCallback(async () => {
     await dispatch(logout());
-    router.refresh();
-    router.push('/login');
+    dispatch(resetStock());
+    dispatch(stockApi.util.resetApiState());
+    
+    router.refresh(); // Invalidate server components
+    router.push('/');
   }, [dispatch, router]);
 
   const clearError = useCallback(() => {

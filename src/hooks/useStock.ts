@@ -11,11 +11,13 @@ import {
   selectPrimarySymbol,
   selectComparisonSymbols,
   selectCanAddMoreComparisons,
-  selectComparisonData
+  selectComparisonData,
+  selectAnalysisResults,
+  selectIsAnalyzing,
+  selectIsAuthenticated
 } from '@/store/selectors';
 import { useGetStockDataQuery, stockApi } from '@/store/api/stockApi';
 import { StockData } from '@/types/stock';
-import { useBatchAnalysisWorker } from './useBatchAnalysisWorker';
 
 /**
  * Custom hook for stock-related operations
@@ -28,6 +30,10 @@ export function useStock() {
   const symbol = useAppSelector(selectPrimarySymbol);
   const comparisonSymbols = useAppSelector(selectComparisonSymbols);
   const canAddMoreComparisons = useAppSelector(selectCanAddMoreComparisons);
+  const analysisResults = useAppSelector(selectAnalysisResults);
+  
+  // Auth check
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
 
   // 1. RTK Query for Primary Stock
   const { 
@@ -36,7 +42,7 @@ export function useStock() {
     error: primaryError,
     refetch: refetchPrimary
   } = useGetStockDataQuery(symbol || '', { 
-    skip: !symbol 
+    skip: !symbol || !isAuthenticated
   });
 
   // 2. Dynamic RTK Query for Comparison Stocks
@@ -52,72 +58,21 @@ export function useStock() {
   // Select results from store using memoized selector
   const comparisonResults = useAppSelector(selectComparisonData);
 
-  // 3. Batch Worker Analysis
-  // Single worker instance handles all predictions
-  const { analyze, results: workerResults, processingStatus } = useBatchAnalysisWorker();
-  const workerResultsRef = useRef<Record<string, number>>({}); // Track last processed price to avoid loops
-
-  // Trigger analysis for Primary Stock
-  useEffect(() => {
-    if (!primaryStock || !symbol) return;
-    
-    // Safety check for historicalData
-    if (!primaryStock.historicalData || primaryStock.historicalData.length === 0) return;
-    
-    // Only analyze if price changed or we haven't analyzed yet
-    const lastPrice = workerResultsRef.current[symbol];
-    const currentPrice = primaryStock.quote?.price || 0;
-    const hasResult = !!workerResults[symbol];
-
-    if (currentPrice !== lastPrice || !hasResult) {
-      workerResultsRef.current[symbol] = currentPrice;
-      analyze({
-        symbol,
-        historicalData: primaryStock.historicalData,
-        fundamentalData: primaryStock.fundamentalData || null,
-        currentPrice,
-        headlines: primaryStock.sentimentData?.headlines
-      });
-    }
-  }, [primaryStock, symbol, analyze, workerResults]);
-
-  // Trigger analysis for Comparison Stocks
-  useEffect(() => {
-    comparisonResults.forEach(({ symbol: compSymbol, data }) => {
-      if (!data || !compSymbol) return;
-
-      const lastPrice = workerResultsRef.current[compSymbol];
-      const currentPrice = data.quote?.price || 0;
-      const hasResult = !!workerResults[compSymbol];
-
-      if ((currentPrice !== lastPrice || !hasResult) && data.historicalData.length > 0) {
-        workerResultsRef.current[compSymbol] = currentPrice;
-        analyze({
-          symbol: compSymbol,
-          historicalData: data.historicalData,
-          fundamentalData: data.fundamentalData || null,
-          currentPrice,
-          headlines: data.sentimentData?.headlines
-        });
-      }
-    });
-  }, [comparisonResults, analyze, workerResults]);
-
   // 4. Merge Data for Output
   const finalPrimaryStock: StockData | null = primaryStock ? {
     ...primaryStock,
-    technicalIndicators: workerResults[symbol || '']?.technicalIndicators || primaryStock.technicalIndicators || null,
-    prediction: workerResults[symbol || '']?.prediction || primaryStock.prediction || null,
-    sentimentData: workerResults[symbol || '']?.sentimentData || primaryStock.sentimentData || undefined
+    technicalIndicators: analysisResults[symbol || '']?.technicalIndicators || primaryStock.technicalIndicators || null,
+    prediction: analysisResults[symbol || '']?.prediction || primaryStock.prediction || null,
+    sentimentData: analysisResults[symbol || '']?.sentimentData || primaryStock.sentimentData || undefined
   } : null;
 
   const compareStocks = comparisonResults.map(({ symbol: compSymbol, data, isLoading, error }) => {
     if (!data) return null;
     return {
       ...data,
-      technicalIndicators: workerResults[compSymbol]?.technicalIndicators || null,
-      prediction: workerResults[compSymbol]?.prediction || null,
-      sentimentData: workerResults[compSymbol]?.sentimentData || data.sentimentData || undefined,
+      technicalIndicators: analysisResults[compSymbol]?.technicalIndicators || null,
+      prediction: analysisResults[compSymbol]?.prediction || null,
+      sentimentData: analysisResults[compSymbol]?.sentimentData || data.sentimentData || undefined,
       isLoading,
       error: error ? String(error) : null
     };
@@ -125,7 +80,7 @@ export function useStock() {
 
   // Aggregated Loading & Error
   const isCompLoading = comparisonResults.some(r => r.isLoading);
-  const isAnalyzing = Object.values(processingStatus).some(status => status);
+  const isAnalyzing = useAppSelector(selectIsAnalyzing);
   const isLoading = isPrimaryLoading || isCompLoading || isAnalyzing;
   
   // For error, we return the primary error string if present

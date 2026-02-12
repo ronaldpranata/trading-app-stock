@@ -1,14 +1,22 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { AnalysisResult, ReferenceData } from '../workers/analysis.worker';
+import { useEffect, useRef, useCallback } from 'react';
+import { ReferenceData } from '../workers/analysis.worker';
+import { AnalysisResult } from '@/types/stock';
+import { useAppDispatch } from '@/store/hooks';
+import { setAnalysisResult, setIsAnalyzing } from '@/features/stock/stockSlice';
 
 /**
  * Hook to manage a shared Web Worker for multiple stock analysis requests.
  * Allows processing multiple stocks without instantiating multiple workers.
  */
-export function useBatchAnalysisWorker() {
-  const [results, setResults] = useState<Record<string, AnalysisResult>>({});
-  const [processingStatus, setProcessingStatus] = useState<Record<string, boolean>>({});
+export function useBatchAnalysisWorker(onComplete?: (symbol: string) => void) {
+  const dispatch = useAppDispatch();
   const workerRef = useRef<Worker | null>(null);
+  const onCompleteRef = useRef(onComplete);
+
+  // Keep ref callback up to date
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
   useEffect(() => {
     // Initialize Single Shared Worker
@@ -17,42 +25,26 @@ export function useBatchAnalysisWorker() {
     });
 
     workerRef.current.onmessage = (event: MessageEvent<AnalysisResult>) => {
-      const { symbol } = event.data;
+      // Update global Redux state
+      dispatch(setAnalysisResult(event.data));
       
-      // Update results
-      setResults(prev => ({
-        ...prev,
-        [symbol]: event.data
-      }));
-
-      // Mark as done
-      setProcessingStatus(prev => ({
-        ...prev,
-        [symbol]: false
-      }));
+      // Notify completion
+      if (onCompleteRef.current) {
+        onCompleteRef.current(event.data.symbol);
+      }
     };
 
     return () => {
       workerRef.current?.terminate();
     };
-  }, []);
+  }, [dispatch]); // Removed onComplete from dependencies
 
   const analyze = useCallback((data: ReferenceData) => {
     if (!workerRef.current) return;
-    
-    // Mark as processing
-    setProcessingStatus(prev => ({
-      ...prev,
-      [data.symbol]: true
-    }));
-
-    // Send to worker
     workerRef.current.postMessage(data);
   }, []);
 
   return {
-    results,
-    processingStatus,
     analyze
   };
 }

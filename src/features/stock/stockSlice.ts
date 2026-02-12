@@ -1,17 +1,22 @@
 "use client";
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { AnalysisResult } from '@/types/stock';
 
 // Types
 export interface StockState {
   primarySymbol: string | null;
   comparisonSymbols: string[];
+  analysisResults: Record<string, AnalysisResult>;
+  isAnalyzing: boolean;
 }
 
 // Initial state
 const initialState: StockState = {
-  primarySymbol: null,
+  primarySymbol: 'AAPL',
   comparisonSymbols: [],
+  analysisResults: {},
+  isAnalyzing: false,
 };
 
 // Slice
@@ -39,6 +44,12 @@ const stockSlice = createSlice({
     clearComparisons: (state) => {
       state.comparisonSymbols = [];
     },
+    setAnalysisResult: (state, action: PayloadAction<AnalysisResult>) => {
+      state.analysisResults[action.payload.symbol] = action.payload;
+    },
+    setIsAnalyzing: (state, action: PayloadAction<boolean>) => {
+      state.isAnalyzing = action.payload;
+    },
     resetStock: () => initialState,
   },
 });
@@ -49,6 +60,8 @@ export const {
   addComparisonSymbol,
   removeComparisonSymbol,
   clearComparisons,
+  setAnalysisResult,
+  setIsAnalyzing,
   resetStock,
 } = stockSlice.actions;
 

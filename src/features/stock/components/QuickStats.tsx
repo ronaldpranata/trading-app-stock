@@ -5,6 +5,7 @@ import {
   Stack, 
   Box, 
   Grid, 
+  Skeleton,
 } from "@mui/material";
 import { MetricBox, ScoreBar } from "@/components/ui";
 import { formatNumber } from "@/lib/formatters";
@@ -14,13 +15,41 @@ interface QuickStatsProps {
   quote: StockQuote | null;
   fundamentals: FundamentalData | null;
   prediction: PredictionResult | null;
+  isLoading?: boolean;
 }
 
 export default function QuickStats({
   quote,
   fundamentals,
   prediction,
+  isLoading
 }: QuickStatsProps) {
+  if (isLoading) {
+    return (
+      <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
+         <CardContent>
+           <Skeleton variant="text" width={100} height={24} sx={{ mb: 2 }} />
+           <Stack spacing={2}>
+             <Skeleton variant="rectangular" height={80} sx={{ borderRadius: 2 }} />
+             <Grid container spacing={2}>
+               <Grid size={{ xs: 6 }}><Skeleton variant="rectangular" height={60} sx={{ borderRadius: 1 }} /></Grid>
+               <Grid size={{ xs: 6 }}><Skeleton variant="rectangular" height={60} sx={{ borderRadius: 1 }} /></Grid>
+               <Grid size={{ xs: 6 }}><Skeleton variant="rectangular" height={60} sx={{ borderRadius: 1 }} /></Grid>
+               <Grid size={{ xs: 6 }}><Skeleton variant="rectangular" height={60} sx={{ borderRadius: 1 }} /></Grid>
+             </Grid>
+             <Box pt={2} sx={{ borderTop: 1, borderColor: 'divider' }}>
+                <Stack spacing={1}>
+                  <Skeleton variant="rectangular" height={20} />
+                  <Skeleton variant="rectangular" height={20} />
+                  <Skeleton variant="rectangular" height={20} />
+                </Stack>
+             </Box>
+           </Stack>
+         </CardContent>
+      </Card>
+    );
+  }
+
   if (!quote) return null;
 
   const isBullish = prediction?.direction === "BULLISH";
@@ -66,7 +95,6 @@ export default function QuickStats({
                )}
              </Grid>
              <Grid size={{ xs: 6 }}>
-             <Grid size={{ xs: 6 }}>
                <MetricBox
                  label="PEG Ratio"
                  value={(fundamentals?.pegRatio === undefined || fundamentals?.pegRatio === 0) ? "N/A" : fundamentals.pegRatio}
@@ -74,7 +102,6 @@ export default function QuickStats({
                  colorize={typeof fundamentals?.pegRatio === 'number' && fundamentals.pegRatio > 0}
                  thresholds={{ good: 1, bad: 2, inverse: true }}
                />
-             </Grid>
              </Grid>
              <Grid size={{ xs: 6 }}>
                {prediction?.targetPrice && (

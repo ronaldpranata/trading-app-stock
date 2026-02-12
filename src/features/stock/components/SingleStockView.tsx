@@ -63,6 +63,7 @@ export default function SingleStockView() {
               quote={primaryStock?.quote || null}
               fundamentals={primaryStock?.fundamentalData || null}
               prediction={primaryStock?.prediction || null}
+              isLoading={isLoading}
             />
           </Grid>
         </Grid>
