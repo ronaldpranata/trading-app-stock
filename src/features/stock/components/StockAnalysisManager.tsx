@@ -8,7 +8,7 @@ import {
   selectAnalysisResults,
   selectIsAuthenticated
 } from '@/store/selectors';
-import { useGetStockDataQuery } from '@/store/api/stockApi';
+import { useGetStockDataQuery } from '@/features/stock/stockApi';
 import { useBatchAnalysisWorker } from '@/hooks/useBatchAnalysisWorker';
 import { setIsAnalyzing } from '@/features/stock/stockSlice';
 

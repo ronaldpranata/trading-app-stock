@@ -1,19 +1,15 @@
-"use client";
-
 import { useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
-  checkAuth,
-  login,
-  logout,
   clearAuthError,
   selectIsAuthenticated,
   selectIsCheckingAuth,
   selectAuthError,
 } from '@/store';
+import { useLoginMutation, useLogoutMutation } from '@/features/auth/authApi';
 import { resetStock } from '@/features/stock/stockSlice';
-import { stockApi } from '@/store/api/stockApi';
+import { baseApi } from '@/store/api/baseApi';
 
 /**
  * Custom hook for authentication operations
@@ -29,31 +25,40 @@ export function useAuth() {
   const isChecking = useAppSelector(selectIsCheckingAuth);
   const error = useAppSelector(selectAuthError);
 
-  // Check auth on mount - REMOVED, now handled by AuthProvider
-  // useEffect(() => {
-  //   dispatch(checkAuth());
-  // }, [dispatch]);
+  // API Mutations
+  const [loginMutation, { isLoading: isLoginLoading }] = useLoginMutation();
+  const [logoutMutation, { isLoading: isLogoutLoading }] = useLogoutMutation();
 
   // Actions
   const handleLogin = useCallback(
     async (password: string): Promise<string | null> => {
-      const result = await dispatch(login(password));
-      if (login.rejected.match(result)) {
-        return (result.payload as string) || "Login failed";
+      try {
+        const result = await loginMutation(password).unwrap();
+        // If unwrap succeeds, login was successful
+        return null; 
+      } catch (err: any) {
+        // If unwrap throws, login failed
+        const errorMessage = err?.data?.error || "Login failed";
+        return errorMessage;
       }
-      return null;
     },
-    [dispatch]
+    [loginMutation]
   );
 
   const handleLogout = useCallback(async () => {
-    await dispatch(logout());
+    try {
+      await logoutMutation().unwrap();
+    } catch (e) {
+      console.error("Logout failed", e);
+    }
+    
+    // Client-side cleanup
     dispatch(resetStock());
-    dispatch(stockApi.util.resetApiState());
+    dispatch(baseApi.util.resetApiState());
     
     router.refresh(); // Invalidate server components
     router.replace('/login');
-  }, [dispatch, router]);
+  }, [dispatch, router, logoutMutation]);
 
   const clearError = useCallback(() => {
     dispatch(clearAuthError());
@@ -62,7 +67,7 @@ export function useAuth() {
   return {
     // State
     isAuthenticated,
-    isChecking,
+    isChecking: isChecking || isLoginLoading || isLogoutLoading,
     error,
     
     // Actions

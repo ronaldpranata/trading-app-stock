@@ -1,16 +1,7 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { baseApi } from '@/store/api/baseApi';
 import { StockData, StockQuote, HistoricalData, FundamentalData, TechnicalIndicators, PredictionResult } from '@/types/stock';
 
-interface StockApiResponse {
-  quote: StockQuote;
-  historical: HistoricalData[];
-  fundamental: FundamentalData;
-}
-
-export const stockApi = createApi({
-  reducerPath: 'stockApi',
-  baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-  tagTypes: ['Stock'],
+export const stockApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getStockData: builder.query<StockData, string>({
       async queryFn(_arg, _queryApi, _extraOptions, fetchWithBQ) {
@@ -73,10 +64,9 @@ export const stockApi = createApi({
          if (result.error) return { error: result.error };
          return { data: result.data as StockQuote };
       },
-       // We can use this to update the cache of getStockData manually if needed, 
-       // but for now let's keep it simple.
     }),
   }),
+  overrideExisting: false,
 });
 
 export const { useGetStockDataQuery, useGetQuoteQuery } = stockApi;

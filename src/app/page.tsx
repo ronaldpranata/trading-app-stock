@@ -8,7 +8,7 @@ import StatusBar from "@/components/layout/StatusBar";
 import AppLayout from "@/components/layout/AppLayout";
 import SingleStockView from "@/features/stock/components/SingleStockView";
 
-import { useAuth, useStock, useUI, useAutoRefresh } from "@/hooks";
+import { useAuth, useStock, useUI } from "@/hooks";
 import { 
   Box, 
   Container, 

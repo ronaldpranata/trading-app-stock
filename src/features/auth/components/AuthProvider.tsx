@@ -1,19 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from 'react';
-import { useAppDispatch } from '@/store/hooks';
-import { checkAuth } from '@/store';
+import { useCheckAuthQuery } from '@/features/auth/authApi';
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
-  const dispatch = useAppDispatch();
-  const initialized = useRef(false);
-
-  useEffect(() => {
-    if (!initialized.current) {
-      initialized.current = true;
-      dispatch(checkAuth());
-    }
-  }, [dispatch]);
+  // Automatically check auth on mount (cached by RTK Query)
+  useCheckAuthQuery();
 
   return <>{children}</>;
 }

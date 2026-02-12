@@ -11,13 +11,15 @@ describe('Badge Component', () => {
   it('applies default styles', () => {
     render(<Badge>Default</Badge>);
     const badge = screen.getByText('Default');
-    expect(badge.className).toContain('bg-gray-500/20');
+    // Default is filled, default color
+    expect(badge.closest('.MuiChip-root')?.className).toContain('MuiChip-filledDefault');
   });
 
   it('applies variant styles', () => {
     render(<Badge variant="success">Success</Badge>);
     const badge = screen.getByText('Success');
-    expect(badge.className).toContain('bg-green-500/20');
+    // Success is outlined, success color
+    expect(badge.closest('.MuiChip-root')?.className).toContain('MuiChip-outlinedSuccess');
   });
 });
 
@@ -25,12 +27,14 @@ describe('StatusBadge Component', () => {
   it('renders LIVE status correctly', () => {
     render(<StatusBadge status="live" />);
     const badge = screen.getByText('LIVE');
-    expect(badge.className).toContain('bg-green-500/20');
+    // Live -> Success -> Outlined Success
+    expect(badge.closest('.MuiChip-root')?.className).toContain('MuiChip-outlinedSuccess');
   });
 
   it('renders LOADING status correctly', () => {
     render(<StatusBadge status="loading" />);
     const badge = screen.getByText('LOADING');
-    expect(badge.className).toContain('bg-cyan-500/20');
+    // Loading -> Info -> Outlined Info
+    expect(badge.closest('.MuiChip-root')?.className).toContain('MuiChip-outlinedInfo');
   });
 });

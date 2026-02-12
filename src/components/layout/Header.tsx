@@ -29,8 +29,6 @@ function Header() {
     const { 
       viewMode, 
       setViewMode, 
-      autoRefreshEnabled, 
-      toggleAutoRefresh,
       isCompareMode 
     } = useUI();
 
@@ -113,13 +111,7 @@ function Header() {
                     <RefreshCw size={18} className={isLoading ? "animate-spin" : ""} />
                   </IconButton>
 
-                  <IconButton
-                    onClick={toggleAutoRefresh}
-                    color={autoRefreshEnabled ? "success" : "default"}
-                    size="small"
-                  >
-                    {autoRefreshEnabled ? <Pause size={18} /> : <Play size={18} />}
-                  </IconButton>
+
 
                   {/* Logout Button */}
                   <IconButton onClick={logout} size="small" title="Logout">

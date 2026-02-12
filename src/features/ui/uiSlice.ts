@@ -9,7 +9,6 @@ export type ActiveTab = 'overview' | 'technical' | 'fundamental' | 'prediction';
 export interface UIState {
   viewMode: ViewMode;
   activeTab: ActiveTab;
-  autoRefreshEnabled: boolean;
   lastRefresh: string | null; // ISO string for serialization
 }
 
@@ -17,7 +16,6 @@ export interface UIState {
 const initialState: UIState = {
   viewMode: 'single',
   activeTab: 'overview',
-  autoRefreshEnabled: false,
   lastRefresh: null,
 };
 
@@ -32,12 +30,7 @@ const uiSlice = createSlice({
     setActiveTab: (state, action: PayloadAction<ActiveTab>) => {
       state.activeTab = action.payload;
     },
-    setAutoRefreshEnabled: (state, action: PayloadAction<boolean>) => {
-      state.autoRefreshEnabled = action.payload;
-    },
-    toggleAutoRefresh: (state) => {
-      state.autoRefreshEnabled = !state.autoRefreshEnabled;
-    },
+
     setLastRefresh: (state, action: PayloadAction<string | null>) => {
       state.lastRefresh = action.payload;
     },
@@ -52,8 +45,6 @@ const uiSlice = createSlice({
 export const {
   setViewMode,
   setActiveTab,
-  setAutoRefreshEnabled,
-  toggleAutoRefresh,
   setLastRefresh,
   updateLastRefresh,
   resetUI,

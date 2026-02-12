@@ -10,7 +10,7 @@ import { stockReducer } from '../../features/stock/stockSlice';
 const mockUseGetStockDataQuery = vi.fn();
 const mockUseGetQuoteQuery = vi.fn();
 
-vi.mock('@/store/api/stockApi', () => ({
+vi.mock('@/features/stock/stockApi', () => ({
   useGetStockDataQuery: (...args: unknown[]) => mockUseGetStockDataQuery(...args),
   useGetQuoteQuery: (...args: unknown[]) => mockUseGetQuoteQuery(...args),
   stockApi: {
@@ -25,7 +25,8 @@ const createTestStore = () => configureStore({
   reducer: {
     stock: stockReducer,
     // We don't need the real API reducer for this test since we mocked the hook
-    stockApi: (state = {}) => state, 
+    stockApi: (state = {}) => state,
+    auth: (state = { user: null, token: null, isAuthenticated: false, loading: false, error: null }) => state, 
   }, 
 });
 
@@ -52,7 +53,7 @@ describe('useStock Hook', () => {
     it('should return initial state', () => {
         const { result } = renderHook(() => useStock(), { wrapper });
         
-        expect(result.current.symbol).toBeNull();
+        expect(result.current.symbol).toBe('AAPL');
         expect(result.current.primaryStock).toBeNull();
         expect(result.current.isLoading).toBe(false);
     });

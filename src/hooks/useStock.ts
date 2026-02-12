@@ -16,7 +16,7 @@ import {
   selectIsAnalyzing,
   selectIsAuthenticated
 } from '@/store/selectors';
-import { useGetStockDataQuery, stockApi } from '@/store/api/stockApi';
+import { useGetStockDataQuery, stockApi } from '@/features/stock/stockApi';
 import { StockData } from '@/types/stock';
 
 /**

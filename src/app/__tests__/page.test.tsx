@@ -38,7 +38,7 @@ vi.mock('@/hooks', () => ({
   useAuth: vi.fn(),
   useStock: vi.fn(),
   useUI: vi.fn(),
-  useAutoRefresh: vi.fn(), // Mock useAutoRefresh as it is used in the component
+
 }));
 
 describe('Home Page', () => {
@@ -52,7 +52,7 @@ describe('Home Page', () => {
     (hooks.useUI as any).mockReturnValue({
         isCompareMode: false 
     });
-     (hooks.useAutoRefresh as any).mockReturnValue({});
+
   });
 
   it('redirects to login when not authenticated', () => {

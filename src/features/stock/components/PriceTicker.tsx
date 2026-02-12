@@ -10,7 +10,7 @@ export default function PriceTicker() {
 
   if (isLoading || !quote) {
     return (
-      <Card variant="outlined" sx={{ p: 2, mb: 3 }}>
+      <Card variant="outlined" sx={{ p: 2, mb: 3 }} data-testid="loading-skeleton">
         <Stack direction="row" gap={2} alignItems="center">
           <Skeleton variant="rounded" width={56} height={56} />
           <Box sx={{ width: "100%" }}>
@@ -77,6 +77,7 @@ export default function PriceTicker() {
                   py: 0.5,
                   borderRadius: 1,
                 }}
+                data-testid="price-change"
               >
                 {isPositive ? (
                   <TrendingUp size={16} />

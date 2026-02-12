@@ -75,7 +75,7 @@ export default function SignalsSummary({
           </Grid>
         </Grid>
 
-        <Box sx={{ maxHeight: 250, overflowY: 'auto', mb: 3 }}>
+        <Box sx={{ maxHeight: 350, overflowY: 'auto', mb: 3 }}>
           <Stack spacing={1}>
             {signals.map((signal, i) => {
               const sColor = signal.type === 'bullish' ? 'success' : signal.type === 'bearish' ? 'error' : 'default';

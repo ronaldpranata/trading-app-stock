@@ -22,7 +22,7 @@ import {
   GraduationCap
 } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
-import { useAuth, useStock, useUI, useAutoRefresh } from "@/hooks";
+import { useAuth, useStock, useUI } from "@/hooks";
 import { useCallback } from "react";
 
 export default function AuthorPage() {
@@ -31,16 +31,7 @@ export default function AuthorPage() {
   const stock = useStock();
   const ui = useUI();
 
-  // Auto refresh setup (standard for AppLayout pages)
-  const handleRefresh = useCallback(() => {
-    stock.refresh();
-  }, [stock]);
 
-  useAutoRefresh({
-    symbol: stock.symbol || undefined,
-    onRefresh: handleRefresh,
-    interval: 10000,
-  });
 
   const handleSymbolChange = (symbol: string) => {
     if (ui.isCompareMode) {

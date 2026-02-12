@@ -2,7 +2,7 @@
 
 import { createSelector } from '@reduxjs/toolkit';
 import type { RootState } from './index';
-import { stockApi } from './api/stockApi';
+import { baseApi } from './api/baseApi';
 import { StockData } from '@/types/stock';
 
 // ============================================
@@ -78,10 +78,7 @@ export const selectActiveTab = createSelector(
   (ui) => ui.activeTab
 );
 
-export const selectAutoRefreshEnabled = createSelector(
-  selectUIState,
-  (ui) => ui.autoRefreshEnabled
-);
+
 
 export const selectLastRefresh = createSelector(
   selectUIState,
@@ -105,7 +102,7 @@ export const selectIsCompareMode = createSelector(
 
 
 // Helper to select API state
-const selectStockApiState = (state: RootState) => state[stockApi.reducerPath];
+const selectStockApiState = (state: RootState) => state[baseApi.reducerPath];
 
 export const selectComparisonData = createSelector(
   [selectComparisonSymbols, selectStockApiState],

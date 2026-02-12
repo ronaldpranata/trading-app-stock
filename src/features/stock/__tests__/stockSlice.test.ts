@@ -3,8 +3,10 @@ import { stockReducer, setPrimarySymbol, addComparisonSymbol, removeComparisonSy
 
 describe('stockSlice', () => {
   const initialState = {
-    primarySymbol: null,
+    primarySymbol: 'AAPL',
     comparisonSymbols: [],
+    analysisResults: {},
+    isAnalyzing: false,
   };
 
   it('should handle initial state', () => {

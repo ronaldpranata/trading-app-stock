@@ -32,14 +32,5 @@ describe('useUI Hook', () => {
         expect(result.current.viewMode).toBe('compare');
     });
 
-    it('should toggle auto refresh', () => {
-        const { result } = renderHook(() => useUI(), { wrapper });
-        const initial = result.current.autoRefreshEnabled;
-        
-        act(() => {
-            result.current.toggleAutoRefresh();
-        });
-        
-        expect(result.current.autoRefreshEnabled).toBe(!initial);
-    });
+
 });

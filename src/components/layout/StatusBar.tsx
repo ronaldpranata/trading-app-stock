@@ -14,7 +14,7 @@ import { useStock, useUI } from "@/hooks";
 
 export default function StatusBar() {
   const { symbol, primaryStock, isLoading } = useStock();
-  const { lastRefreshFormatted, autoRefreshEnabled } = useUI();
+  const { lastRefreshFormatted } = useUI();
   
   const predictionDirection = primaryStock?.prediction?.direction || "NEUTRAL";
 
@@ -46,12 +46,7 @@ export default function StatusBar() {
               </Stack>
             )}
           </Stack>
-          {autoRefreshEnabled && (
-            <Stack direction="row" alignItems="center" gap={1}>
-              <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: 'success.main', animation: 'pulse-green 1.5s infinite' }} />
-              <Typography variant="caption" color="success.main">Auto-refresh ON</Typography>
-            </Stack>
-          )}
+
         </Stack>
       </Container>
     </Box>
