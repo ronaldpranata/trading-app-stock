@@ -37,6 +37,11 @@ Follow this path step-by-step.
    - **Key Concepts:** Redux Toolkit (RTK), RTK Query, Selectors vs Getters.
    - **Practical:** Review `src/store/api/stockApi.ts` (Server State) and `src/store/slices/stockSlice.ts` (UI State).
 
+### 3.5. [Authentication Patterns](./react-authentication-patterns.md)
+   - **Goal:** Master secure, loop-free authentication flows.
+   - **Key Concepts:** The Provider Pattern, Loop Prevention, Route Protection.
+   - **Practical:** Review `src/features/auth/components/AuthProvider.tsx` and `src/app/login/page.tsx`.
+
 ---
 
 ## Phase 3: Senior Engineering (Architecture & Patterns)
