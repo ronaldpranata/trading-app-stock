@@ -1,9 +1,9 @@
 "use client";
 
-import { createSelector } from '@reduxjs/toolkit';
-import type { RootState } from './index';
-import { baseApi } from './api/baseApi';
-import { StockData } from '@/types/stock';
+import { createSelector } from "@reduxjs/toolkit";
+import type { RootState } from "./index";
+import { baseApi } from "./api/baseApi";
+import { StockData } from "@/types/stock";
 
 // ============================================
 // Auth Selectors
@@ -13,18 +13,24 @@ export const selectAuthState = (state: RootState) => state.auth;
 
 export const selectIsAuthenticated = createSelector(
   selectAuthState,
-  (auth) => auth.isAuthenticated
+  (auth) => auth.isAuthenticated,
 );
 
 export const selectIsCheckingAuth = createSelector(
   selectAuthState,
-  (auth) => auth.isChecking
+  (auth) => auth.isChecking,
 );
 
 export const selectAuthError = createSelector(
   selectAuthState,
-  (auth) => auth.error
+  (auth) => auth.error,
 );
+
+// ============================================
+// Author Selectors
+// ============================================
+
+export const selectAuthorState = (state: RootState) => state.author;
 
 // ============================================
 // Stock Selectors
@@ -34,32 +40,32 @@ export const selectStockState = (state: RootState) => state.stock;
 
 export const selectPrimarySymbol = createSelector(
   selectStockState,
-  (stock) => stock.primarySymbol
+  (stock) => stock.primarySymbol,
 );
 
 export const selectComparisonSymbols = createSelector(
   selectStockState,
-  (stock) => stock.comparisonSymbols
+  (stock) => stock.comparisonSymbols,
 );
 
 export const selectCompareStockCount = createSelector(
   selectComparisonSymbols,
-  (symbols) => symbols.length
+  (symbols) => symbols.length,
 );
 
 export const selectCanAddMoreComparisons = createSelector(
   selectCompareStockCount,
-  (count) => count < 5
+  (count) => count < 5,
 );
 
 export const selectAnalysisResults = createSelector(
   selectStockState,
-  (stock) => stock.analysisResults
+  (stock) => stock.analysisResults,
 );
 
 export const selectIsAnalyzing = createSelector(
   selectStockState,
-  (stock) => stock.isAnalyzing
+  (stock) => stock.isAnalyzing,
 );
 
 // ============================================
@@ -70,24 +76,21 @@ export const selectUIState = (state: RootState) => state.ui;
 
 export const selectViewMode = createSelector(
   selectUIState,
-  (ui) => ui.viewMode
+  (ui) => ui.viewMode,
 );
 
 export const selectActiveTab = createSelector(
   selectUIState,
-  (ui) => ui.activeTab
+  (ui) => ui.activeTab,
 );
 
-
-
-export const selectLastRefresh = createSelector(
-  selectUIState,
-  (ui) => (ui.lastRefresh ? new Date(ui.lastRefresh) : null)
+export const selectLastRefresh = createSelector(selectUIState, (ui) =>
+  ui.lastRefresh ? new Date(ui.lastRefresh) : null,
 );
 
 export const selectLastRefreshFormatted = createSelector(
   selectLastRefresh,
-  (lastRefresh) => (lastRefresh ? lastRefresh.toLocaleTimeString() : null)
+  (lastRefresh) => (lastRefresh ? lastRefresh.toLocaleTimeString() : null),
 );
 
 // ============================================
@@ -96,10 +99,8 @@ export const selectLastRefreshFormatted = createSelector(
 
 export const selectIsCompareMode = createSelector(
   selectViewMode,
-  (viewMode) => viewMode === 'compare'
+  (viewMode) => viewMode === "compare",
 );
-
-
 
 // Helper to select API state
 const selectStockApiState = (state: RootState) => state[baseApi.reducerPath];
@@ -107,18 +108,18 @@ const selectStockApiState = (state: RootState) => state[baseApi.reducerPath];
 export const selectComparisonData = createSelector(
   [selectComparisonSymbols, selectStockApiState],
   (symbols, apiState) => {
-    return symbols.map(sym => {
+    return symbols.map((sym) => {
       const cacheKey = `getStockData("${sym}")`;
       const queryResult = apiState.queries[cacheKey];
-      
+
       return {
         symbol: sym,
         data: (queryResult?.data as StockData | undefined) ?? null,
-        isLoading: queryResult?.status === 'pending',
+        isLoading: queryResult?.status === "pending",
         error: queryResult?.error ?? null,
-        isSuccess: queryResult?.status === 'fulfilled',
-        isUninitialized: queryResult?.status === 'uninitialized',
+        isSuccess: queryResult?.status === "fulfilled",
+        isUninitialized: queryResult?.status === "uninitialized",
       };
     });
-  }
+  },
 );
