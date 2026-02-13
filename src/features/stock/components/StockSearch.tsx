@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, TrendingUp, Bitcoin } from 'lucide-react';
+import { Search, TrendingUp, CurrencyBitcoin } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { searchStocks, SearchResult } from '@/services/api';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -101,7 +101,7 @@ export default function StockSearch({ onSelectStock, currentSymbol }: StockSearc
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <Search size={20} color="#9ca3af" />
+              <Search sx={{ color: 'text.secondary' }} />
             </InputAdornment>
           ),
           sx: {
@@ -150,9 +150,9 @@ export default function StockSearch({ onSelectStock, currentSymbol }: StockSearc
                   >
                     <ListItemIcon sx={{ minWidth: 32 }}>
                         {result.type === 'CRYPTOCURRENCY' ? (
-                            <Bitcoin size={20} className="text-yellow-500" />
+                            <CurrencyBitcoin sx={{ fontSize: 20, color: "#f59e0b" }} />
                         ) : (
-                            <TrendingUp size={20} className="text-blue-500" />
+                            <TrendingUp sx={{ fontSize: 20, color: "#3b82f6" }} />
                         )}
                     </ListItemIcon>
                     <ListItemText

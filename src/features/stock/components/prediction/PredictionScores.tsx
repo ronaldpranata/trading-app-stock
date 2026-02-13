@@ -15,11 +15,11 @@ export default function PredictionScores({ prediction }: PredictionScoresProps) 
   ];
 
   return (
-    <Stack direction="row" spacing={2} mb={3}>
+    <Stack direction="row" spacing={{ xs: 1, sm: 2 }} mb={3}>
          {scores.map((item, i) => (
              <Box key={i} sx={{ flex: 1, p: 1, bgcolor: 'action.hover', borderRadius: 1, border: 1, borderColor: 'divider' }}>
-                  <Stack direction="row" justifyContent="space-between" mb={0.5}>
-                      <Typography variant="caption" color="text.secondary">{item.label}</Typography>
+                  <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} mb={0.5}>
+                      <Typography variant="caption" color="text.secondary" noWrap>{item.label}</Typography>
                       <Typography variant="caption" fontWeight="bold" sx={{ color: item.color }}>{Math.round(item.score)}</Typography>
                   </Stack>
                   <LinearProgress 

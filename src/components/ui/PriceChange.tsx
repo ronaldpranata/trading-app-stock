@@ -1,6 +1,6 @@
 'use client';
 
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { TrendingUp, TrendingDown, Remove } from '@mui/icons-material';
 
 interface PriceChangeProps {
   change: number;
@@ -18,10 +18,10 @@ const sizeStyles = {
 };
 
 const iconSizes = {
-  sm: 'w-3 h-3',
-  md: 'w-4 h-4',
-  lg: 'w-5 h-5'
-};
+  sm: 'small',
+  md: 'small',
+  lg: 'medium'
+} as const;
 
 export function PriceChange({
   change,
@@ -37,7 +37,7 @@ export function PriceChange({
 
   return (
     <div className={`flex items-center gap-1 ${color} ${sizeStyles[size]} ${className}`}>
-      {showIcon && <Icon className={iconSizes[size]} />}
+      {showIcon && <Icon fontSize={iconSizes[size]} sx={{ width: size === 'sm' ? 14 : size === 'md' ? 18 : 24, height: size === 'sm' ? 14 : size === 'md' ? 18 : 24 }} />}
       <span className="font-semibold">
         {showDollar && (
           <>{isPositive ? '+' : ''}{change.toFixed(2)} </>
@@ -64,14 +64,14 @@ export function DirectionBadge({
   const config = {
     BULLISH: { color: 'text-green-400', bg: 'bg-green-500/10', Icon: TrendingUp },
     BEARISH: { color: 'text-red-400', bg: 'bg-red-500/10', Icon: TrendingDown },
-    NEUTRAL: { color: 'text-yellow-400', bg: 'bg-yellow-500/10', Icon: Minus }
+    NEUTRAL: { color: 'text-yellow-400', bg: 'bg-yellow-500/10', Icon: Remove }
   };
 
   const { color, bg, Icon } = config[direction];
 
   return (
     <div className={`flex items-center gap-1 ${color} ${sizeStyles[size]} ${className}`}>
-      {showIcon && <Icon className={iconSizes[size]} />}
+      {showIcon && <Icon fontSize={iconSizes[size]} sx={{ width: size === 'sm' ? 14 : size === 'md' ? 18 : 24, height: size === 'sm' ? 14 : size === 'md' ? 18 : 24 }} />}
       <span className="font-bold">{direction}</span>
     </div>
   );

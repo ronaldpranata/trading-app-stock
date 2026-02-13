@@ -1,7 +1,7 @@
 'use client';
 
 import { TechnicalIndicators } from '@/types/stock';
-import { Activity } from 'lucide-react';
+import { SsidChart } from "@mui/icons-material";
 import { Card, CardContent, Typography, Stack } from '@mui/material';
 
 import PerformanceMetrics from './technical/PerformanceMetrics';
@@ -32,9 +32,11 @@ export default function TechnicalAnalysis({ indicators, currentPrice }: Technica
     <Card variant="outlined" sx={{ height: '100%' }}>
       <CardContent>
         <Stack direction="row" alignItems="center" gap={1} mb={2}>
-          <Activity size={16} color="#60a5fa" /> {/* blue-400 */}
-          <Typography variant="subtitle2" fontWeight="bold">Technical Analysis</Typography>
-        </Stack>
+        <SsidChart sx={{ fontSize: 20, color: "#60a5fa" }} />
+        <Typography variant="h6" fontWeight="bold">
+          Technical Analysis
+        </Typography>
+      </Stack>
         
         <Stack spacing={2}>
           {/* Yearly Performance */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { TrendingUp, TrendingDown, Bitcoin } from "lucide-react";
+import { TrendingUp, TrendingDown, CurrencyBitcoin } from '@mui/icons-material';
 import { Box, Typography, Stack, Card, Skeleton } from "@mui/material";
 import { useStock } from "@/hooks";
 
@@ -48,9 +48,9 @@ export default function PriceTicker() {
             }}
           >
             {isCrypto ? (
-              <Bitcoin size={24} color="#fb923c" /> /* orange-400 */
+              <CurrencyBitcoin sx={{ fontSize: 24, color: "#fb923c" }} /> /* orange-400 */
             ) : (
-              <TrendingUp size={24} color="#60a5fa" /> /* blue-400 */
+              <TrendingUp sx={{ fontSize: 24, color: "#60a5fa" }} /> /* blue-400 */
             )}
           </Box>
           <Box>
@@ -80,9 +80,9 @@ export default function PriceTicker() {
                 data-testid="price-change"
               >
                 {isPositive ? (
-                  <TrendingUp size={16} />
+                  <TrendingUp sx={{ fontSize: 16 }} />
                 ) : (
-                  <TrendingDown size={16} />
+                  <TrendingDown sx={{ fontSize: 16 }} />
                 )}
                 <Typography variant="body2" fontWeight="bold">
                   {isPositive ? "+" : ""}

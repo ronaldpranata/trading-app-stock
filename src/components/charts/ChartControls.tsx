@@ -1,5 +1,5 @@
 import { Stack, Button, Box, Typography } from "@mui/material";
-import { MousePointer2 } from "lucide-react";
+import { TouchApp } from "@mui/icons-material";
 import { TimeRangeSelector } from "./TimeRangeSelector";
 import { TimeRange } from "@/lib/constants";
 import { memo } from "react";
@@ -42,7 +42,7 @@ function ChartControls({
                     variant={measureActive ? 'contained' : 'text'}
                     size="small"
                     title="Click two points on chart to measure"
-                    startIcon={<MousePointer2 size={12} />}
+                    startIcon={<TouchApp fontSize="small" />}
                     sx={{ minWidth: config => measureActive ? 100 : 40 }}
                 >
                     {measureActive ? 'Measuring' : ''}

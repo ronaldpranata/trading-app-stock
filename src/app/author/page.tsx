@@ -14,14 +14,14 @@ import {
 } from "@mui/material";
 
 import {
-  Github,
-  Linkedin,
-  Mail,
-  MapPin,
-  Briefcase,
-  Code2,
-  GraduationCap,
-} from "lucide-react";
+  GitHub,
+  LinkedIn,
+  Email,
+  LocationOn,
+  Work,
+  Code,
+  School,
+} from "@mui/icons-material";
 import AppLayout from "@/components/layout/AppLayout";
 import { useAuthor } from "@/hooks";
 
@@ -113,7 +113,7 @@ export default function AuthorPage() {
                   mb={3}
                   color="text.secondary"
                 >
-                  <MapPin size={18} />
+                  <LocationOn fontSize="small" />
                   <Typography variant="body2">
                     {author?.location || ""}
                   </Typography>
@@ -122,7 +122,7 @@ export default function AuthorPage() {
                 <Stack spacing={2} mb={4}>
                   <Button
                     variant="contained"
-                    startIcon={<Linkedin />}
+                    startIcon={<LinkedIn />}
                     href={author?.socials?.linkedin || "#"}
                     target="_blank"
                     fullWidth
@@ -131,7 +131,7 @@ export default function AuthorPage() {
                   </Button>
                   <Button
                     variant="outlined"
-                    startIcon={<Github />}
+                    startIcon={<GitHub />}
                     href={author?.socials?.github || "#"}
                     target="_blank"
                     fullWidth
@@ -157,7 +157,7 @@ export default function AuthorPage() {
                       alignItems="center"
                       color="text.secondary"
                     >
-                      <Mail size={18} />
+                      <Email fontSize="small" />
                       <Typography variant="body2">
                         {author?.contact?.email || ""}
                       </Typography>
@@ -184,7 +184,7 @@ export default function AuthorPage() {
                     <Avatar
                       sx={{ bgcolor: "primary.light", width: 32, height: 32 }}
                     >
-                      <Briefcase size={18} />
+                      <Work fontSize="small" />
                     </Avatar>
                     Profile
                   </Typography>
@@ -233,7 +233,7 @@ export default function AuthorPage() {
                     <Avatar
                       sx={{ bgcolor: "primary.main", width: 32, height: 32 }}
                     >
-                      <Code2 size={18} color="white" />
+                      <Code fontSize="small" sx={{ color: "white" }} />
                     </Avatar>
                     Featured Project: {author?.featuredProject?.title || ""}
                   </Typography>
@@ -296,7 +296,7 @@ export default function AuthorPage() {
                     <Avatar
                       sx={{ bgcolor: "secondary.light", width: 32, height: 32 }}
                     >
-                      <Code2 size={18} />
+                      <Code fontSize="small" />
                     </Avatar>
                     Technical Skills
                   </Typography>
@@ -336,7 +336,7 @@ export default function AuthorPage() {
                     <Avatar
                       sx={{ bgcolor: "success.light", width: 32, height: 32 }}
                     >
-                      <Briefcase size={18} />
+                      <Work fontSize="small" />
                     </Avatar>
                     Employment History
                   </Typography>
@@ -396,7 +396,7 @@ export default function AuthorPage() {
                     <Avatar
                       sx={{ bgcolor: "info.light", width: 32, height: 32 }}
                     >
-                      <GraduationCap size={18} />
+                      <School fontSize="small" />
                     </Avatar>
                     Education
                   </Typography>

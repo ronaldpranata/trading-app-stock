@@ -1,7 +1,7 @@
 "use client";
 
 import { TechnicalIndicators } from '@/types/stock';
-import { Calendar } from 'lucide-react';
+import { CalendarToday } from "@mui/icons-material";
 import { Box, Grid, Typography, Stack } from '@mui/material';
 
 interface PerformanceMetricsProps {
@@ -18,8 +18,10 @@ export default function PerformanceMetrics({ metrics }: PerformanceMetricsProps)
         borderColor: 'rgba(59, 130, 246, 0.2)'
     }}>
       <Stack direction="row" alignItems="center" gap={1} mb={1}>
-        <Calendar size={12} className="text-blue-400" />
-        <Typography variant="caption" color="primary.light" fontWeight="medium">1-Year Performance</Typography>
+        <CalendarToday sx={{ fontSize: 20, color: "#60a5fa" }} />
+        <Typography variant="h6" fontWeight="bold">
+          Period Performance
+        </Typography>
       </Stack>
       <Grid container spacing={1}>
         <Grid size={3}>

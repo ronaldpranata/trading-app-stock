@@ -1,7 +1,7 @@
 "use client";
 
 import { TimeframePrediction } from '@/types/stock';
-import { Clock, TrendingUp, TrendingDown } from 'lucide-react';
+import { AccessTime, TrendingUp, TrendingDown } from '@mui/icons-material';
 import { Box, Typography, Stack } from '@mui/material';
 
 interface TimeframesSummaryProps {
@@ -26,7 +26,7 @@ export default function TimeframesSummary({ predictions, currentPrice }: Timefra
   return (
      <Box sx={{ mb: 3, p: 2, borderRadius: 2, bgcolor: 'action.hover' }}>
         <Typography variant="subtitle2" color="text.secondary" mb={2} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-             <Clock size={16} /> All Timeframes
+             <AccessTime sx={{ fontSize: 16 }} /> All Timeframes
         </Typography>
         <Stack direction="row" justifyContent="space-between">
              {predictions.map((p, i) => {
@@ -38,9 +38,9 @@ export default function TimeframesSummary({ predictions, currentPrice }: Timefra
                             {getLabel(p.timeframe)}
                         </Typography>
                         {isUp ? (
-                            <TrendingUp size={16} color="#22c55e" style={{ display: 'block', margin: '0 auto 4px' }} />
+                            <TrendingUp sx={{ fontSize: 16, color: "#22c55e", display: 'block', margin: '0 auto 4px' }} />
                         ) : (
-                            <TrendingDown size={16} color="#ef4444" style={{ display: 'block', margin: '0 auto 4px' }} />
+                            <TrendingDown sx={{ fontSize: 16, color: "#ef4444", display: 'block', margin: '0 auto 4px' }} />
                         )}
                         <Typography variant="caption" fontWeight="bold" color={isUp ? 'success.main' : 'error.main'}>
                             {potential > 0 ? '+' : ''}{potential.toFixed(1)}%

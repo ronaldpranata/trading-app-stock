@@ -5,10 +5,10 @@ import {
   Typography, 
 } from "@mui/material";
 import { 
-  BarChart3, 
-  Brain, 
-  Clock, 
-} from "lucide-react";
+  BarChart,
+  Psychology,
+  AccessTime,
+} from "@mui/icons-material";
 
 import { useStock, useUI } from "@/hooks";
 
@@ -24,12 +24,12 @@ export default function StatusBar() {
         <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
           <Stack direction="row" alignItems="center" gap={3}>
             <Stack direction="row" alignItems="center" gap={1}>
-              <BarChart3 size={14} color="#60a5fa" />
+              <BarChart fontSize="small" sx={{ color: "#60a5fa" }} />
               <Typography variant="caption" color="text.secondary">Symbol:</Typography>
               <Typography variant="caption" fontWeight="bold">{symbol}</Typography>
             </Stack>
             <Stack direction="row" alignItems="center" gap={1}>
-              <Brain size={14} color="#c084fc" />
+              <Psychology fontSize="small" sx={{ color: "#c084fc" }} />
               <Typography variant="caption" color="text.secondary">Signal:</Typography>
               <Typography 
                 variant="caption" 
@@ -41,7 +41,7 @@ export default function StatusBar() {
             </Stack>
             {lastRefreshFormatted && (
               <Stack direction="row" alignItems="center" gap={1}>
-                <Clock size={14} color="#9ca3af" />
+                <AccessTime fontSize="small" sx={{ color: "#9ca3af" }} />
                 <Typography variant="caption" color="text.secondary">{lastRefreshFormatted}</Typography>
               </Stack>
             )}

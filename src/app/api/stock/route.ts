@@ -35,6 +35,8 @@ interface YahooQuoteSummary {
     debtToEquity?: number;
     returnOnEquity?: number;
     revenueGrowth?: number;
+    earningsGrowth?: number;
+    earningsQuarterlyGrowth?: number;
   };
   defaultKeyStatistics?: {
     pegRatio?: number;
@@ -46,6 +48,16 @@ interface YahooQuoteSummary {
   };
   summaryProfile?: {
     industry?: string;
+  };
+  earningsTrend?: {
+    trend?: Array<{
+      period: string; // "0y", "+1y", "+5y", "-5y"
+      growth?: number | null;
+      earningsEstimate?: {
+        avg?: number | null;
+        growth?: number | null;
+      };
+    }>;
   };
 }
 
@@ -82,6 +94,7 @@ async function fetchYahooSummary(symbol: string) {
         "recommendationTrend",
         "defaultKeyStatistics",
         "summaryProfile",
+        "earningsTrend",
       ],
     });
     return result;
@@ -181,14 +194,38 @@ async function fetchFundamentals(
     const financialData = summary.financialData || {};
     const keyStats = summary.defaultKeyStatistics || {};
     const summaryProfile = summary.summaryProfile || {};
+    const earningsTrend = summary.earningsTrend?.trend || [];
 
     const peRatio = summaryDetail.trailingPE || metrics.peTTM || 0;
+    
+    // --- EPS Growth Calculation Strategy ---
+    // 1. Long Term Growth (+5y) - Best for growth stocks
+    // 2. Next Year Growth (+1y)
+    // 3. Current Year Growth (0y)
+    // 4. Quarterly YoY Growth (financialData.earningsGrowth) - can be volatile/negative
+    // 5. Manual Calculation (Forward EPS vs TTM)
+    
+    const trend5y = earningsTrend.find(t => t.period === '+5y')?.growth;
+    const trend1y = earningsTrend.find(t => t.period === '+1y')?.growth;
+    const trend0y = earningsTrend.find(t => t.period === '0y')?.growth;
+    
+    // Yahoo returns raw decimals for growth (e.g. 0.18 for 18%)
+    const earningsGrowthRaw = 
+      trend5y || 
+      trend1y || 
+      trend0y || 
+      financialData.earningsGrowth || 
+      financialData.earningsQuarterlyGrowth || 
+      metrics.epsGrowth5Y;
+
     const epsGrowth =
-      (financialData.epsForward && financialData.epsTrailingTwelveMonths
-        ? ((financialData.epsForward - financialData.epsTrailingTwelveMonths) /
-            Math.abs(financialData.epsTrailingTwelveMonths)) *
-          100
-        : metrics.epsGrowth5Y) || 0;
+      (earningsGrowthRaw !== undefined
+        ? earningsGrowthRaw * 100 
+        : (financialData.epsForward && financialData.epsTrailingTwelveMonths
+            ? ((financialData.epsForward - financialData.epsTrailingTwelveMonths) /
+                Math.abs(financialData.epsTrailingTwelveMonths)) *
+              100
+            : 0)) || 0;
 
     let pegRatio = keyStats.pegRatio || 0;
     if (pegRatio === 0 && peRatio > 0 && epsGrowth > 0) {
@@ -233,9 +270,11 @@ async function fetchFundamentals(
     const fcf = financialData.freeCashflow;
     const sharesOutstanding = keyStats.sharesOutstanding;
     // financialData.growth is from yahoo-finance, assumed to be in percent
+    // If epsGrowth was derived from raw 0.183 (18.3%), we need to be careful with units
+    // But highGrowthRate expects decimal (e.g. 0.18)
     const highGrowthRate = Math.min(
       0.5,
-      (financialData.growth || epsGrowth) / 100,
+      (financialData.revenueGrowth || (epsGrowth / 100))
     );
     const perpetualGrowthRate = 0.025; // Conservative perpetual growth rate
 

@@ -11,14 +11,14 @@ import {
   useTheme,
 } from "@mui/material";
 import {
-  RefreshCw,
+  Refresh,
   TrendingUp,
-  Play,
+  PlayArrow,
   Pause,
-  LayoutGrid,
-  GitCompare,
-  LogOut,
-} from "lucide-react";
+  GridView,
+  CompareArrows,
+  Logout,
+} from "@mui/icons-material";
 import StockSearch from "@/features/stock/components/StockSearch";
 import { useAuth, useStock, useUI } from "@/hooks";
 
@@ -57,7 +57,7 @@ function Header() {
                 background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
               }}
             >
-              <TrendingUp size={20} color="white" />
+              <TrendingUp fontSize="small" sx={{ color: "white" }} />
             </Box>
             <Typography
               variant="h6"
@@ -87,14 +87,14 @@ function Header() {
                 <Button
                   variant={viewMode === "single" ? "contained" : "outlined"}
                   onClick={() => setViewMode("single")}
-                  startIcon={<LayoutGrid size={16} />}
+                  startIcon={<GridView fontSize="small" />}
                 >
                   Single
                 </Button>
                 <Button
                   variant={viewMode === "compare" ? "contained" : "outlined"}
                   onClick={() => setViewMode("compare")}
-                  startIcon={<GitCompare size={16} />}
+                  startIcon={<CompareArrows fontSize="small" />}
                 >
                   Compare
                 </Button>
@@ -138,15 +138,15 @@ function Header() {
             >
               {/* Refresh Controls */}
               <IconButton onClick={refresh} disabled={isLoading} size="small">
-                <RefreshCw
-                  size={18}
+                <Refresh
+                  fontSize="small"
                   className={isLoading ? "animate-spin" : ""}
                 />
               </IconButton>
 
               {/* Logout Button */}
               <IconButton onClick={logout} size="small" title="Logout">
-                <LogOut size={18} />
+                <Logout fontSize="small" />
               </IconButton>
             </Stack>
           </Stack>

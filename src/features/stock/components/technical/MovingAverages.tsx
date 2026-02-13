@@ -1,6 +1,6 @@
 "use client";
 
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { TrendingUp, TrendingDown } from '@mui/icons-material';
 import { Box, Grid, Typography, Stack } from '@mui/material';
 
 interface MovingAveragesProps {
@@ -37,12 +37,12 @@ export default function MovingAverages({ sma20, sma50, sma200, currentPrice }: M
       <Box mt={1}>
            {sma50 > sma200 ? (
             <Stack direction="row" alignItems="center" gap={0.5}>
-              <TrendingUp size={12} color="#4ade80" /> 
+              <TrendingUp sx={{ fontSize: 16, color: "#4ade80" }} /> 
               <Typography variant="caption" color="success.main">Golden Cross Active</Typography>
             </Stack>
           ) : (
             <Stack direction="row" alignItems="center" gap={0.5}>
-              <TrendingDown size={12} color="#f87171" />
+              <TrendingDown sx={{ fontSize: 16, color: "#f87171" }} />
               <Typography variant="caption" color="error.main">Death Cross Active</Typography>
             </Stack>
           )}

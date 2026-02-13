@@ -7,7 +7,7 @@ import {
   Typography, 
   Button 
 } from "@mui/material";
-import { Plus } from "lucide-react";
+import { Add } from "@mui/icons-material";
 import StockPill from "@/components/shared/StockPill";
 import { StockData } from "@/types/stock";
 
@@ -41,7 +41,7 @@ export default function CompareStockSelector() {
           ))}
 
           {canAddMoreComparisons && (
-            <Button variant="outlined" startIcon={<Plus size={14} />} size="small" sx={{ borderRadius: 10, whiteSpace: 'nowrap' }}>
+            <Button variant="outlined" startIcon={<Add sx={{ fontSize: 14 }} />} size="small" sx={{ borderRadius: 10, whiteSpace: 'nowrap' }}>
               Add Stock
             </Button>
           )}

@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { StockData } from '@/types/stock';
-import { BarChart3, Brain } from 'lucide-react';
+import { BarChart, Psychology } from '@mui/icons-material';
 import { LineChart } from '@mui/x-charts';
 import { 
   Grid, 
@@ -160,7 +160,7 @@ export default function PerformanceSection({ stocks }: PerformanceSectionProps) 
         <CardContent>
           <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
             <Stack direction="row" alignItems="center" gap={1}>
-              <BarChart3 size={18} color="#60a5fa" />
+              <BarChart sx={{ fontSize: 18, color: "#60a5fa" }} />
               <Typography variant="subtitle2" fontWeight="bold">Price Performance (% Change)</Typography>
             </Stack>
             
@@ -409,7 +409,7 @@ function PredictionCard({ stock, color }: { stock: StockData; color: string }) {
       <CardContent>
         <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
           <Typography variant="h6" fontWeight="bold" sx={{ color }}>{stock.symbol}</Typography>
-          <Brain size={16} color="#c084fc" />
+          <Psychology sx={{ fontSize: 16, color: "#c084fc" }} />
         </Stack>
         
         <Box sx={{ bgcolor: bgColor, p: 2, borderRadius: 2, textAlign: 'center', mb: 2 }}>

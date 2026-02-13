@@ -2,7 +2,7 @@
 
 import { FundamentalData } from '@/types/stock';
 import { formatNumber } from '@/utils/fundamentalAnalysis';
-import { Bitcoin } from 'lucide-react';
+import { CurrencyBitcoin } from "@mui/icons-material";
 import { Box, Card, CardContent, Grid, Typography, Stack } from '@mui/material';
 import MetricBox from './MetricBox';
 
@@ -20,9 +20,11 @@ export default function CryptoMetrics({ data, currentPrice }: CryptoMetricsProps
      <Card variant="outlined" sx={{ height: '100%' }}>
        <CardContent>
          <Stack direction="row" alignItems="center" gap={1} mb={2}>
-           <Bitcoin size={16} color="#fb923c" /> {/* orange-400 */}
-           <Typography variant="subtitle2" fontWeight="bold">Crypto Metrics</Typography>
-         </Stack>
+        <CurrencyBitcoin sx={{ fontSize: 20, color: "#f59e0b" }} />
+        <Typography variant="h6" fontWeight="bold">
+          Crypto Metrics
+        </Typography>
+      </Stack>
          
          <Stack spacing={2}>
            <Grid container spacing={2}>

@@ -2,7 +2,7 @@
 
 import { FundamentalData } from '@/types/stock';
 import { formatNumber } from '@/utils/fundamentalAnalysis';
-import { Building2 } from 'lucide-react';
+import { Business } from "@mui/icons-material";
 import { Card, CardContent, Typography, Stack } from '@mui/material';
 
 import MetricBox from './fundamental/MetricBox';
@@ -43,10 +43,12 @@ export default function FundamentalAnalysis({ data, currentPrice, symbol = '' }:
   return (
     <Card variant="outlined" sx={{ height: '100%' }}>
       <CardContent>
-        <Stack direction="row" alignItems="center" gap={1} mb={2}>
-          <Building2 size={16} color="#c084fc" /> {/* purple-400 */}
-          <Typography variant="subtitle2" fontWeight="bold">Fundamental Analysis</Typography>
-        </Stack>
+        <Stack direction="row" alignItems="center" gap={1} mb={1}>
+        <Business sx={{ fontSize: 20, color: "#60a5fa" }} />
+        <Typography variant="h6" fontWeight="bold">
+          Fundamental Analysis
+        </Typography>
+      </Stack>
         
         <Stack spacing={2}>
             {/* Market Cap */}

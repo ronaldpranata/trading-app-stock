@@ -2,7 +2,7 @@
 
 import { StockData } from "@/types/stock";
 import { Card, CardContent, Typography, Stack, Grid, Chip, Box } from "@mui/material";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown } from "@mui/icons-material";
 
 const COLORS = [
   '#3b82f6', // Blue
@@ -70,7 +70,7 @@ function PriceCard({ stock, color }: { stock: StockData; color: string }) {
           ${stock.quote.price.toFixed(2)}
         </Typography>
         <Stack direction="row" alignItems="center" gap={0.5} sx={{ color: isPositive ? 'success.main' : 'error.main' }}>
-          {isPositive ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
+          {isPositive ? <TrendingUp sx={{ fontSize: 16 }} /> : <TrendingDown sx={{ fontSize: 16 }} />}
           <Typography variant="body2" fontWeight="bold" color="inherit">
             {isPositive ? '+' : ''}{stock.quote.change.toFixed(2)} ({isPositive ? '+' : ''}{stock.quote.changePercent.toFixed(2)}%)
           </Typography>

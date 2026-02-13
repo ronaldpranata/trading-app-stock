@@ -5,7 +5,9 @@ import {
   Grid, 
   Stack, 
   Tab, 
-  Tabs, 
+  Tabs,
+  useTheme,
+  useMediaQuery 
 } from "@mui/material";
 import PriceTicker from "./PriceTicker";
 import StockChart from "./StockChart";
@@ -31,6 +33,19 @@ const tabs: { id: ActiveTab; label: string }[] = [
 export default function SingleStockView() {
   const { primaryStock, currentPrice, symbol, isLoading } = useStock();
   const { activeTab, setActiveTab } = useUI();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const getTabLabel = (label: string) => {
+      if (!isMobile) return label;
+      switch(label) {
+          case 'Technical': return 'Tech';
+          case 'Fundamental': return 'Fund';
+          case 'Prediction': return 'AI';
+          default: return label;
+      }
+  };
+
   return (
     <>
       {/* Tabs */}
@@ -40,9 +55,10 @@ export default function SingleStockView() {
           onChange={(_, val) => setActiveTab(val)} 
           variant="scrollable"
           scrollButtons="auto"
+          allowScrollButtonsMobile
         >
           {tabs.map((tab) => (
-            <Tab key={tab.id} label={tab.label} value={tab.id} />
+            <Tab key={tab.id} label={getTabLabel(tab.label)} value={tab.id} />
           ))}
         </Tabs>
       </Box>

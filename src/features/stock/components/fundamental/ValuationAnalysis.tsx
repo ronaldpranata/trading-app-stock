@@ -2,7 +2,7 @@
 
 import { FundamentalData } from '@/types/stock';
 import { getPEGInterpretation } from '@/utils/fundamentalAnalysis';
-import { Zap } from 'lucide-react';
+import { Bolt } from "@mui/icons-material";
 import { Box, Grid, Typography, Stack, Chip } from '@mui/material';
 import MetricBox from './MetricBox';
 
@@ -64,7 +64,7 @@ export default function ValuationAnalysis({ data, currentPrice }: ValuationAnaly
             bgcolor: data.pegRatio > 0 && data.pegRatio < 1 ? 'rgba(34, 197, 94, 0.05)' : data.pegRatio > 2 ? 'rgba(239, 68, 68, 0.05)' : 'action.hover'
         }}>
             <Stack direction="row" alignItems="center" gap={1} mb={0.5}>
-                <Zap size={12} className="text-yellow-400" />
+                <Bolt sx={{ fontSize: 16, color: "#eab308" }} />
                 <Typography variant="caption" fontWeight="medium">PEG Ratio</Typography>
             </Stack>
             <Stack direction="row" alignItems="baseline" gap={1}>

@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowUp, ArrowDown } from 'lucide-react';
+import { ArrowUpward, ArrowDownward } from '@mui/icons-material';
 import { formatDate } from '@/lib/formatters';
 import { PeriodStats } from './useChartData';
 import { Box, Typography, Stack, Grid } from '@mui/material';
@@ -24,7 +24,7 @@ export function PeriodStatsDisplay({ stats, className = '' }: PeriodStatsDisplay
                borderColor: 'rgba(239, 68, 68, 0.2)' 
             }}>
              <Stack direction="row" alignItems="center" gap={0.5} mb={0.5}>
-                 <ArrowDown size={12} className="text-red-400" />
+                 <ArrowDownward fontSize="inherit" className="text-red-400" sx={{ fontSize: 12 }} />
                  <Typography variant="caption" color="error.main">Max Drawdown</Typography>
              </Stack>
              <Typography variant="body2" fontWeight="bold" color="error.main">
@@ -46,7 +46,7 @@ export function PeriodStatsDisplay({ stats, className = '' }: PeriodStatsDisplay
                borderColor: 'rgba(34, 197, 94, 0.2)' 
             }}>
              <Stack direction="row" alignItems="center" gap={0.5} mb={0.5}>
-                 <ArrowUp size={12} className="text-green-400" />
+                 <ArrowUpward fontSize="inherit" className="text-green-400" sx={{ fontSize: 12 }} />
                  <Typography variant="caption" color="success.main">Max Rally</Typography>
              </Stack>
              <Typography variant="body2" fontWeight="bold" color="success.main">
@@ -119,7 +119,7 @@ export function PeriodSummary({ stats, className = '' }: PeriodSummaryProps) {
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Stack direction="row" alignItems="center" gap={2}>
            <Stack direction="row" alignItems="center" gap={0.5} color={isPositive ? 'success.main' : 'error.main'}>
-                {isPositive ? <ArrowUp size={24} /> : <ArrowDown size={24} />}
+                {isPositive ? <ArrowUpward fontSize="small" /> : <ArrowDownward fontSize="small" />}
                 <Typography variant="h5" fontWeight="bold">
                     {isPositive ? '+' : ''}{stats.priceChangePercent.toFixed(2)}%
                 </Typography>

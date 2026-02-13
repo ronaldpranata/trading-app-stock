@@ -1,7 +1,7 @@
 "use client";
 
 import { TimeframePrediction } from "@/types/stock";
-import { Target, Shield } from "lucide-react";
+import { TrackChanges, Shield } from "@mui/icons-material";
 import { Box, Typography, Stack, Grid } from "@mui/material";
 
 interface PredictionTargetsProps {
@@ -33,7 +33,7 @@ export default function PredictionTargets({
           }}
         >
           <Stack direction="row" alignItems="center" gap={1} mb={1}>
-            <Target size={16} color="#9ca3af" />
+            <TrackChanges sx={{ fontSize: 16, color: "#9ca3af" }} />
             <Typography variant="body2" color="text.secondary">
               Target Price
             </Typography>
@@ -63,7 +63,7 @@ export default function PredictionTargets({
           }}
         >
           <Stack direction="row" alignItems="center" gap={1} mb={1}>
-            <Shield size={16} color="#9ca3af" />
+            <Shield sx={{ fontSize: 16, color: "#9ca3af" }} />
             <Typography variant="body2" color="text.secondary">
               Stop Loss
             </Typography>

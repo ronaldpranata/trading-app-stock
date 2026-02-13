@@ -1,7 +1,7 @@
 "use client";
 
 import { TimeframePrediction } from "@/types/stock";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown } from "@mui/icons-material";
 import { Box, Typography, Stack, LinearProgress } from "@mui/material";
 
 interface PredictionDirectionCardProps {
@@ -37,9 +37,9 @@ export default function PredictionDirectionCard({
         mb={1}
       >
         <Stack direction="row" alignItems="center" gap={1}>
-          {isBullish && <TrendingUp size={20} color="#22c55e" />}
-          {isNeutral && <TrendingDown size={20} color="#d8ef44" />}
-          {isBearish && <TrendingDown size={20} color="#ef4444" />}
+          {isBullish && <TrendingUp sx={{ fontSize: 20, color: "#22c55e" }} />}
+          {isNeutral && <TrendingDown sx={{ fontSize: 20, color: "#d8ef44" }} />}
+          {isBearish && <TrendingDown sx={{ fontSize: 20, color: "#ef4444" }} />}
           <Typography
             variant="h5"
             fontWeight="bold"

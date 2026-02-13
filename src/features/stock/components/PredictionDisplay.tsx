@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { PredictionResult, TimeframePrediction } from '@/types/stock';
-import { Brain, AlertTriangle } from 'lucide-react';
+import { Psychology, Warning } from '@mui/icons-material';
 import { 
     Box, 
     Card, 
@@ -11,7 +11,9 @@ import {
     Stack, 
     Tooltip,
     Tabs,
-    Tab
+    Tab,
+    ToggleButton,
+    ToggleButtonGroup
 } from '@mui/material';
 
 import PredictionSkeleton from './prediction/PredictionSkeleton';
@@ -38,7 +40,7 @@ export default function PredictionDisplay({ prediction, currentPrice, isLoading 
       <Card variant="outlined" sx={{ height: '100%' }}>
         <CardContent>
           <Stack direction="row" alignItems="center" gap={1} mb={2}>
-             <Brain size={16} color="#c084fc" />
+             <Psychology sx={{ fontSize: 16, color: "#c084fc" }} />
              <Typography variant="subtitle2" fontWeight="bold">AI Prediction</Typography>
           </Stack>
           <Typography variant="body2" color="text.secondary">Generating prediction...</Typography>
@@ -83,41 +85,50 @@ export default function PredictionDisplay({ prediction, currentPrice, isLoading 
       <CardContent>
         {/* Header */}
         <Stack direction="row" alignItems="center" gap={1} mb={2}>
-             <Brain size={16} color="#c084fc" />
+             <Psychology sx={{ fontSize: 16, color: "#c084fc" }} />
              <Typography variant="subtitle2" fontWeight="bold">AI Prediction</Typography>
         </Stack>
         
-        {/* Tabs */}
         {predictions.length > 1 && (
-            <Tabs 
-                value={selectedTab} 
-                onChange={handleTabChange} 
-                variant="fullWidth" 
-                sx={{ 
-                    minHeight: 36, 
-                    mb: 3, 
-                    bgcolor: 'action.hover', 
-                    borderRadius: 1,
-                    p: 0.5,
-                    '& .MuiIndicator-root': { display: 'none' }
-                }}
-            >
-                {predictions.map((p, index) => (
-                    <Tab 
-                        key={index} 
-                        label={getLabel(p.timeframe)} 
-                        sx={{ 
-                            minHeight: 32, 
-                            borderRadius: 1, 
-                            zIndex: 1,
+            <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 3 }}>
+                <ToggleButtonGroup
+                    value={selectedTab}
+                    exclusive
+                    onChange={(_, newValue) => {
+                        if (newValue !== null) handleTabChange(_, newValue);
+                    }}
+                    aria-label="timeframe selection"
+                    sx={{
+                        bgcolor: 'action.hover',
+                        p: 0.5,
+                        borderRadius: 2,
+                        '& .MuiToggleButton-root': {
+                            border: 0,
+                            borderRadius: 1.5,
+                            py: 0.5,
+                            px: 2,
                             textTransform: 'none',
                             fontWeight: 'bold',
-                            fontSize: '0.8rem',
-                            '&.Mui-selected': { bgcolor: 'background.paper', boxShadow: 1, color: 'text.primary' }
-                        }}
-                    />
-                ))}
-            </Tabs>
+                            fontSize: '0.875rem',
+                            color: 'text.secondary',
+                            '&.Mui-selected': {
+                                bgcolor: 'background.paper',
+                                color: 'text.primary',
+                                boxShadow: 1,
+                                '&:hover': {
+                                    bgcolor: 'background.paper',
+                                }
+                            },
+                        }
+                    }}
+                >
+                    {predictions.map((p, index) => (
+                        <ToggleButton key={index} value={index} aria-label={p.timeframe}>
+                            {getLabel(p.timeframe)}
+                        </ToggleButton>
+                    ))}
+                </ToggleButtonGroup>
+            </Box>
         )}
 
         <PredictionDirectionCard prediction={currentPrediction} />
@@ -131,7 +142,7 @@ export default function PredictionDisplay({ prediction, currentPrice, isLoading 
         <Box sx={{ pt: 2, mt: 2 }}>
              <Tooltip title="This is an AI-generated prediction. Trading involves risk.">
                   <Stack direction="row" alignItems="center" justifyContent="center" gap={0.5} sx={{ cursor: 'help' }}>
-                       <AlertTriangle size={14} color="#f59e0b" />
+                       <Warning sx={{ fontSize: 14, color: "#f59e0b" }} />
                        <Typography variant="caption" color="warning.main">Disclaimer: Not financial advice</Typography>
                   </Stack>
              </Tooltip>

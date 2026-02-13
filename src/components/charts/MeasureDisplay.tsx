@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowUp, ArrowDown, X, MousePointer2 } from 'lucide-react';
+import { ArrowUpward, ArrowDownward, Close, TouchApp } from '@mui/icons-material';
 import { formatDate } from '@/lib/formatters';
 import { Box, Typography, Stack, IconButton,  } from '@mui/material';
 
@@ -44,9 +44,9 @@ export function MeasureDisplay({
           <Box>
             <Stack direction="row" alignItems="baseline" gap={1} mb={0.5}>
               {result.isGain ? (
-                <ArrowUp size={20} className="text-green-400" color="#4ade80" />
+                <ArrowUpward fontSize="small" className="text-green-400" sx={{ color: "#4ade80" }} />
               ) : (
-                <ArrowDown size={20} className="text-red-400" color="#f87171" />
+                <ArrowDownward fontSize="small" className="text-red-400" sx={{ color: "#f87171" }} />
               )}
               <Typography variant="h6" fontWeight="bold" color={result.isGain ? 'success.main' : 'error.main'} lineHeight={1}>
                 {result.isGain ? '+' : ''}{result.percentChange.toFixed(2)}%
@@ -66,7 +66,7 @@ export function MeasureDisplay({
             </Typography>
           </Box>
           <IconButton onClick={onClear} size="small" sx={{ color: 'text.secondary' }}>
-            <X size={16} />
+            <Close fontSize="small" />
           </IconButton>
         </Stack>
       </Box>
@@ -83,7 +83,7 @@ export function MeasureDisplay({
     }} className={className}>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
         <Stack direction="row" alignItems="center" gap={1}>
-          <MousePointer2 size={16} color="#22d3ee" /> {/* cyan-400 */}
+          <TouchApp fontSize="small" sx={{ color: "#22d3ee" }} /> {/* cyan-400 */}
           <Typography variant="body2" sx={{ color: 'info.main' }}>
             {firstClick 
               ? `First point: $${firstClick.price.toFixed(2)} (${formatDate(firstClick.date)}) - Click second point`
@@ -93,7 +93,7 @@ export function MeasureDisplay({
         </Stack>
         {firstClick && (
           <IconButton onClick={onClear} size="small" sx={{ color: 'text.secondary' }}>
-             <X size={16} />
+             <Close fontSize="small" />
           </IconButton>
         )}
       </Stack>

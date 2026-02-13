@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectAuthorState } from "@/store";
 import { useGetAuthorQuery } from "@/features/author/authorApi";
 import { setAuthor } from "@/features/author/authorSlice";
-import { error } from "console";
 
 /**
  * Custom hook for author-related operations

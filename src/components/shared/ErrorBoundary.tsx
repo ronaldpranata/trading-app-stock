@@ -1,7 +1,7 @@
 'use client';
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { AlertTriangle, RefreshCcw } from 'lucide-react';
+import { Warning, Refresh } from '@mui/icons-material';
 import { Box, Typography, Button, Paper } from '@mui/material';
 
 interface Props {
@@ -70,7 +70,7 @@ class ErrorBoundary extends Component<Props, State> {
           }}
         >
           <Box sx={{ color: 'error.main', mb: 2 }}>
-             <AlertTriangle size={40} />
+             <Warning sx={{ fontSize: 40 }} />
           </Box>
           <Typography variant="h6" fontWeight="bold" color="text.primary" gutterBottom>
             Something went wrong
@@ -81,7 +81,7 @@ class ErrorBoundary extends Component<Props, State> {
           <Button
             variant="contained"
             color="error"
-            startIcon={<RefreshCcw size={16} />}
+            startIcon={<Refresh fontSize="small" />}
             onClick={this.handleRetry}
             sx={{ textTransform: 'none' }}
           >

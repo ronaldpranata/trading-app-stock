@@ -18,7 +18,6 @@
     "@mui/material-nextjs": "^7.3.7",
     "@mui/x-charts": "^8.27.0",
     "@reduxjs/toolkit": "^2.11.2",
-    "lucide-react": "^0.513.0",
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",

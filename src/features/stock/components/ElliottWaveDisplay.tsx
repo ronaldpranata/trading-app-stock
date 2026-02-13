@@ -1,8 +1,9 @@
 'use client';
 
 import { ElliottWaveAnalysis } from '@/types/stock';
-import { Waves, Target, AlertTriangle } from 'lucide-react';
-import { Box, Card, CardContent, Grid, Typography, Stack, LinearProgress } from '@mui/material';
+import { ShowChart, TrackChanges, Warning } from '@mui/icons-material';
+import { Box, Card, CardContent, Grid, Typography, Stack, LinearProgress, CardHeader, Chip } from '@mui/material';
+import { LineChart } from '@mui/x-charts/LineChart';
 
 interface ElliottWaveDisplayProps {
   elliottWave: ElliottWaveAnalysis | undefined;
@@ -31,140 +32,157 @@ export default function ElliottWaveDisplay({ elliottWave, currentPrice }: Elliot
 
   return (
     <Card variant="outlined" sx={{ height: '100%' }}>
-      <CardContent>
-        <Stack direction="row" alignItems="center" gap={1} mb={2}>
-          <Waves size={16} color="#22d3ee" /> {/* cyan-400 */}
-          <Typography variant="subtitle2" fontWeight="bold">Elliott Wave Analysis</Typography>
-        </Stack>
-
-        {/* Current Wave Status */}
-        <Box sx={{ 
-            p: 1.5,
-            mb: 2,
-            borderRadius: 1,
-            border: 1,
-            borderColor: elliottWave.trendDirection === 'up' ? 'success.dark' : 'error.dark',
-            bgcolor: elliottWave.trendDirection === 'up' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)'
-        }}>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-            <Box>
-              <Typography variant="caption" color="text.secondary" display="block">Current Wave</Typography>
-              <Typography variant="h5" fontWeight="bold" color={waveColors[elliottWave.currentWave] || 'text.primary'}>
-                Wave {elliottWave.currentWave}
-              </Typography>
-            </Box>
-            <Box textAlign="right">
-              <Typography variant="caption" color="text.secondary" display="block">Trend</Typography>
-              <Typography variant="h6" fontWeight="bold" color={elliottWave.trendDirection === 'up' ? 'success.main' : 'error.main'}>
-                {elliottWave.trendDirection === 'up' ? '↑ UP' : '↓ DOWN'}
-              </Typography>
-            </Box>
-          </Stack>
-          
-          {/* Progress Bar */}
-          <Box mb={1}>
-            <Stack direction="row" justifyContent="space-between" mb={0.5}>
-              <Typography variant="caption" color="text.secondary">Progress</Typography>
-              <Typography variant="caption" color="text.secondary">{(elliottWave.waveProgress * 100).toFixed(0)}%</Typography>
-            </Stack>
-            <LinearProgress 
-                variant="determinate" 
-                value={elliottWave.waveProgress * 100} 
-                color={elliottWave.trendDirection === 'up' ? 'success' : 'error'}
-                sx={{ height: 6, borderRadius: 1 }}
+      <CardHeader 
+        title={
+          <Stack direction="row" alignItems="center" gap={1}>
+            <ShowChart sx={{ color: "#8b5cf6" }} />
+            <Typography variant="h6">Elliott Wave Analysis</Typography>
+            <Chip 
+                label={elliottWave.wavePhase} 
+                size="small" 
+                color="secondary" 
+                variant="outlined"
             />
-          </Box>
-
-          <Typography variant="caption" color="text.secondary">
-            {elliottWave.waveType === 'impulse' ? 'Impulse' : 'Corrective'} • {elliottWave.wavePhase} phase
-          </Typography>
-        </Box>
-
-        {/* Wave Pattern Visual */}
-        <Box sx={{ bgcolor: 'action.hover', p: 1.5, borderRadius: 1, mb: 2 }}>
-          <Typography variant="caption" color="text.secondary" mb={1} display="block">Wave Pattern</Typography>
-          <Stack direction="row" alignItems="flex-end" justifyContent="space-between" height={48} px={1}>
-            {[1, 2, 3, 4, 5].map(wave => {
-              const heights = { 1: 40, 2: 25, 3: 100, 4: 60, 5: 80 };
-              const isActive = wave === elliottWave.currentWave;
-              return (
-                <Stack key={wave} alignItems="center" gap={0.5}>
-                  <Box sx={{ 
-                      width: 16, 
-                      height: heights[wave as keyof typeof heights] * 0.4,
-                      borderTopLeftRadius: 4,
-                      borderTopRightRadius: 4,
-                      bgcolor: isActive ? 'info.light' : wave < elliottWave.currentWave ? 'text.disabled' : 'action.selected',
-                      transition: 'all 0.3s'
-                  }} />
-                  <Typography variant="caption" fontWeight={isActive ? 'bold' : 'regular'} color={isActive ? 'info.light' : 'text.disabled'} sx={{ fontSize: '0.65rem' }}>
-                    {wave}
-                  </Typography>
-                </Stack>
-              );
-            })}
           </Stack>
-        </Box>
+        }
+      />
+      
+      <CardContent>
+        <Grid container spacing={3}>
+            {/* Left Col: Chart (Hero) */}
+            <Grid size={{ xs: 12, md: 8 }}>
+                <Box sx={{ width: '100%', height: 320, bgcolor: 'action.hover', borderRadius: 2, p: 2, position: 'relative' }}>
+                     <Typography variant="subtitle2" color="text.secondary" sx={{ position: 'absolute', top: 16, left: 16 }}>
+                        Wave Pattern Visualization
+                     </Typography>
+                     
+                     <LineChart
+                        xAxis={[{ 
+                            data: elliottWave.pivotPoints.map((_, i) => i),
+                            valueFormatter: (v: number) => {
+                                if (v < 0 || v >= elliottWave.pivotPoints.length) return '';
+                                return elliottWave.pivotPoints[v].waveLabel || '';
+                            },
+                            tickLabelStyle: {
+                                angle: 45,
+                                textAnchor: 'start',
+                                fontSize: 10,
+                            }
+                        }]}
+                        series={[{ 
+                            data: elliottWave.pivotPoints.map(p => p.price),
+                            area: true,
+                            showMark: true,
+                            color: '#6366f1',
+                            connectNulls: true,
+                        }]}
+                        height={280}
+                        margin={{ left: 50, right: 20, top: 40, bottom: 50 }}
+                        grid={{ vertical: false, horizontal: true }}
+                        sx={{
+                            '.MuiLineElement-root': {
+                                strokeWidth: 2,
+                            },
+                            '.MuiAreaElement-root': {
+                                fillOpacity: 0.1,
+                            }
+                        }}
+                    >
+                    </LineChart>
+                    
+                    {/* Current Wave Indicator (Overlay) */}
+                    <Box sx={{ position: 'absolute', bottom: 16, right: 16, bgcolor: 'background.paper', p: 1, borderRadius: 1, border: 1, borderColor: 'divider', boxShadow: 1 }}>
+                        <Typography variant="caption" fontWeight="bold" color="primary">
+                            Current: {elliottWave.currentWave > 5 
+                                ? `Wave ${['A', 'B', 'C'][elliottWave.currentWave - 6]}`
+                                : `Wave ${elliottWave.currentWave}`}
+                        </Typography>
+                    </Box>
+                </Box>
+            </Grid>
 
-        {/* Targets */}
-        <Grid container spacing={1} mb={2}>
-          <Grid size={6}>
-            <Box sx={{ bgcolor: 'action.hover', p: 1, borderRadius: 1 }}>
-              <Stack direction="row" alignItems="center" gap={0.5} mb={0.5}>
-                <Target size={12} className="text-green-400" />
-                <Typography variant="caption" color="text.secondary">Wave Target</Typography>
-              </Stack>
-              <Typography variant="body2" fontWeight="bold" color="success.main">
-                ${elliottWave.nextWaveTarget.toFixed(2)}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {((elliottWave.nextWaveTarget - currentPrice) / currentPrice * 100).toFixed(1)}% from current
-              </Typography>
-            </Box>
-          </Grid>
-          <Grid size={6}>
-            <Box sx={{ bgcolor: 'action.hover', p: 1, borderRadius: 1 }}>
-              <Stack direction="row" alignItems="center" gap={0.5} mb={0.5}>
-                <AlertTriangle size={12} className="text-red-400" />
-                <Typography variant="caption" color="text.secondary">Invalidation</Typography>
-              </Stack>
-              <Typography variant="body2" fontWeight="bold" color="error.main">
-                ${elliottWave.invalidationLevel.toFixed(2)}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {((elliottWave.invalidationLevel - currentPrice) / currentPrice * 100).toFixed(1)}% from current
-              </Typography>
-            </Box>
-          </Grid>
-        </Grid>
+            {/* Right Col: Metrics & Status */}
+            <Grid size={{ xs: 12, md: 4 }}>
+                <Stack spacing={2} height="100%">
+                    {/* Status Card */}
+                    <Box p={2} border={1} borderColor="divider" borderRadius={2} bgcolor="background.paper">
+                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                            Current Status
+                        </Typography>
+                        <Typography variant="h4" color="primary.main" fontWeight="bold">
+                            {elliottWave.currentWave > 5 
+                                ? `Wave ${['A', 'B', 'C'][elliottWave.currentWave - 6]}`
+                                : `Wave ${elliottWave.currentWave}`}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" mb={2}>
+                            {elliottWave.wavePhase} Phase
+                        </Typography>
+                        
+                        <LinearProgress 
+                            variant="determinate" 
+                            value={elliottWave.confidence > 1 ? elliottWave.confidence : elliottWave.confidence * 100} 
+                            sx={{ mt: 1, height: 8, borderRadius: 4 }}
+                            color={elliottWave.confidence > (elliottWave.confidence > 1 ? 70 : 0.7) ? "success" : "warning"}
+                        />
+                        <Typography variant="caption" display="block" textAlign="right" mt={0.5}>
+                            {Math.round(elliottWave.confidence > 1 ? elliottWave.confidence : elliottWave.confidence * 100)}% Confidence
+                        </Typography>
+                    </Box>
 
-        {/* Fibonacci Levels */}
-        {elliottWave.fibonacciLevels.length > 0 && (
-          <Box sx={{ bgcolor: 'action.hover', p: 1, borderRadius: 1, mb: 2 }}>
-            <Typography variant="caption" color="text.secondary" mb={1} display="block">Key Fibonacci Levels</Typography>
-            <Stack spacing={0.5}>
-              {elliottWave.fibonacciLevels.slice(0, 4).map((fib, i) => (
-                <Stack key={i} direction="row" justifyContent="space-between">
-                  <Typography variant="caption" color="text.secondary">{fib.label}</Typography>
-                  <Typography variant="caption" color={fib.type === 'retracement' ? 'warning.main' : 'info.main'} fontWeight="medium">
-                    ${fib.price.toFixed(2)}
-                  </Typography>
+                    {/* Targets */}
+                    <Box p={2} border={1} borderColor="divider" borderRadius={2}>
+                        <Typography variant="subtitle2" color="text.secondary" gutterBottom display="flex" alignItems="center" gap={1}>
+                            <TrackChanges sx={{ fontSize: 16 }} /> Next Target
+                        </Typography>
+                         <Box>
+                             <Typography variant="h6" fontWeight="bold">
+                                 ${elliottWave.nextWaveTarget.toFixed(2)}
+                             </Typography>
+                             <Typography variant="caption" color="text.secondary">
+                                 {((elliottWave.nextWaveTarget - currentPrice) / currentPrice * 100).toFixed(1)}% from current
+                             </Typography>
+                         </Box>
+                    </Box>
+
+                    {/* Invalidation */}
+                    <Box sx={{ bgcolor: 'error.lighter', p: 2, borderRadius: 2, border: 1, borderColor: 'error.main', background: 'rgba(239, 68, 68, 0.1)' }}>
+                        <Stack direction="row" alignItems="center" gap={1} mb={0.5}>
+                            <Warning sx={{ fontSize: 16, color: "#ef4444" }} />
+                            <Typography variant="subtitle2" color="error.main" fontWeight="bold">
+                                Invalidation
+                            </Typography>
+                        </Stack>
+                        <Typography variant="body1" color="error.main" fontWeight="bold">
+                            ${elliottWave.invalidationLevel.toFixed(2)}
+                        </Typography>
+                        <Typography variant="caption" color="error.main">
+                            {Math.abs((elliottWave.invalidationLevel - currentPrice) / currentPrice * 100).toFixed(1)}% margin
+                        </Typography>
+                    </Box>
                 </Stack>
-              ))}
-            </Stack>
-          </Box>
-        )}
+            </Grid>
 
-        {/* Confidence */}
-        <Stack direction="row" justifyContent="space-between" alignItems="center" mt="auto">
-          <Typography variant="caption" color="text.secondary">Analysis Confidence</Typography>
-          <Typography variant="caption" fontWeight="bold" color={
-             elliottWave.confidence > 70 ? 'success.main' : 
-             elliottWave.confidence > 50 ? 'warning.main' : 'error.main'
-          }>
-            {elliottWave.confidence.toFixed(0)}%
-          </Typography>
-        </Stack>
+             {/* Bottom Row: Fibonacci (Optional, full width) */}
+            {elliottWave.fibonacciLevels.length > 0 && (
+              <Grid size={12}>
+                <Box sx={{ bgcolor: 'action.hover', p: 1.5, borderRadius: 2 }}>
+                    <Typography variant="subtitle2" color="text.secondary" mb={1}>Key Fibonacci Levels</Typography>
+                    <Grid container spacing={2}>
+                        {elliottWave.fibonacciLevels.slice(0, 4).map((fib, i) => (
+                            <Grid key={i} size={{ xs: 6, sm: 3 }}>
+                                <Box sx={{ p: 1, bgcolor: 'background.paper', borderRadius: 1, textAlign: 'center' }}>
+                                    <Typography variant="caption" color="text.secondary" display="block">{fib.label}</Typography>
+                                    <Typography variant="body2" color={fib.type === 'retracement' ? 'warning.main' : 'info.main'} fontWeight="bold">
+                                        ${fib.price.toFixed(2)}
+                                    </Typography>
+                                </Box>
+                            </Grid>
+                        ))}
+                    </Grid>
+                </Box>
+              </Grid>
+            )}
+        </Grid>
       </CardContent>
     </Card>
   );
