@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, TrendingUp, CurrencyBitcoin } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
-import { searchStocks, SearchResult } from '@/services/api';
+import { useLazySearchStocksQuery } from '@/features/stock/stockApi';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useStock, useUI } from '@/hooks';
 import { 
@@ -27,8 +27,6 @@ interface StockSearchProps {
 
 export default function StockSearch({ onSelectStock, currentSymbol }: StockSearchProps) {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const debouncedQuery = useDebounce(query, 300);
   const router = useRouter();
@@ -36,27 +34,14 @@ export default function StockSearch({ onSelectStock, currentSymbol }: StockSearc
   
   const { load, addComparison } = useStock();
   const { isCompareMode } = useUI();
+  
+  const [triggerSearch, { data: results = [], isFetching: isLoading }] = useLazySearchStocksQuery();
 
   useEffect(() => {
-    const fetchResults = async () => {
-      if (!debouncedQuery) {
-        setResults([]);
-        return;
-      }
-
-      setIsLoading(true);
-      try {
-        const data = await searchStocks(debouncedQuery);
-        setResults(data);
-      } catch (error) {
-        console.error('Search error:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchResults();
-  }, [debouncedQuery]);
+    if (debouncedQuery) {
+      triggerSearch(debouncedQuery);
+    }
+  }, [debouncedQuery, triggerSearch]);
 
   // Close results when clicking outside
   useEffect(() => {
@@ -72,7 +57,6 @@ export default function StockSearch({ onSelectStock, currentSymbol }: StockSearc
 
   const handleSelect = (symbol: string) => {
     setQuery('');
-    setResults([]);
     setShowResults(false);
     
     if (onSelectStock) {

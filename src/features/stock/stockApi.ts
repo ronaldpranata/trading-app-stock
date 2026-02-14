@@ -56,6 +56,7 @@ export const stockApi = baseApi.injectEndpoints({
         return { data: stockData };
       },
       providesTags: (result, error, symbol) => [{ type: 'Stock', id: symbol }],
+      keepUnusedDataFor: 15, 
     }),
     getQuote: builder.query<StockQuote, string>({
       async queryFn(_arg, _queryApi, _extraOptions, fetchWithBQ) {
@@ -64,9 +65,14 @@ export const stockApi = baseApi.injectEndpoints({
          if (result.error) return { error: result.error };
          return { data: result.data as StockQuote };
       },
+      keepUnusedDataFor: 10, 
+    }),
+    searchStocks: builder.query<any[], string>({
+      query: (query) => `stock?type=search&query=${encodeURIComponent(query)}`,
+      keepUnusedDataFor: 300, 
     }),
   }),
   overrideExisting: false,
 });
 
-export const { useGetStockDataQuery, useGetQuoteQuery } = stockApi;
+export const { useGetStockDataQuery, useGetQuoteQuery, useLazySearchStocksQuery } = stockApi;

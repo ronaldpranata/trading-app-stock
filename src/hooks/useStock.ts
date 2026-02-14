@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
   setPrimarySymbol,
@@ -58,25 +58,30 @@ export function useStock() {
   // Select results from store using memoized selector
   const comparisonResults = useAppSelector(selectComparisonData);
 
-  // 4. Merge Data for Output
-  const finalPrimaryStock: StockData | null = primaryStock ? {
-    ...primaryStock,
-    technicalIndicators: analysisResults[symbol || '']?.technicalIndicators || primaryStock.technicalIndicators || null,
-    prediction: analysisResults[symbol || '']?.prediction || primaryStock.prediction || null,
-    sentimentData: analysisResults[symbol || '']?.sentimentData || primaryStock.sentimentData || undefined
-  } : null;
-
-  const compareStocks = comparisonResults.map(({ symbol: compSymbol, data, isLoading, error }) => {
-    if (!data) return null;
+  // 4. Merge Data for Output - Memoized to prevent re-renders
+  const finalPrimaryStock: StockData | null = useMemo(() => {
+    if (!primaryStock) return null;
     return {
-      ...data,
-      technicalIndicators: analysisResults[compSymbol]?.technicalIndicators || null,
-      prediction: analysisResults[compSymbol]?.prediction || null,
-      sentimentData: analysisResults[compSymbol]?.sentimentData || data.sentimentData || undefined,
-      isLoading,
-      error: error ? String(error) : null
+      ...primaryStock,
+      technicalIndicators: analysisResults[symbol || '']?.technicalIndicators || primaryStock.technicalIndicators || null,
+      prediction: analysisResults[symbol || '']?.prediction || primaryStock.prediction || null,
+      sentimentData: analysisResults[symbol || '']?.sentimentData || primaryStock.sentimentData || undefined
     };
-  }).filter(Boolean) as StockData[];
+  }, [primaryStock, analysisResults, symbol]);
+
+  const compareStocks = useMemo(() => {
+    return comparisonResults.map(({ symbol: compSymbol, data, isLoading, error }) => {
+      if (!data) return null;
+      return {
+        ...data,
+        technicalIndicators: analysisResults[compSymbol]?.technicalIndicators || null,
+        prediction: analysisResults[compSymbol]?.prediction || null,
+        sentimentData: analysisResults[compSymbol]?.sentimentData || data.sentimentData || undefined,
+        isLoading,
+        error: error ? String(error) : null
+      };
+    }).filter(Boolean) as StockData[];
+  }, [comparisonResults, analysisResults]);
 
   // Aggregated Loading & Error
   const isCompLoading = comparisonResults.some(r => r.isLoading);
@@ -90,13 +95,14 @@ export function useStock() {
       else error = primaryError.message || 'An error occurred';
   }
 
-  // Derived Values
-  const currentPrice = primaryStock?.quote?.price || 0;
-  const priceChange = {
-    change: primaryStock?.quote?.change || 0,
-    changePercent: primaryStock?.quote?.changePercent || 0,
-    isPositive: (primaryStock?.quote?.change || 0) >= 0,
-  };
+  // Derived Values - Memoized
+  const currentPrice = finalPrimaryStock?.quote?.price || 0;
+  
+  const priceChange = useMemo(() => ({
+    change: finalPrimaryStock?.quote?.change || 0,
+    changePercent: finalPrimaryStock?.quote?.changePercent || 0,
+    isPositive: (finalPrimaryStock?.quote?.change || 0) >= 0,
+  }), [finalPrimaryStock]);
 
   // Actions
   const load = useCallback(
