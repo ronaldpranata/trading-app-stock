@@ -8,7 +8,7 @@ import {
   Button 
 } from "@mui/material";
 import { Add } from "@mui/icons-material";
-import StockPill from "@/components/shared/StockPill";
+import StockPill from "./StockPill";
 import { StockData } from "@/types/stock";
 
 import { useStock } from "@/hooks";
