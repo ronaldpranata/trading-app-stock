@@ -6,7 +6,7 @@ import { jwtVerify } from 'jose';
 const protectedRoutes = ['/dashboard', '/author'];
 const protectedApiRoutes = ['/api/stock', '/api/author'];
 
-export async function middleware(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Check if the route is protected
