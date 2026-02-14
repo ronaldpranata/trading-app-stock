@@ -19,9 +19,15 @@ export const store = configureStore({
     getDefaultMiddleware({
       serializableCheck: {
         // Ignore these action types
-        ignoredActions: ["ui/setLastRefresh"],
+        ignoredActions: ["ui/setLastRefresh", "persist/PERSIST"],
         // Ignore these field paths in all actions
-        ignoredActionPaths: ["payload.timestamp"],
+        ignoredActionPaths: [
+          "payload.timestamp", 
+          "meta.arg", 
+          "meta.baseQueryMeta", 
+          "meta.request",
+          "meta.response"
+        ],
         // Ignore these paths in the state
         ignoredPaths: ["ui.lastRefresh"],
       },
