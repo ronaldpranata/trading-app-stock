@@ -11,7 +11,7 @@ import {
   calculatePercentChange,
   getYTDDays,
   calculateSMA
-} from '@/lib/stockUtils';
+} from '@/features/stock/utils/stockUtils';
 
 export interface ChartDataPoint {
   date: string;

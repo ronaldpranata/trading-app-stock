@@ -9,7 +9,7 @@ import {
   selectIsAuthenticated
 } from '@/store/selectors';
 import { useGetStockDataQuery } from '@/features/stock/services/stockApi';
-import { useBatchAnalysisWorker } from '@/hooks/useBatchAnalysisWorker';
+import { useBatchAnalysisWorker } from '@/features/stock/hooks/useBatchAnalysisWorker';
 import { setIsAnalyzing } from '@/features/stock/store/stockSlice';
 
 export default function StockAnalysisManager() {

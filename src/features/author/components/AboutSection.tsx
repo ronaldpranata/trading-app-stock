@@ -2,7 +2,7 @@ import { Typography } from "@mui/material";
 import { Work } from "@mui/icons-material";
 import PaperBox from "./PaperBox";
 import SectionHeader from "./SectionHeader";
-import { AuthorProfile } from "@/types/author";
+import { AuthorProfile } from "@/features/author/types";
 
 interface AboutSectionProps {
   author: AuthorProfile;

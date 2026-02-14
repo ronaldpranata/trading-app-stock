@@ -9,7 +9,7 @@ import { calculateSentiment } from '../utils/sentiment';
 // Define input and output types for type safety
 // ReferenceData imported from types
 
-import { AnalysisResult, ReferenceData } from '../types';
+import { AnalysisResult, ReferenceData } from '@/features/stock/types';
 
 // Global context for the worker
 const ctx = self as unknown as Worker;

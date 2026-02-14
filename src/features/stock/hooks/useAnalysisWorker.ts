@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { HistoricalData, FundamentalData, AnalysisResult } from '../types';
-import { ReferenceData } from '../workers/analysis.worker';
+import {  ReferenceData } from '@/features/stock/types';
 
 interface UseAnalysisWorkerProps {
   symbol: string | null;

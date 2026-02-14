@@ -2,7 +2,7 @@ import { Typography, Stack, Box, Divider } from "@mui/material";
 import { School } from "@mui/icons-material";
 import PaperBox from "./PaperBox";
 import SectionHeader from "./SectionHeader";
-import { AuthorProfile } from "@/types/author";
+import { AuthorProfile } from "@/features/author/types";
 
 interface EducationListProps {
   author: AuthorProfile;

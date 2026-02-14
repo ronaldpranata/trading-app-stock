@@ -2,7 +2,7 @@ import { Typography, Stack, Box, Chip } from "@mui/material";
 import { Code } from "@mui/icons-material";
 import PaperBox from "./PaperBox";
 import SectionHeader from "./SectionHeader";
-import { AuthorProfile } from "@/types/author";
+import { AuthorProfile } from "@/features/author/types";
 
 interface SkillsListProps {
   author: AuthorProfile;

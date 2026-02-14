@@ -13,7 +13,7 @@ import {
   Email,
   LocationOn,
 } from "@mui/icons-material";
-import { AuthorProfile } from "@/types/author";
+import { AuthorProfile } from "@/features/author/types";
 
 interface ProfileCardProps {
   author: AuthorProfile;
