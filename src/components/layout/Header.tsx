@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { usePathname } from "next/navigation";
 import {
   Box,
   Stack,
@@ -13,8 +14,6 @@ import {
 import {
   Refresh,
   TrendingUp,
-  PlayArrow,
-  Pause,
   GridView,
   CompareArrows,
   Logout,
@@ -27,8 +26,11 @@ function Header() {
   const { isAuthenticated, logout } = useAuth();
   const { refresh, isLoading } = useStock();
   const { viewMode, setViewMode } = useUI();
+  const pathname = usePathname();
 
   if (!isAuthenticated) return null;
+
+  const isAuthorPage = pathname === "/author";
 
   return (
     <AppBar
@@ -102,9 +104,11 @@ function Header() {
             </Box>
 
             {/* Search */}
-            <Box sx={{ width: { xs: "100%", md: 300 } }}>
-              <StockSearch />
-            </Box>
+            {!isAuthorPage && (
+              <Box sx={{ width: { xs: "100%", md: 300 } }}>
+                <StockSearch />
+              </Box>
+            )}
 
             {/* Mobile View Mode */}
             <Box
