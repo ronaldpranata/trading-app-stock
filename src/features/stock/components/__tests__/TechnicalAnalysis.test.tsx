@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import TechnicalAnalysis from '../TechnicalAnalysis';
-import { TechnicalIndicators } from '@/types/stock';
+import { TechnicalIndicators } from '@/features/stock/types';
 
 // Mock sub-components to focus on TechnicalAnalysis logic
 vi.mock('../technical/PerformanceMetrics', () => ({

@@ -3,7 +3,7 @@
 import { createSelector } from "@reduxjs/toolkit";
 import type { RootState } from "./index";
 import { baseApi } from "./api/baseApi";
-import { StockData } from "@/types/stock";
+import { StockData } from "@/types";
 
 // ============================================
 // Auth Selectors
@@ -108,7 +108,7 @@ const selectStockApiState = (state: RootState) => state[baseApi.reducerPath];
 export const selectComparisonData = createSelector(
   [selectComparisonSymbols, selectStockApiState],
   (symbols, apiState) => {
-    return symbols.map((sym) => {
+    return symbols.map((sym: string) => {
       const cacheKey = `getStockData("${sym}")`;
       const queryResult = apiState.queries[cacheKey];
 

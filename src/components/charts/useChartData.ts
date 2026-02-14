@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { HistoricalData } from '@/types/stock';
+import { HistoricalData } from '@/features/stock/types';
 import { TIME_RANGES, TimeRange } from '@/lib/constants';
 import { 
   calculateMaxDrawdown, 

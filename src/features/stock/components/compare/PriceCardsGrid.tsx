@@ -1,6 +1,6 @@
 "use client";
 
-import { StockData } from "@/types/stock";
+import { StockData } from "@/features/stock/types";
 import { Card, CardContent, Typography, Stack, Grid, Chip, Box } from "@mui/material";
 import { TrendingUp, TrendingDown } from "@mui/icons-material";
 

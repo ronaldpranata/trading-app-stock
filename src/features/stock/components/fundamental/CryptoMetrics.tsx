@@ -1,7 +1,7 @@
 "use client";
 
-import { FundamentalData } from '@/types/stock';
-import { formatNumber } from '@/utils/fundamentalAnalysis';
+import { FundamentalData } from '@/features/stock/types';
+import { formatNumber } from '@/features/stock/utils/fundamentalAnalysis';
 import { CurrencyBitcoin } from "@mui/icons-material";
 import { Box, Card, CardContent, Grid, Typography, Stack } from '@mui/material';
 import MetricBox from './MetricBox';

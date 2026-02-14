@@ -3,9 +3,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import { authReducer } from '../authSlice';
-import { baseApi } from '@/store/api/baseApi';
-import { useAuth } from '@/hooks/useAuth';
+import { authReducer } from '../store/authSlice';
+import { baseApi } from '../../../store/api/baseApi';
+import { useAuth } from '../hooks/useAuth';
 import { ReactNode } from 'react';
 
 // Mock useRouter
@@ -22,7 +22,7 @@ vi.mock('next/navigation', () => ({
 }));
 
 // Mock baseApi to use absolute URL for tests
-vi.mock('@/store/api/baseApi', async () => {
+vi.mock('../../../store/api/baseApi', async () => {
   const { createApi, fetchBaseQuery } = await import('@reduxjs/toolkit/query/react');
   return {
     baseApi: createApi({

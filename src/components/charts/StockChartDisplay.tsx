@@ -11,7 +11,7 @@ import {
 } from '@mui/x-charts';
 import { Box, Stack, Typography, useTheme } from '@mui/material';
 import { formatDate } from '@/lib/formatters';
-import { TechnicalIndicators } from '@/types/stock';
+import { TechnicalIndicators } from '@/features/stock/types';
 
 interface ChartDataPoint {
   date: string;

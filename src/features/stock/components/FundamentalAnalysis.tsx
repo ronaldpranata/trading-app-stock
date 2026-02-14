@@ -1,7 +1,7 @@
 'use client';
 
-import { FundamentalData } from '@/types/stock';
-import { formatNumber } from '@/utils/fundamentalAnalysis';
+import { FundamentalData } from '@/features/stock/types';
+import { formatNumber } from '@/features/stock/utils/fundamentalAnalysis';
 import { Business } from "@mui/icons-material";
 import { Card, CardContent, Typography, Stack } from '@mui/material';
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { TimeframePrediction } from "@/types/stock";
+import { TimeframePrediction } from "@/features/stock/types";
 import { TrendingUp, TrendingDown } from "@mui/icons-material";
 import { Box, Typography, Stack, LinearProgress } from "@mui/material";
 

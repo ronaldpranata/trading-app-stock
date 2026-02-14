@@ -1,7 +1,7 @@
 "use client";
 
 import { Box, Grid, Typography } from '@mui/material';
-import { CandlestickPattern } from '@/types/stock';
+import { CandlestickPattern } from '@/features/stock/types';
 
 interface PatternSummaryCountsProps {
   patterns: CandlestickPattern[];

@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import CandlestickPatternsDisplay from '../CandlestickPatternsDisplay';
-import { CandlestickAnalysis } from '@/types/stock';
+import { CandlestickAnalysis } from '@/features/stock/types';
 
 // Mock sub-components
 vi.mock('../candlestick/PatternScore', () => ({

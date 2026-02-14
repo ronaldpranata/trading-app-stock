@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { PredictionResult, TimeframePrediction } from '@/types/stock';
+import { PredictionResult, TimeframePrediction } from '@/features/stock/types';
 import { Psychology, Warning } from '@mui/icons-material';
 import { 
     Box, 

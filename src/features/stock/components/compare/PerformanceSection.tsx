@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from 'react';
-import { StockData } from '@/types/stock';
+import { StockData } from '@/features/stock/types';
 import { BarChart, Psychology } from '@mui/icons-material';
 import { LineChart } from '@mui/x-charts';
 import { 

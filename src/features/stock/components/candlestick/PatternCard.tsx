@@ -1,6 +1,6 @@
 "use client";
 
-import { CandlestickPattern } from '@/types/stock';
+import { CandlestickPattern } from '@/features/stock/types';
 import { Box, Typography, Stack, Chip } from '@mui/material';
 
 interface PatternCardProps {

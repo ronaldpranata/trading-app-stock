@@ -15,6 +15,6 @@ export type {
   PredictionResult,
   Signal,
   StockData,
-} from "./stock";
+} from "@/features/stock/types";
 
-export type { AuthorProfile } from "./author";
+export type { AuthorProfile } from "@/features/author/types";

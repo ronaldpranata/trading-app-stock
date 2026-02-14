@@ -1,5 +1,5 @@
 import { Card, CardContent, Typography, Stack } from '@mui/material';
-import { FundamentalData } from '@/types/stock';
+import { FundamentalData } from '@/features/stock/types';
 
 // Key Metrics Component
 interface KeyMetricsProps {

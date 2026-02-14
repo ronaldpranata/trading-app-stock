@@ -1,6 +1,6 @@
 'use client';
 
-import { CandlestickAnalysis } from '@/types/stock';
+import { CandlestickAnalysis } from '@/features/stock/types';
 import { Card, CardContent, Typography, Box, Stack, CardHeader, Chip } from '@mui/material';
 import { WaterfallChart, TrendingUp, TrendingDown, Remove, ErrorOutline } from "@mui/icons-material";
 

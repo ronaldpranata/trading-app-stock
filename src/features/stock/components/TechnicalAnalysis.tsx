@@ -1,6 +1,6 @@
 'use client';
 
-import { TechnicalIndicators } from '@/types/stock';
+import { TechnicalIndicators } from '@/features/stock/types';
 import { SsidChart } from "@mui/icons-material";
 import { Card, CardContent, Typography, Stack } from '@mui/material';
 

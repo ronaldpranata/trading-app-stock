@@ -1,6 +1,6 @@
 "use client";
 
-import { PredictionResult } from '@/types/stock';
+import { PredictionResult } from '@/features/stock/types';
 import { Box, Typography, Stack, LinearProgress } from '@mui/material';
 
 interface PredictionScoresProps {

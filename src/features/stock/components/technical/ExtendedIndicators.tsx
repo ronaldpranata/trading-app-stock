@@ -1,6 +1,6 @@
 "use client";
 
-import { TechnicalIndicators } from '@/types/stock';
+import { TechnicalIndicators } from '@/features/stock/types';
 import { Box, Grid, Typography } from '@mui/material';
 
 interface ExtendedIndicatorsProps {

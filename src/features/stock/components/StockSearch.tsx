@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, TrendingUp, CurrencyBitcoin } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
-import { useLazySearchStocksQuery } from '@/features/stock/stockApi';
+import { useLazySearchStocksQuery } from '@/features/stock/services/stockApi';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useStock, useUI } from '@/hooks';
 import { 
@@ -97,7 +97,7 @@ export default function StockSearch({ onSelectStock, currentSymbol }: StockSearc
         }}
       />
 
-      {showResults && (query || results.length > 0) && (
+      {showResults && (query || results?.length > 0) && (
         <Paper
           elevation={8}
           sx={{
@@ -119,7 +119,7 @@ export default function StockSearch({ onSelectStock, currentSymbol }: StockSearc
             <Box p={2} textAlign="center">
               <CircularProgress size={24} />
             </Box>
-          ) : results.length > 0 ? (
+          ) : results?.length > 0 ? (
             <List disablePadding>
               {results.map((result) => (
                 <ListItem key={result.symbol} disablePadding>

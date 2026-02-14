@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import FundamentalAnalysis from '../FundamentalAnalysis';
-import { FundamentalData } from '@/types/stock';
+import { FundamentalData } from '@/features/stock/types';
 
 // Mock sub-components
 vi.mock('../fundamental/MetricBox', () => ({

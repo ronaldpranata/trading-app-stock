@@ -1,10 +1,10 @@
 "use client";
 
 import { configureStore } from "@reduxjs/toolkit";
-import { authReducer } from "@/features/auth/authSlice";
-import { stockReducer } from "@/features/stock/stockSlice";
-import { uiReducer } from "@/features/ui/uiSlice";
-import { authorReducer } from "@/features/author/authorSlice";
+import { authReducer } from "@/features/auth/store/authSlice";
+import { stockReducer } from "@/features/stock/store/stockSlice";
+import { uiReducer } from "@/features/ui/store/uiSlice";
+import { authorReducer } from "@/features/author/store/authorSlice";
 import { baseApi } from "./api/baseApi";
 
 export const store = configureStore({
@@ -39,9 +39,9 @@ export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 
 // Re-export everything for convenience
-export * from "@/features/auth/authSlice";
-export * from "@/features/stock/stockSlice";
-export * from "@/features/ui/uiSlice";
-export * from "@/features/author/authorSlice";
+export * from "@/features/auth/store/authSlice";
+export * from "@/features/stock/store/stockSlice";
+export * from "@/features/ui/store/uiSlice";
+export * from "@/features/author/store/authorSlice";
 export * from "./hooks";
 export * from "./selectors";

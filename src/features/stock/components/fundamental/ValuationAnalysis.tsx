@@ -1,7 +1,7 @@
 "use client";
 
-import { FundamentalData } from '@/types/stock';
-import { getPEGInterpretation } from '@/utils/fundamentalAnalysis';
+import { FundamentalData } from '@/features/stock/types';
+import { getPEGInterpretation } from '@/features/stock/utils/fundamentalAnalysis';
 import { Bolt } from "@mui/icons-material";
 import { Box, Grid, Typography, Stack, Chip } from '@mui/material';
 import MetricBox from './MetricBox';

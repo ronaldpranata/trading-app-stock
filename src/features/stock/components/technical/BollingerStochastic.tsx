@@ -1,6 +1,6 @@
 "use client";
 
-import { TechnicalIndicators } from '@/types/stock';
+import { TechnicalIndicators } from '@/features/stock/types';
 import { Box, Grid, Typography, Stack } from '@mui/material';
 
 interface BollingerStochasticProps {

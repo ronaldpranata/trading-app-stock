@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import { MetricBox, ScoreBar } from "@/components/ui";
 import { formatNumber } from "@/lib/formatters";
-import { StockQuote, FundamentalData, PredictionResult } from "@/types/stock";
+import { StockQuote, FundamentalData, PredictionResult } from "@/features/stock/types";
 
 interface QuickStatsProps {
   quote: StockQuote | null;

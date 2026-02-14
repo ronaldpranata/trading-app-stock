@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import PredictionDisplay from '../PredictionDisplay';
-import { PredictionResult } from '@/types/stock';
+import { PredictionResult } from '@/features/stock/types';
 
 // Mock sub-components
 vi.mock('../prediction/PredictionSkeleton', () => ({

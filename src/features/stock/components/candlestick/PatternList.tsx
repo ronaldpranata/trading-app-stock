@@ -1,7 +1,7 @@
 "use client";
 
 import { Box, Typography, Stack } from '@mui/material';
-import { CandlestickPattern } from '@/types/stock';
+import { CandlestickPattern } from '@/features/stock/types';
 import PatternCard from './PatternCard';
 
 interface PatternListProps {

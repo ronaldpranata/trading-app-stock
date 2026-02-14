@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import { Add } from "@mui/icons-material";
 import StockPill from "./StockPill";
-import { StockData } from "@/types/stock";
+import { StockData } from "@/features/stock/types";
 
 import { useStock } from "@/hooks";
 

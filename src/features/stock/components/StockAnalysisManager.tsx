@@ -8,9 +8,9 @@ import {
   selectAnalysisResults,
   selectIsAuthenticated
 } from '@/store/selectors';
-import { useGetStockDataQuery } from '@/features/stock/stockApi';
+import { useGetStockDataQuery } from '@/features/stock/services/stockApi';
 import { useBatchAnalysisWorker } from '@/hooks/useBatchAnalysisWorker';
-import { setIsAnalyzing } from '@/features/stock/stockSlice';
+import { setIsAnalyzing } from '@/features/stock/store/stockSlice';
 
 export default function StockAnalysisManager() {
   const dispatch = useAppDispatch();

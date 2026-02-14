@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import ExtendedIndicators from '../ExtendedIndicators';
-import { TechnicalIndicators } from '@/types/stock';
+import { TechnicalIndicators } from '@/features/stock/types';
 
 describe('ExtendedIndicators', () => {
   const mockIndicators: TechnicalIndicators = {

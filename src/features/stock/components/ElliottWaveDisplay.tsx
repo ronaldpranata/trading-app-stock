@@ -1,6 +1,6 @@
 'use client';
 
-import { ElliottWaveAnalysis } from '@/types/stock';
+import { ElliottWaveAnalysis } from '@/features/stock/types';
 import { ShowChart, TrackChanges, Warning } from '@mui/icons-material';
 import { Box, Card, CardContent, Grid, Typography, Stack, LinearProgress, CardHeader, Chip } from '@mui/material';
 import { LineChart } from '@mui/x-charts/LineChart';

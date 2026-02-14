@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { stockReducer, setPrimarySymbol, addComparisonSymbol, removeComparisonSymbol, clearComparisons, resetStock } from '../stockSlice';
+import { stockReducer, setPrimarySymbol, addComparisonSymbol, removeComparisonSymbol, clearComparisons, resetStock } from '../store/stockSlice';
 
 describe('stockSlice', () => {
   const initialState = {
@@ -46,6 +46,8 @@ describe('stockSlice', () => {
     const startState = {
       primarySymbol: 'AAPL',
       comparisonSymbols: ['GOOGL', 'MSFT'],
+      analysisResults: {},
+      isAnalyzing: false,
     };
     const actual = stockReducer(startState, removeComparisonSymbol('GOOGL'));
     expect(actual.comparisonSymbols).toEqual(['MSFT']);
@@ -55,6 +57,8 @@ describe('stockSlice', () => {
     const startState = {
       primarySymbol: 'AAPL',
       comparisonSymbols: ['GOOGL', 'MSFT'],
+      analysisResults: {},
+      isAnalyzing: false,
     };
     const actual = stockReducer(startState, clearComparisons());
     expect(actual.comparisonSymbols).toEqual([]);
@@ -64,6 +68,8 @@ describe('stockSlice', () => {
     const startState = {
         primarySymbol: 'AAPL',
         comparisonSymbols: ['GOOGL', 'MSFT'],
+        analysisResults: {},
+        isAnalyzing: false,
       };
       const actual = stockReducer(startState, resetStock());
     expect(actual).toEqual(initialState);

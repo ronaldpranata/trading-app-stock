@@ -1,6 +1,6 @@
 "use client";
 
-import { TimeframePrediction } from "@/types/stock";
+import { TimeframePrediction } from "@/features/stock/types";
 import { TrackChanges, Shield } from "@mui/icons-material";
 import { Box, Typography, Stack, Grid } from "@mui/material";
 
