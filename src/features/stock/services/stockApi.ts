@@ -4,56 +4,35 @@ import { StockData, StockQuote, HistoricalData, FundamentalData, TechnicalIndica
 export const stockApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getStockData: builder.query<StockData, string>({
-      async queryFn(_arg, _queryApi, _extraOptions, fetchWithBQ) {
-        const symbol = _arg;
-        
-        // Fetch data in parallel
-        const [quoteResult, historicalResult, fundamentalResult, newsResult] = await Promise.all([
-          fetchWithBQ(`stock?symbol=${symbol}&type=quote`),
-          fetchWithBQ(`stock?symbol=${symbol}&type=historical`),
-          fetchWithBQ(`stock?symbol=${symbol}&type=fundamental`),
-          fetchWithBQ(`stock?symbol=${symbol}&type=news`)
-        ]);
+      query: (symbol) => `stock?symbol=${symbol}&type=aggregated`,
+      transformResponse: (response: any) => {
+        // 1. Sanitize & Validate
+        const symbol = response.symbol || 'UNKNOWN';
+        const quote = response.quote;
+        const historical = Array.isArray(response.historicalData) ? response.historicalData : [];
+        const fundamental = response.fundamentalData;
+        const news = Array.isArray(response.news) ? response.news : [];
 
-        if (quoteResult.error) return { error: quoteResult.error };
-        if (historicalResult.error) return { error: historicalResult.error };
-        if (fundamentalResult.error) return { error: fundamentalResult.error };
-        // News error is non-critical, we can proceed without it
-
-        const quote = quoteResult.data as StockQuote;
-        const historical = historicalResult.data as HistoricalData[];
-        const fundamental = fundamentalResult.data as FundamentalData;
-        const news = (newsResult.data as any[]) || [];
-
-        let indicators: TechnicalIndicators | null = null;
-        let prediction: PredictionResult | null = null;
-        
-        // Initial sentiment structure (will be populated by worker)
+        // 2. Initial Sentiment Construction
         const sentimentData = {
           score: 50,
           sentiment: 'neutral' as const,
           headlines: news.map((n: any) => n.title).filter(Boolean)
         };
 
-        if (Array.isArray(historical) && historical.length > 0) {
-          // Worker will handle calculations
-          indicators = null; 
-          prediction = null;
-        }
-
-        const stockData: StockData = {
+        // 3. Construct StockData
+        // Calculations (indicators, prediction) are handled by the worker
+        return {
           symbol,
           quote,
           historicalData: historical,
           fundamentalData: fundamental,
-          technicalIndicators: indicators,
-          prediction,
+          technicalIndicators: null, 
+          prediction: null,
           sentimentData,
           isLoading: false,
           error: null,
         };
-
-        return { data: stockData };
       },
       providesTags: (result, error, symbol) => [{ type: 'Stock', id: symbol }],
       keepUnusedDataFor: 15, 

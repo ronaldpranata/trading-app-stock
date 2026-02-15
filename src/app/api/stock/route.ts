@@ -38,6 +38,23 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(news);
       }
 
+      case "aggregated": {
+        const [quote, historical, fundamentals, news] = await Promise.all([
+          StockService.fetchExpectedQuote(symbol),
+          StockService.fetchHistorical(symbol),
+          StockService.fetchFundamentals(symbol),
+          StockService.fetchNews(symbol)
+        ]);
+        
+        return NextResponse.json({
+          symbol,
+          quote: quote || StockService.generateSimulatedQuote(symbol),
+          historicalData: historical.length > 0 ? historical : StockService.generateSimulatedHistorical(symbol),
+          fundamentalData: fundamentals || StockService.generateSimulatedFundamentals(symbol),
+          news: news || []
+        });
+      }
+
       case "search": {
         const query = searchParams.get("query");
         if (!query) return NextResponse.json([]);
@@ -59,6 +76,14 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(StockService.generateSimulatedHistorical(symbol));
       case "fundamental":
         return NextResponse.json(StockService.generateSimulatedFundamentals(symbol));
+      case "aggregated":
+        return NextResponse.json({
+            symbol,
+            quote: StockService.generateSimulatedQuote(symbol),
+            historicalData: StockService.generateSimulatedHistorical(symbol),
+            fundamentalData: StockService.generateSimulatedFundamentals(symbol),
+            news: []
+        });
       case "news":
         return NextResponse.json([]); // Return empty array for news error
       case "search":
