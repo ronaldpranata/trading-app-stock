@@ -20,6 +20,7 @@ import {
 } from "@mui/icons-material";
 import StockSearch from "@/features/stock/components/StockSearch";
 import { useAuth, useStock, useUI } from "@/hooks";
+import AuthorPage from "@/app/author/page";
 
 function Header() {
   const theme = useTheme();
@@ -54,7 +55,9 @@ function Header() {
           <Stack direction="row" alignItems="center" gap={2} minWidth={200}>
             <Box
               sx={{
-                p: 1,
+                p: 1.2,
+                width: 40,
+                height: 40,
                 borderRadius: 2,
                 background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
               }}
@@ -84,7 +87,7 @@ function Header() {
             flexWrap="wrap"
           >
             {/* View Mode Toggle */}
-            <Box sx={{ display: { xs: "none", md: "block" } }}>
+             {!isAuthorPage && (<Box sx={{ display: { xs: "none", md: "block" } }}>
               <ButtonGroup variant="outlined" size="small">
                 <Button
                   variant={viewMode === "single" ? "contained" : "outlined"}
@@ -101,7 +104,7 @@ function Header() {
                   Compare
                 </Button>
               </ButtonGroup>
-            </Box>
+            </Box>)}
 
             {/* Search */}
             {!isAuthorPage && (
@@ -109,9 +112,8 @@ function Header() {
                 <StockSearch />
               </Box>
             )}
-
             {/* Mobile View Mode */}
-            <Box
+            {!isAuthorPage && (<Box
               sx={{
                 display: { xs: "flex", md: "none" },
                 width: "100%",
@@ -132,7 +134,7 @@ function Header() {
               >
                 Compare
               </Button>
-            </Box>
+            </Box>)}
 
             <Stack
               direction="row"
@@ -141,12 +143,12 @@ function Header() {
               ml={{ xs: "auto", md: 0 }}
             >
               {/* Refresh Controls */}
-              <IconButton onClick={refresh} disabled={isLoading} size="small">
+              {!isAuthorPage &&<IconButton onClick={refresh} disabled={isLoading} size="small">
                 <Refresh
                   fontSize="small"
                   className={isLoading ? "animate-spin" : ""}
                 />
-              </IconButton>
+              </IconButton>}
 
               {/* Logout Button */}
               <IconButton onClick={logout} size="small" title="Logout">

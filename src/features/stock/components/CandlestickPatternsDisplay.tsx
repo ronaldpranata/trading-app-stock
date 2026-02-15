@@ -60,9 +60,9 @@ export default function CandlestickPatternsDisplay({ analysis }: CandlestickPatt
 
   const getBiasIcon = (bias: string) => {
     switch (bias) {
-      case 'bullish': return <TrendingUp sx={{ fontSize: 20 }} className="text-green-400" />;
-      case 'bearish': return <TrendingDown sx={{ fontSize: 20 }} className="text-red-400" />;
-      default: return <Remove sx={{ fontSize: 20 }} className="text-yellow-400" />;
+      case 'bullish': return <TrendingUp sx={{ fontSize: 20, color: 'success.main' }} />;
+      case 'bearish': return <TrendingDown sx={{ fontSize: 20, color: 'error.main' }} />;
+      default: return <Remove sx={{ fontSize: 20, color: 'warning.main' }} />;
     }
   };
 
