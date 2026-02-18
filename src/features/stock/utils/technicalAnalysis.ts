@@ -1,4 +1,4 @@
-import { HistoricalData, TechnicalIndicators, Signal } from '../types';
+import { HistoricalData, TechnicalIndicators, Signal, SupportResistanceLevel } from '../types';
 import { analyzeElliottWave, generateElliottWaveSignals } from './elliottWave';
 import { analyzeCandlestickPatterns, generateCandlestickSignals } from './candlestickPatterns';
 
@@ -274,6 +274,92 @@ export function calculateYearlyMetrics(historicalData: HistoricalData[]): {
   };
 }
 
+// Calculate Support and Resistance Levels
+export function calculateSupportResistance(highs: number[], lows: number[], currentPrice: number, period: number = 50): SupportResistanceLevel[] {
+  if (highs.length < period || lows.length < period) return [];
+
+  const levels: { price: number; type: 'support' | 'resistance'; strength: number }[] = [];
+  const sensitivity = 0.015; // 1.5% range for grouping levels
+
+  // Identify local maxima (resistance) and minima (support)
+  // We look for fractals: 5 bars with middle bar being highest/lowest
+  for (let i = 2; i < highs.length - 2; i++) {
+    // Local High (Potential Resistance)
+    if (highs[i] > highs[i - 1] && highs[i] > highs[i - 2] &&
+        highs[i] > highs[i + 1] && highs[i] > highs[i + 2]) {
+      levels.push({
+        price: highs[i],
+        type: 'resistance',
+        strength: 1
+      });
+    }
+
+    // Local Low (Potential Support)
+    if (lows[i] < lows[i - 1] && lows[i] < lows[i - 2] &&
+        lows[i] < lows[i + 1] && lows[i] < lows[i + 2]) {
+      levels.push({
+        price: lows[i],
+        type: 'support',
+        strength: 1
+      });
+    }
+  }
+
+  // Sort by price
+  const sortedLevels = levels.sort((a, b) => a.price - b.price);
+  const consolidatedLevels: SupportResistanceLevel[] = [];
+
+  if (sortedLevels.length > 0) {
+    let currentGroup = [sortedLevels[0]];
+
+    for (let i = 1; i < sortedLevels.length; i++) {
+      const level = sortedLevels[i];
+      const groupAvg = currentGroup.reduce((sum, l) => sum + l.price, 0) / currentGroup.length;
+
+      // If level is within sensitivity range of the group average
+      if (Math.abs(level.price - groupAvg) / groupAvg <= sensitivity) {
+        currentGroup.push(level);
+      } else {
+        // Finalize current group
+        const avgPrice = currentGroup.reduce((sum, l) => sum + l.price, 0) / currentGroup.length;
+        const totalStrength = currentGroup.reduce((sum, l) => sum + l.strength, 0);
+        
+        // Determine type relative to current price
+        // If price is close to the level, we might keep the historical type, 
+        // but typically: Below current = Support, Above current = Resistance
+        const type = avgPrice < currentPrice ? 'support' : 'resistance';
+
+        consolidatedLevels.push({
+          level: parseFloat(avgPrice.toFixed(2)),
+          type: type,
+          strength: Math.min(totalStrength, 10), // Cap strength at 10
+          percentageDiff: parseFloat((Math.abs((avgPrice - currentPrice) / currentPrice) * 100).toFixed(2))
+        });
+        
+        currentGroup = [level];
+      }
+    }
+    
+    // Add the last group
+    const avgPrice = currentGroup.reduce((sum, l) => sum + l.price, 0) / currentGroup.length;
+    const totalStrength = currentGroup.reduce((sum, l) => sum + l.strength, 0);
+    const type = avgPrice < currentPrice ? 'support' : 'resistance';
+
+    consolidatedLevels.push({
+      level: parseFloat(avgPrice.toFixed(2)),
+      type: type,
+      strength: Math.min(totalStrength, 10),
+      percentageDiff: parseFloat((Math.abs((avgPrice - currentPrice) / currentPrice) * 100).toFixed(2))
+    });
+  }
+
+  // Filter levels that are too far (e.g., > 25% away) and sort by proximity
+  return consolidatedLevels
+    .filter(l => l.percentageDiff <= 25)
+    .sort((a, b) => a.percentageDiff - b.percentageDiff)
+    .slice(0, 6); // Keep top 6 closest levels
+}
+
 // Calculate all technical indicators including Elliott Wave and Candlestick Patterns
 export function calculateAllIndicators(historicalData: HistoricalData[]): TechnicalIndicators {
   const closes = historicalData.map(d => d.close);
@@ -289,6 +375,10 @@ export function calculateAllIndicators(historicalData: HistoricalData[]): Techni
   
   // Calculate yearly metrics for enhanced analysis
   const yearlyMetrics = calculateYearlyMetrics(historicalData);
+
+  // Calculate support and resistance
+  const currentPrice = closes[closes.length - 1];
+  const supportResistance = calculateSupportResistance(highs, lows, currentPrice);
   
   return {
     sma20: calculateSMA(closes, 20),
@@ -304,6 +394,7 @@ export function calculateAllIndicators(historicalData: HistoricalData[]): Techni
     obv: calculateOBV(closes, volumes),
     elliottWave,
     candlestickAnalysis,
+    supportResistance,
     // Extended indicators using full year data
     adx: calculateADX(highs, lows, closes),
     williamsR: calculateWilliamsR(highs, lows, closes),

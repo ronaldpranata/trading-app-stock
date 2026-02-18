@@ -1,4 +1,4 @@
-import { TechnicalIndicators, FundamentalData, PredictionResult, Signal, TimeframePrediction, PredictionTimeframe } from '../types';
+import { TechnicalIndicators, FundamentalData, PredictionResult, Signal, TimeframePrediction, PredictionTimeframe, SupportResistanceLevel } from '../types';
 import { generateTechnicalSignals, calculateTechnicalScore } from './technicalAnalysis';
 import { generateFundamentalSignals, calculateFundamentalScore } from './fundamentalAnalysis';
 
@@ -60,7 +60,8 @@ export function generateTimeframePrediction(
   technicalScore: number,
   fundamentalScore: number,
   dcfScore: number,
-  sentimentScore: number, // New parameter
+  sentimentScore: number, 
+  srScore: number, // Support/Resistance Score
   timeframe: PredictionTimeframe
 ): TimeframePrediction {
   const config = TIMEFRAME_CONFIG[timeframe];
@@ -81,10 +82,19 @@ export function generateTimeframePrediction(
     (fundamentalScore * config.fundamentalWeight * normalizationFactor) +
     (dcfScore * config.dcfWeight * normalizationFactor) +
     (sentimentScore * sentimentWeight);
+    
+  // Adjust score based on Support/Resistance match
+  // 50 is neutral. 
+  // If price is at Support -> srScore > 50 (Bullish)
+  // If price is at Resistance -> srScore < 50 (Bearish)
+  // We blend this into the final score.
+  // Weight of S/R depends on proximity.
+  const srWeight = 0.15; // 15% influence
+  const finalScore = weightedScore * (1 - srWeight) + srScore * srWeight;
   
   // Determine direction
   let direction: 'BULLISH' | 'BEARISH' | 'NEUTRAL';
-  if (weightedScore >= 58) {
+  if (finalScore >= 58) {
     direction = 'BULLISH';
   } else if (weightedScore <= 42) {
     direction = 'BEARISH';
@@ -93,7 +103,7 @@ export function generateTimeframePrediction(
   }
   
   // Calculate confidence - longer timeframes have lower confidence
-  const baseConfidence = Math.abs(weightedScore - 50) * 1.5 + 35;
+  const baseConfidence = Math.abs(finalScore - 50) * 1.5 + 35;
   
   // Boost confidence if sentiment confirms direction
   let sentimentBoost = 0;
@@ -107,7 +117,7 @@ export function generateTimeframePrediction(
   const dailyVolatility = technicalIndicators.atr / currentPrice;
   const expectedVolatility = dailyVolatility * Math.sqrt(config.days) * config.volatilityMultiplier;
   
-  const scoreStrength = (weightedScore - 50) / 50; 
+  const scoreStrength = (finalScore - 50) / 50; 
   let expectedChangePercent = expectedVolatility * 100 * scoreStrength;
 
   // Sentiment Momentum Bonus for short term
@@ -175,6 +185,59 @@ function calculateDcfScore(dcf: FundamentalData['dcf'], currentPrice: number): n
   return Math.max(0, Math.min(100, score)); // Clamp between 0 and 100
 }
 
+// Calculate Support/Resistance Score
+// Returns 0-100. >50 Bullish (near support), <50 Bearish (near resistance)
+function calculateSupportResistanceScore(currentPrice: number, levels?: SupportResistanceLevel[]): number {
+  if (!levels || levels.length === 0) return 50;
+
+  // Find closest support and resistance
+  const supports = levels.filter(l => l.type === 'support').sort((a, b) => b.level - a.level);
+  const resistances = levels.filter(l => l.type === 'resistance').sort((a, b) => a.level - b.level);
+
+  const closestSupport = supports.length > 0 ? supports[0] : null;
+  const closestResistance = resistances.length > 0 ? resistances[0] : null;
+
+  // No levels found nearby? Neutral.
+  if (!closestSupport && !closestResistance) return 50;
+
+  // Calculate scores based on proximity
+  // If price is at support, score -> 100 (Strong Buy)
+  // If price is at resistance, score -> 0 (Strong Sell)
+  
+  // Distance factors
+  let supportScore = 50;
+  let resistanceScore = 50;
+
+  if (closestSupport) {
+    const distPercent = (currentPrice - closestSupport.level) / currentPrice; // e.g. 0.02 (2%)
+    // If within 1%, strong buy signal (score 80-100)
+    // If within 5%, moderate buy signal (score 60-80)
+    // Further away -> diminishes towards 50
+    // Decay function: score increases as dist -> 0
+    // We want a score bonus for being near support.
+    // Bonus = 50 * exp(-dist * factor)
+    const closeness = Math.max(0, 1 - (distPercent * 20)); // Linear falloff, 0 at 5% dist
+    const strengthBonus = Math.min(closestSupport.strength, 5) / 5; // up to 100% of bonus
+    supportScore = 50 + (40 * closeness * strengthBonus);
+  }
+
+  if (closestResistance) {
+    const distPercent = (closestResistance.level - currentPrice) / currentPrice;
+    const closeness = Math.max(0, 1 - (distPercent * 20));
+    const strengthBonus = Math.min(closestResistance.strength, 5) / 5;
+    resistanceScore = 50 - (40 * closeness * strengthBonus);
+  }
+
+  // Combine
+  // If only support exists: return supportScore
+  // If only resistance exists: return resistanceScore
+  // If both: weighted average based on proximity?
+  // Or simply: (supportScore + resistanceScore) - 50 ? 
+  // Example: Support gives 80 (+30), Resistance gives 30 (-20). Result 50 + 30 - 20 = 60.
+  
+  return Math.min(100, Math.max(0, supportScore + resistanceScore - 50));
+}
+
 export function generatePrediction(
   currentPrice: number,
   technicalIndicators: TechnicalIndicators,
@@ -187,6 +250,7 @@ export function generatePrediction(
   const technicalScore = calculateTechnicalScore(technicalSignals);
   const fundamentalScore = calculateFundamentalScore(fundamentalSignals);
   const dcfScore = calculateDcfScore(fundamentalData.dcf, currentPrice);
+  const srScore = calculateSupportResistanceScore(currentPrice, technicalIndicators.supportResistance);
   
   const timeframes: PredictionTimeframe[] = ['day', 'week', 'month', 'quarter', 'year'];
   const timeframePredictions = timeframes.map(tf => 
@@ -198,6 +262,7 @@ export function generatePrediction(
       fundamentalScore,
       dcfScore,
       sentimentScore,
+      srScore,
       tf
     )
   );

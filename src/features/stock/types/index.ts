@@ -74,6 +74,13 @@ export interface CandlestickAnalysis {
   recentPatterns: CandlestickPattern[];
 }
 
+export interface SupportResistanceLevel {
+  level: number;
+  type: 'support' | 'resistance';
+  strength: number; // 1-10 scale based on touches/validity
+  percentageDiff: number; // How far from current price
+}
+
 export interface TechnicalIndicators {
   sma20: number;
   sma50: number;
@@ -99,6 +106,7 @@ export interface TechnicalIndicators {
   obv: number;
   elliottWave?: ElliottWaveAnalysis;
   candlestickAnalysis?: CandlestickAnalysis;
+  supportResistance?: SupportResistanceLevel[];
   // Extended indicators using full year data
   adx?: number;
   williamsR?: number;

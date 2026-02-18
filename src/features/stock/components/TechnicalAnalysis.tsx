@@ -10,6 +10,7 @@ import RSICard from './technical/RSICard';
 import MACDCard from './technical/MACDCard';
 import BollingerStochastic from './technical/BollingerStochastic';
 import ExtendedIndicators from './technical/ExtendedIndicators';
+import SupportResistance from './technical/SupportResistance';
 
 interface TechnicalAnalysisProps {
   indicators: TechnicalIndicators | null;
@@ -71,6 +72,14 @@ export default function TechnicalAnalysis({ indicators, currentPrice }: Technica
 
           {/* Extended Indicators */}
           <ExtendedIndicators indicators={indicators} />
+
+          {/* Support & Resistance */}
+          {indicators.supportResistance && (
+            <SupportResistance 
+              levels={indicators.supportResistance} 
+              currentPrice={currentPrice} 
+            />
+          )}
 
         </Stack>
       </CardContent>
