@@ -52,10 +52,17 @@ export function useChartData(data: HistoricalData[], timeRange: TimeRange) {
     }
 
     const range = TIME_RANGES.find(r => r.id === timeRange);
-    const days = timeRange === 'YTD' ? getYTDDays() : (range?.days || 66);
+    let days = (range?.days || 66) as number;
+    if (timeRange === 'YTD') days = getYTDDays();
+    if (timeRange === '1D') days = 2;
+    if (timeRange === '1W') days = 5;
+    
     const filteredData = data.slice(-Math.min(days, data.length));
 
-    if (filteredData.length === 0) {
+    if (filteredData.length < 2 && (timeRange === '1W' || timeRange === '1D')) {
+        // Fallback for missing historical data
+        return { chartData: [], periodStats: null };
+    } else if (filteredData.length === 0) {
       return { chartData: [], periodStats: null };
     }
 

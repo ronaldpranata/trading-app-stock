@@ -54,7 +54,7 @@ function StockChartDisplay({
   const theme = useTheme();
 
   // Prepare data for MUI X Charts
-  const xData = data.map(d => new Date(d.date));
+  const xData = data.map(d => d.date);
   const priceData = data.map(d => d.price);
   const sma20Data = data.map(d => d.sma20 > 0 ? d.sma20 : null);
   const sma50Data = data.map(d => d.sma50 > 0 ? d.sma50 : null);
@@ -99,7 +99,7 @@ function StockChartDisplay({
       if (data && typeof data.dataIndex === 'number') {
            const point = {
                payload: {
-                   date: xData[data.dataIndex].toISOString(),
+                   date: xData[data.dataIndex],
                    price: priceData[data.dataIndex],
                    index: data.dataIndex
                }
@@ -115,14 +115,13 @@ function StockChartDisplay({
         <LineChart
             xAxis={[{ 
                 data: xData, 
-                scaleType: 'time', 
-                valueFormatter: (date: Date) => {
+                scaleType: 'point', 
+                valueFormatter: (dateStr: string) => {
+                    const date = new Date(dateStr);
                     const month = (date.getMonth() + 1).toString().padStart(2, '0');
                     const day = date.getDate().toString().padStart(2, '0');
                     return `${month}-${day}`;
-                },
-                min: xData[0]?.getTime(),
-                max: xData[xData.length-1]?.getTime(),
+                }
             }]}
             yAxis={[{
                 min: minPrice,
@@ -171,13 +170,13 @@ function StockChartDisplay({
             {/* Reference Lines for Measure Tool */}
             {measure.firstClick && (
                  <ChartsReferenceLine 
-                    x={new Date(measure.firstClick.date)} 
+                    x={measure.firstClick.date} 
                     lineStyle={{ stroke: '#06b6d4', strokeWidth: 2, strokeDasharray: '3 3' }} 
                  />
             )}
             {measure.secondClick && (
                  <ChartsReferenceLine 
-                    x={new Date(measure.secondClick.date)} 
+                    x={measure.secondClick.date} 
                     lineStyle={{ stroke: '#06b6d4', strokeWidth: 2, strokeDasharray: '3 3' }} 
                  />
             )}

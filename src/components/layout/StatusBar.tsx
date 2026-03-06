@@ -8,6 +8,9 @@ import {
   BarChart,
   Psychology,
   AccessTime,
+  TrendingUp,
+  TrendingDown,
+  CurrencyBitcoin
 } from "@mui/icons-material";
 
 import { useStock, useUI } from "@/hooks";
@@ -46,6 +49,40 @@ export default function StatusBar() {
               </Stack>
             )}
           </Stack>
+          
+          {/* Injected Price Ticker */}
+          {primaryStock?.quote && (
+            <Stack direction="row" alignItems="center" gap={2}>
+               <Stack direction="row" alignItems="center" gap={1}>
+                  <Typography variant="body2" fontWeight="bold">
+                    ${primaryStock.quote.price.toFixed(2)}
+                  </Typography>
+               </Stack>
+               <Stack
+                  direction="row"
+                  alignItems="center"
+                  gap={0.5}
+                  sx={{
+                    color: primaryStock.quote.change >= 0 ? "success.main" : "error.main",
+                    bgcolor: primaryStock.quote.change >= 0
+                      ? "rgba(34, 197, 94, 0.1)"
+                      : "rgba(239, 68, 68, 0.1)",
+                    px: 1,
+                    borderRadius: 1,
+                  }}
+                >
+                  {primaryStock.quote.change >= 0 ? (
+                    <TrendingUp sx={{ fontSize: 14 }} />
+                  ) : (
+                    <TrendingDown sx={{ fontSize: 14 }} />
+                  )}
+                  <Typography variant="caption" fontWeight="bold">
+                    {primaryStock.quote.change >= 0 ? "+" : ""}
+                    {primaryStock.quote.change.toFixed(2)} ({primaryStock.quote.changePercent.toFixed(2)}%)
+                  </Typography>
+                </Stack>
+            </Stack>
+          )}
 
         </Stack>
       </Container>

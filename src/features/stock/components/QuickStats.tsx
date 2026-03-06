@@ -75,44 +75,39 @@ export default function QuickStats({
              </Box>
            )}
 
-           <Grid container spacing={2}>
-             <Grid size={{ xs: 6 }}>
-               {(fundamentals?.marketCap ?? 0) > 0 && (
-                 <MetricBox
-                   label="Market Cap"
-                   value={fundamentals?.marketCap ?? 0}
-                   format={(v) => `$${formatNumber(v as number)}`}
-                 />
-               )}
-             </Grid>
-             <Grid size={{ xs: 6 }}>
-               {(fundamentals?.peRatio ?? 0) > 0 && (
-                 <MetricBox
-                   label="P/E Ratio"
-                   value={fundamentals?.peRatio ?? 0}
-                   format={(v) => (v as number).toFixed(1)}
-                 />
-               )}
-             </Grid>
-             <Grid size={{ xs: 6 }}>
-               <MetricBox
-                 label="PEG Ratio"
-                 value={(fundamentals?.pegRatio === undefined || fundamentals?.pegRatio === 0) ? "N/A" : fundamentals.pegRatio}
-                 format={(v) => typeof v === 'string' ? v : (v as number).toFixed(2)}
-                 colorize={typeof fundamentals?.pegRatio === 'number' && fundamentals.pegRatio > 0}
-                 thresholds={{ good: 1, bad: 2, inverse: true }}
-               />
-             </Grid>
-             <Grid size={{ xs: 6 }}>
-               {prediction?.targetPrice && (
-                 <MetricBox
-                   label="Target"
-                   value={prediction.targetPrice}
-                   format={(v) => `$${(v as number).toFixed(2)}`}
-                 />
-               )}
-             </Grid>
-           </Grid>
+            <Stack spacing={1} sx={{ p: 1.5, bgcolor: 'background.paper', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
+               <Stack direction="row" justifyContent="space-between" alignItems="center">
+                 <Typography variant="body2" color="text.secondary">Market Cap</Typography>
+                 <Typography variant="body2" fontWeight="bold">
+                   ${fundamentals?.marketCap ? formatNumber(fundamentals.marketCap) : 'N/A'}
+                 </Typography>
+               </Stack>
+               
+               <Stack direction="row" justifyContent="space-between" alignItems="center">
+                 <Typography variant="body2" color="text.secondary">P/E Ratio</Typography>
+                 <Typography variant="body2" fontWeight="bold">
+                   {fundamentals?.peRatio ? fundamentals.peRatio.toFixed(1) : 'N/A'}
+                 </Typography>
+               </Stack>
+
+               <Stack direction="row" justifyContent="space-between" alignItems="center">
+                 <Typography variant="body2" color="text.secondary">PEG Ratio</Typography>
+                 <Typography 
+                    variant="body2" 
+                    fontWeight="bold"
+                    color={fundamentals?.pegRatio && fundamentals.pegRatio > 0 && fundamentals.pegRatio < 1.5 ? 'success.main' : fundamentals?.pegRatio && fundamentals.pegRatio >= 2 ? 'error.main' : 'text.primary'}
+                 >
+                   {fundamentals?.pegRatio ? fundamentals.pegRatio.toFixed(2) : 'N/A'}
+                 </Typography>
+               </Stack>
+
+               <Stack direction="row" justifyContent="space-between" alignItems="center">
+                 <Typography variant="body2" color="text.secondary">Target Price</Typography>
+                 <Typography variant="body2" fontWeight="bold">
+                   {prediction?.targetPrice ? `$${prediction.targetPrice.toFixed(2)}` : 'N/A'}
+                 </Typography>
+               </Stack>
+            </Stack>
 
            <Box pt={2} sx={{ borderTop: 1, borderColor: 'divider' }}>
              <Stack spacing={1}>

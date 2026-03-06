@@ -49,7 +49,7 @@ export default function SingleStockView() {
   return (
     <>
       {/* Tabs */}
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 1.5 }}>
         <Tabs 
           value={activeTab} 
           onChange={(_, val) => setActiveTab(val)} 
@@ -58,16 +58,16 @@ export default function SingleStockView() {
           allowScrollButtonsMobile
         >
           {tabs.map((tab) => (
-            <Tab key={tab.id} label={getTabLabel(tab.label)} value={tab.id} />
+            <Tab key={tab.id} label={getTabLabel(tab.label)} value={tab.id} sx={{ minHeight: 48, py: 0 }} />
           ))}
         </Tabs>
       </Box>
 
       {/* Tab Content */}
       {activeTab === "overview" && (
-        <Grid container spacing={3}>
+        <Grid container spacing={1.5}>
           <Grid size={{ xs: 12, lg: 8 }}>
-            <Stack spacing={3}>
+            <Stack spacing={1.5}>
               <ErrorBoundary>
                 <PriceTicker />
                 <StockChart />
@@ -86,8 +86,8 @@ export default function SingleStockView() {
       )}
 
       {activeTab === "technical" && (
-        <Stack spacing={3}>
-          <Grid container spacing={3}>
+        <Stack spacing={1.5}>
+          <Grid container spacing={1.5}>
             <Grid size={{ xs: 12, lg: 6 }}>
               <ErrorBoundary>
                   <TechnicalAnalysis
@@ -105,7 +105,7 @@ export default function SingleStockView() {
               </ErrorBoundary>
             </Grid>
           </Grid>
-          <Grid container spacing={3}>
+          <Grid container spacing={1.5}>
              <Grid size={{ xs: 12, lg: 6 }}>
               <ErrorBoundary>
                   <CandlestickPatternsDisplay
@@ -118,7 +118,7 @@ export default function SingleStockView() {
       )}
 
       {activeTab === "fundamental" && (
-        <Grid container spacing={3}>
+        <Grid container spacing={1.5}>
           <Grid size={{ xs: 12, lg: 6 }}>
             <FundamentalAnalysis
               data={primaryStock?.fundamentalData || null}
@@ -133,7 +133,7 @@ export default function SingleStockView() {
       )}
 
       {activeTab === "prediction" && (
-        <Grid container spacing={3}>
+        <Grid container spacing={1.5}>
           <Grid size={{ xs: 12, lg: 6 }}>
             <PredictionDisplay
               prediction={primaryStock?.prediction || null}

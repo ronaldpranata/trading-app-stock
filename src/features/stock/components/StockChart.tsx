@@ -16,6 +16,8 @@ interface RechartsEvent {
 }
 
 const TIME_RANGE_OPTIONS: { id: TimeRange; label: string; days: number }[] = [
+  { id: '1D', label: '1D', days: 2 },
+  { id: '1W', label: '1W', days: 5 },
   { id: '1M', label: '1M', days: 22 },
   { id: '3M', label: '3M', days: 66 },
   { id: '6M', label: '6M', days: 132 },
@@ -28,7 +30,7 @@ export default function StockChart() {
   const data = primaryStock?.historicalData || [];
   const indicators = primaryStock?.technicalIndicators || null;
 
-  const [timeRange, setTimeRange] = useState<TimeRange>('3M');
+  const [timeRange, setTimeRange] = useState<TimeRange>('1D');
   const [showSMA, setShowSMA] = useState(true);
   
   const measure = useChartMeasure();
@@ -63,7 +65,7 @@ export default function StockChart() {
 
   if (!data || data.length === 0 || chartData.length === 0) {
     return (
-      <Card sx={{ height: 384, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Card sx={{ height: 320, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Typography color="text.secondary">No chart data available</Typography>
       </Card>
     );
@@ -94,12 +96,12 @@ export default function StockChart() {
           firstClick={measure.firstClick}
           result={measure.result}
           onClear={measure.clear}
-          className="mb-3"
+          className="mb-2"
         />
 
         {/* Period Summary */}
         {periodStats && !measure.isActive && (
-          <PeriodSummary stats={periodStats} className="mb-3" />
+          <PeriodSummary stats={periodStats} className="mb-2" />
         )}
 
         {/* Chart (Memoized) */}
@@ -121,12 +123,6 @@ export default function StockChart() {
             <PeriodStatsDisplay stats={periodStats} />
           </Box>
         )}
-
-        {/* Current Price */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
-          <Typography variant="caption" color="text.secondary">Current Price</Typography>
-          <Typography variant="body2" fontWeight="bold">${currentPrice.toFixed(2)}</Typography>
-        </Box>
       </CardContent>
     </Card>
   );

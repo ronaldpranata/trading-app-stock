@@ -2,6 +2,8 @@
 
 // Time ranges for charts
 export const TIME_RANGES = [
+  { id: '1D', label: '1D', days: 2 },
+  { id: '1W', label: '1W', days: 5 },
   { id: '1M', label: '1M', days: 22 },
   { id: '3M', label: '3M', days: 66 },
   { id: '6M', label: '6M', days: 132 },
