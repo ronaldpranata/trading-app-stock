@@ -6,8 +6,39 @@ import { jwtVerify } from 'jose';
 const protectedRoutes = ['/dashboard', '/author'];
 const protectedApiRoutes = ['/api/stock', '/api/author'];
 
+// Rate Limiter configuration
+const ipLimiter = new Map<string, { count: number; lastReset: number }>();
+const RATE_LIMIT = 100; // max requests
+const WINDOW_MS = 60 * 1000; // 1 minute window
+
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Rate Limiting Logic for API routes
+  if (pathname.startsWith('/api')) {
+    const ip = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'unknown';
+    const now = Date.now();
+    const windowStart = now - WINDOW_MS;
+
+    const rateLimitInfo = ipLimiter.get(ip) || { count: 0, lastReset: now };
+
+    if (rateLimitInfo.lastReset < windowStart) {
+      rateLimitInfo.count = 0;
+      rateLimitInfo.lastReset = now;
+    }
+
+    rateLimitInfo.count++;
+    ipLimiter.set(ip, rateLimitInfo);
+
+    if (rateLimitInfo.count > RATE_LIMIT) {
+      return new NextResponse('Too Many Requests', {
+        status: 429,
+        headers: {
+          'Retry-After': Math.ceil((rateLimitInfo.lastReset + WINDOW_MS - now) / 1000).toString(),
+        },
+      });
+    }
+  }
 
   // Check if the route is protected
   const isProtectedRoute = protectedRoutes.some((route) => 
@@ -53,12 +84,12 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api/auth (login, logout, check)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - login (public page)
+     * Note: api/auth is NOT excluded because we want rate limiting to apply to it.
      */
-    '/((?!api/auth|_next/static|_next/image|favicon.ico|login).*)',
+    '/((?!_next/static|_next/image|favicon.ico|login).*)',
   ],
 };
