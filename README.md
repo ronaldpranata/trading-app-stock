@@ -13,51 +13,18 @@ A Next.js web application for stock price prediction using technical and fundame
 - 🖥 **Professional UI**: High-density layouts, persistent global ticker anchors, and compact grid spacing designed for rapid quantitative analysis.
 - 🔒 **Security**: API Rate Limiting (100 req/min) and strict HTTP security headers.
 
-## Deployment to GitHub Pages
+## Deployment to Vercel
 
-### Option 1: Manual Deployment
+This repository is optimized for zero-configuration deployments on Vercel. 
 
-1. **Build the app:**
-   ```bash
-   cd app
-   npm ci
-   npm run build
-   ```
-
-2. **Copy to your stock-analyzer repo:**
-   ```bash
-   # Create trading-app folder in your stock-analyzer repo
-   mkdir -p /path/to/stock-analyzer/trading-app
-   
-   # Copy the built files
-   cp -r out/* /path/to/stock-analyzer/trading-app/
-   ```
-
-3. **Commit and push:**
-   ```bash
-   cd /path/to/stock-analyzer
-   git add .
-   git commit -m "Deploy trading app"
-   git push
-   ```
-
-4. **Access your app:**
-   ```
-   https://ronaldpranata.github.io/stock-analyzer/trading-app/
-   ```
-
-### Option 2: Using the Deploy Script
-
-```bash
-./deploy.sh
-```
-
-Then follow the instructions printed by the script.
+1. **Connect your Git Repository** to Vercel.
+2. Ensure the **Framework Preset** is set to `Next.js`.
+3. Add your `FINNHUB_API_KEY` to the Vercel Environment Variables panel.
+4. Click **Deploy**. Vercel will automatically build and serve the application on every git push.
 
 ## Development
 
 ```bash
-cd app
 npm install
 npm run dev
 ```
@@ -67,7 +34,7 @@ Open [http://localhost:3000](http://localhost:3000)
 ## Project Structure
 
 ```
-app/
+.
 ├── src/
 │   ├── app/           # Next.js app router
 │   ├── components/    # React components
@@ -78,12 +45,12 @@ app/
 │   ├── types/         # TypeScript types
 │   └── utils/         # Analysis utilities
 ├── public/            # Static assets
-└── out/               # Built static files
+└── .env               # Environment Configs
 ```
 
 ## Tech Stack
 
-- **Framework:** Next.js 14 App Router
+- **Framework:** Next.js 
 - **Language:** TypeScript
 - **State Management:** Redux Toolkit
 - **Styling:** Material UI (MUI) v5
