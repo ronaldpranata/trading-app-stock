@@ -73,14 +73,37 @@ export function generateTimeframePrediction(
   else if (timeframe === 'week') sentimentWeight = 0.25; // Moderate impact on weekly
   else if (timeframe === 'month') sentimentWeight = 0.10; // Low impact on monthly
   
-  // Re-normalize weights to sum to 1
-  const existingWeightSum = config.technicalWeight + config.fundamentalWeight + config.dcfWeight;
+  // Dynamic ADX Regime Weighting
+  // If ADX > 25, trend is strong: Technical analysis holds more weight.
+  // If ADX < 20, market is ranging: Fundamental analysis and S/R hold more weight.
+  let adxTechMultiplier = 1;
+  let adxFundMultiplier = 1;
+  const adx = technicalIndicators.adx;
+  if (adx !== undefined) {
+    if (adx > 30) {
+      adxTechMultiplier = 1.3; // +30% weight to technicals
+      adxFundMultiplier = 0.7; // -30% to fundamentals
+    } else if (adx < 20) {
+      adxTechMultiplier = 0.7; // -30% weight to technicals
+      adxFundMultiplier = 1.3; // +30% weight to fundamentals
+    }
+  }
+
+  const existingWeightSum = (config.technicalWeight * adxTechMultiplier) + 
+                            (config.fundamentalWeight * adxFundMultiplier) + 
+                            config.dcfWeight;
+  
+  // Normalize ADX-adjusted weights back to sum to 1 before blending sentiment
+  const normTech = (config.technicalWeight * adxTechMultiplier) / existingWeightSum;
+  const normFund = (config.fundamentalWeight * adxFundMultiplier) / existingWeightSum;
+  const normDcf = config.dcfWeight / existingWeightSum;
+
   const normalizationFactor = 1 - sentimentWeight;
 
   const weightedScore = 
-    (technicalScore * config.technicalWeight * normalizationFactor) + 
-    (fundamentalScore * config.fundamentalWeight * normalizationFactor) +
-    (dcfScore * config.dcfWeight * normalizationFactor) +
+    (technicalScore * normTech * normalizationFactor) + 
+    (fundamentalScore * normFund * normalizationFactor) +
+    (dcfScore * normDcf * normalizationFactor) +
     (sentimentScore * sentimentWeight);
     
   // Adjust score based on Support/Resistance match
@@ -102,7 +125,6 @@ export function generateTimeframePrediction(
     direction = 'NEUTRAL';
   }
   
-  // Calculate confidence - longer timeframes have lower confidence
   const baseConfidence = Math.abs(finalScore - 50) * 1.5 + 35;
   
   // Boost confidence if sentiment confirms direction
@@ -110,8 +132,19 @@ export function generateTimeframePrediction(
   if (direction === 'BULLISH' && sentimentScore > 60) sentimentBoost = 10;
   if (direction === 'BEARISH' && sentimentScore < 40) sentimentBoost = 10;
 
+  // Risk-Adjusted Confidence Metrics via Historical Sharpe & Win Rate
+  let riskAdjustment = 0;
+  if (technicalIndicators.yearlyMetrics) {
+    const { sharpeRatio, winRate } = technicalIndicators.yearlyMetrics;
+    if (sharpeRatio < 0.5) riskAdjustment -= 10; // High volatility, low return -> chaotic, lower confidence
+    else if (sharpeRatio > 1.5) riskAdjustment += 5; // Steady verified trends -> higher confidence
+
+    if (direction === 'BULLISH' && winRate < 45) riskAdjustment -= 5;
+    else if (direction === 'BEARISH' && winRate > 55) riskAdjustment -= 5;
+  }
+
   const timeframeConfidencePenalty = Math.log(config.days + 1) * 5;
-  const confidence = Math.min(95, Math.max(25, baseConfidence + sentimentBoost - timeframeConfidencePenalty));
+  const confidence = Math.min(95, Math.max(25, baseConfidence + sentimentBoost + riskAdjustment - timeframeConfidencePenalty));
   
   // ... rest of logic ...
   const dailyVolatility = technicalIndicators.atr / currentPrice;
@@ -151,9 +184,44 @@ export function generateTimeframePrediction(
   }
   
   const stopLossDistance = technicalIndicators.atr * config.volatilityMultiplier * 0.75;
-  const stopLoss = direction === 'BULLISH' 
+  let stopLoss = direction === 'BULLISH' 
     ? currentPrice - stopLossDistance 
     : currentPrice + stopLossDistance;
+
+  // ------------------------------------------------------------------
+  // Quant S/R Snapping Logic for Stop Loss and Target
+  // ------------------------------------------------------------------
+  if (technicalIndicators.supportResistance && technicalIndicators.supportResistance.length > 0) {
+    const srLevels = technicalIndicators.supportResistance;
+    const supports = srLevels.filter(l => l.type === 'support').sort((a, b) => b.level - a.level);
+    const resistances = srLevels.filter(l => l.type === 'resistance').sort((a, b) => a.level - b.level);
+
+    if (direction === 'BULLISH') {
+      // Find the first resistance strictly ABOVE current price, but BELOW the unadjusted targetPrice
+      const targetResistance = resistances.find(r => r.level > currentPrice && r.level <= targetPrice);
+      if (targetResistance) {
+        // Cap profit target at established resistance barrier rather than overshooting blindly
+        targetPrice = targetResistance.level * 0.99; // Front-run slightly to ensure fill
+      }
+      
+      // Find the immediate support strictly BELOW current price to place hard stop
+      const immediateSupport = supports.find(s => s.level < currentPrice);
+      if (immediateSupport && immediateSupport.level > stopLoss) {
+        // Hide stop-loss safely under the support structure with an ATR buffer
+        stopLoss = immediateSupport.level - (technicalIndicators.atr * 0.5); 
+      }
+    } else if (direction === 'BEARISH') {
+      const targetSupport = supports.find(s => s.level < currentPrice && s.level >= targetPrice);
+      if (targetSupport) {
+        targetPrice = targetSupport.level * 1.01; // Front-run the bounce
+      }
+
+      const immediateResistance = resistances.find(r => r.level > currentPrice);
+      if (immediateResistance && immediateResistance.level < stopLoss) {
+        stopLoss = immediateResistance.level + (technicalIndicators.atr * 0.5); // Hide stop-loss safely over the resistance structure
+      }
+    }
+  }
   
   const potentialReward = Math.abs(targetPrice - currentPrice);
   const potentialRisk = Math.abs(currentPrice - stopLoss);

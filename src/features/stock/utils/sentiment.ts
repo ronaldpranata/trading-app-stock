@@ -28,28 +28,44 @@ const NEGATIVE_KEYWORDS: Record<string, number> = {
 
 /**
  * Calculates a sentiment score for a single headline
- * Returns a value between -1 (very negative) and 1 (very positive)
+ * Returns a value between -1 (very negative) and 1 (very positive),
+ * adjusted by the keyword density.
  */
-function analyzeHeadline(headline: string): number {
+function analyzeHeadline(headline: string): { score: number; rawMatches: number; wordCount: number } {
   const words = headline.toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/);
-  let score = 0;
+  let totalWeight = 0;
   let matches = 0;
 
   for (const word of words) {
     if (POSITIVE_KEYWORDS[word]) {
-      score += POSITIVE_KEYWORDS[word];
+      totalWeight += POSITIVE_KEYWORDS[word];
       matches++;
     } else if (NEGATIVE_KEYWORDS[word]) {
-      score -= NEGATIVE_KEYWORDS[word];
+      totalWeight -= NEGATIVE_KEYWORDS[word];
       matches++;
     }
   }
 
-  if (matches === 0) return 0;
+  if (matches === 0) return { score: 0, rawMatches: 0, wordCount: words.length };
   
-  // Normalize per match to avoid bias towards longer headlines
-  const normalizedScore = score / matches;
-  return Math.max(-1, Math.min(1, normalizedScore));
+  // Base normalization
+  const baseScore = totalWeight / matches;
+  
+  // Volumetric density: (Matches / WordCount) gives us the cluster ratio
+  // E.g. 3 triggers in 6 words is 0.5 (very high density)
+  // E.g. 1 trigger in 20 words is 0.05 (very low density)
+  const density = matches / words.length;
+  
+  // Multiplier scales from 1x to 2.5x based on density
+  // Using logarithmic curve to heavily reward the first few bursts of density
+  const densityMultiplier = 1 + (Math.log(1 + density * 10) / Math.log(10)); // scales smoothly
+  
+  const optimizedScore = baseScore * Math.min(2.5, densityMultiplier);
+  return { 
+    score: Math.max(-1, Math.min(1, optimizedScore)), 
+    rawMatches: matches,
+    wordCount: words.length 
+  };
 }
 
 export interface SentimentAnalysisResult {
@@ -59,22 +75,23 @@ export interface SentimentAnalysisResult {
   keywordMatches: { word: string; impact: 'positive' | 'negative' }[];
 }
 
-/**
- * analyzes a list of headlines and returns an aggregate sentiment score
- */
 export function calculateSentiment(headlines: string[]): SentimentAnalysisResult {
   if (!headlines || headlines.length === 0) {
     return { score: 50, sentiment: 'neutral', headlines: [], keywordMatches: [] };
   }
 
   let totalScore = 0;
+  let totalMatches = 0;
+  let totalWords = 0;
   let relevantHeadlines = 0;
   const allMatches: { word: string; impact: 'positive' | 'negative' }[] = [];
 
   for (const headline of headlines) {
-    const score = analyzeHeadline(headline);
-    if (score !== 0) {
-      totalScore += score;
+    const analysis = analyzeHeadline(headline);
+    if (analysis.rawMatches > 0) {
+      totalScore += analysis.score;
+      totalMatches += analysis.rawMatches;
+      totalWords += analysis.wordCount;
       relevantHeadlines++;
       
       // Collect keywords for debug/display
@@ -86,18 +103,21 @@ export function calculateSentiment(headlines: string[]): SentimentAnalysisResult
     }
   }
 
-  // If no relevant keywords found in any headlines
+  // If no relevant keywords found
   if (relevantHeadlines === 0) {
     return { score: 50, sentiment: 'neutral', headlines, keywordMatches: [] };
   }
 
-  // Calculate average score (-1 to 1)
-  const averageScore = totalScore / relevantHeadlines;
+  // Calculate average headline score
+  let averageScore = totalScore / relevantHeadlines;
   
+  // Overall aggregated density multiplier across the daily block of headlines
+  const globalDensity = totalMatches / totalWords;
+  const globalBonus = 1 + (Math.log(1 + globalDensity * 5) / Math.log(10));
+  
+  averageScore = Math.max(-1, Math.min(1, averageScore * globalBonus));
+
   // Map -1...1 to 0...100
-  // -1 -> 0
-  // 0 -> 50
-  // 1 -> 100
   const finalScore = Math.round((averageScore + 1) * 50);
 
   let sentiment: 'positive' | 'negative' | 'neutral' = 'neutral';
@@ -108,8 +128,8 @@ export function calculateSentiment(headlines: string[]): SentimentAnalysisResult
     score: finalScore,
     sentiment,
     headlines,
-    keywordMatches: [...new Set(allMatches.map(m => JSON.stringify(m)))] // De-duplicate
+    keywordMatches: [...new Set(allMatches.map(m => JSON.stringify(m)))]
       .map(s => JSON.parse(s))
-      .slice(0, 10) // Limit to top 10
+      .slice(0, 10)
   };
 }

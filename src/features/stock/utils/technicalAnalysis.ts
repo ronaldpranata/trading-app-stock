@@ -107,7 +107,7 @@ export function calculateStochastic(highs: number[], lows: number[], closes: num
   return { k: isNaN(k) ? 50 : k, d: isNaN(d) ? 50 : d };
 }
 
-// Average True Range
+// Average True Range (Wilder's Smoothing Method / RMA)
 export function calculateATR(highs: number[], lows: number[], closes: number[], period: number = 14): number {
   if (closes.length < period + 1) return 0;
   
@@ -121,7 +121,15 @@ export function calculateATR(highs: number[], lows: number[], closes: number[], 
     trueRanges.push(tr);
   }
   
-  return calculateSMA(trueRanges.slice(-period), period);
+  // Calculate initial SMA
+  let atr = trueRanges.slice(0, period).reduce((a, b) => a + b, 0) / period;
+  
+  // Apply Wilder's Smoothing Method (RMA) for subsequent periods
+  for (let i = period; i < trueRanges.length; i++) {
+    atr = (atr * (period - 1) + trueRanges[i]) / period;
+  }
+  
+  return atr;
 }
 
 // On-Balance Volume
@@ -408,19 +416,28 @@ export function calculateAllIndicators(historicalData: HistoricalData[]): Techni
 export function generateTechnicalSignals(indicators: TechnicalIndicators, currentPrice: number): Signal[] {
   const signals: Signal[] = [];
   
-  // RSI Signal
+  // RSI Signal with basic divergence check
+  // We assume that if RSI is extreme but the Stochastic is crossing the opposite way, momentum is structurally fading.
   if (indicators.rsi < 30) {
+    let rsiStrength = Math.min((30 - indicators.rsi) / 30, 1);
+    // Divergence check
+    if (indicators.stochastic.k > indicators.stochastic.d && indicators.stochastic.k < 40) rsiStrength *= 1.5;
+
     signals.push({
       name: 'RSI Oversold',
       type: 'bullish',
-      strength: Math.min((30 - indicators.rsi) / 30, 1),
+      strength: Math.min(rsiStrength, 1),
       description: `RSI at ${indicators.rsi.toFixed(2)} indicates oversold conditions`
     });
   } else if (indicators.rsi > 70) {
+    let rsiStrength = Math.min((indicators.rsi - 70) / 30, 1);
+    // Divergence check
+    if (indicators.stochastic.k < indicators.stochastic.d && indicators.stochastic.k > 60) rsiStrength *= 1.5;
+
     signals.push({
       name: 'RSI Overbought',
       type: 'bearish',
-      strength: Math.min((indicators.rsi - 70) / 30, 1),
+      strength: Math.min(rsiStrength, 1),
       description: `RSI at ${indicators.rsi.toFixed(2)} indicates overbought conditions`
     });
   }

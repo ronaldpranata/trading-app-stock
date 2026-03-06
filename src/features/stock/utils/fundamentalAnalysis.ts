@@ -81,7 +81,8 @@ export function generateFundamentalSignals(fundamentals: FundamentalData): Signa
       strength: 0.6,
       description: `P/E ratio of ${fundamentals.peRatio.toFixed(2)} suggests undervaluation`
     });
-  } else if (fundamentals.peRatio > 40) {
+  } else if (fundamentals.peRatio > 40 && fundamentals.evToEbitda > 20) {
+    // Only heavily penalize high P/E if enterprise value vs cash flow is also bloated
     signals.push({
       name: 'High P/E Ratio',
       type: 'bearish',
@@ -98,13 +99,33 @@ export function generateFundamentalSignals(fundamentals: FundamentalData): Signa
       strength: 0.6,
       description: `P/B ratio of ${fundamentals.pbRatio.toFixed(2)} - trading below book value`
     });
-  } else if (fundamentals.pbRatio > 8) {
+  } else if (fundamentals.pbRatio > 8 && fundamentals.roe < 15) {
+    // High P/B is okay if ROE (capital efficiency) is exceptional
     signals.push({
       name: 'High P/B Ratio',
       type: 'bearish',
       strength: 0.4,
-      description: `P/B ratio of ${fundamentals.pbRatio.toFixed(2)} - premium valuation`
+      description: `P/B ratio of ${fundamentals.pbRatio.toFixed(2)} - premium valuation without matching ROE`
     });
+  }
+
+  // EV/EBITDA Analysis (Cash-generative valuation proxy)
+  if (fundamentals.evToEbitda > 0) {
+    if (fundamentals.evToEbitda < 10) {
+      signals.push({
+        name: 'Strong EV/EBITDA',
+        type: 'bullish',
+        strength: 0.7,
+        description: `EV/EBITDA of ${fundamentals.evToEbitda.toFixed(2)} indicates strong cash generation vs enterprise value`
+      });
+    } else if (fundamentals.evToEbitda > 25) {
+      signals.push({
+        name: 'Weak EV/EBITDA',
+        type: 'bearish',
+        strength: 0.6,
+        description: `EV/EBITDA of ${fundamentals.evToEbitda.toFixed(2)} indicates bloated enterprise value`
+      });
+    }
   }
   
   // ROE Analysis
@@ -218,6 +239,8 @@ export function calculateFundamentalScore(signals: Signal[]): number {
   
   let score = 50;
   let totalWeight = 0;
+  let hasBullishPEG = false;
+  let hasBearishDCF = false;
   
   signals.forEach(signal => {
     const weight = signal.strength;
@@ -227,12 +250,22 @@ export function calculateFundamentalScore(signals: Signal[]): number {
     const isPEGSignal = signal.name.includes('PEG');
     const multiplier = isPEGSignal ? 1.5 : 1;
     
+    if (isPEGSignal && signal.type === 'bullish') hasBullishPEG = true;
+    if (signal.name.includes('DCF') && signal.type === 'bearish') hasBearishDCF = true;
+    
     if (signal.type === 'bullish') {
       score += weight * 10 * multiplier;
     } else if (signal.type === 'bearish') {
       score -= weight * 10 * multiplier;
     }
   });
+
+  // DCF divergence penalty
+  // If the PEG ratio looks incredibly undervalued but the mathematically constructed DCF model implies overvaluation,
+  // we compress the score towards neutrality to model accounting trap risk.
+  if (hasBullishPEG && hasBearishDCF && score > 60) {
+    score = score - ((score - 50) * 0.5); // 50% retracement of bullish score
+  }
   
   return Math.max(0, Math.min(100, score));
 }
